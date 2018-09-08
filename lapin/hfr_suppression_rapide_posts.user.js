@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Suppression rapide de posts
-// @version 0.2.4
+// @version 0.2.4.2
 // @namespace http://toyonos.info
 // @description Permet de supprimer un de ses posts via un bouton sans passer par la page de réponse
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -20,6 +20,14 @@
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 
+
+// historique modifs r21 :
+// 0.2.4.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.2.4.1 (03/12/2017) :
+// - passage au https
+
+
 // Menu pour selectionner l'url de l'image
 GM_registerMenuCommand("[HFR] Suppression rapide de posts -> Url de l'image", function()
 {
@@ -31,7 +39,7 @@ GM_registerMenuCommand("[HFR] Suppression rapide de posts -> Url de l'image", fu
 
 var getCurrentImgUrl = function()
 {
-	return GM_getValue('hfr_srp_imgUrl', 'http://forum-images.hardware.fr/images/perso/damnbloodyseagull.gif');	
+	return GM_getValue('hfr_srp_imgUrl', 'https://forum-images.hardware.fr/images/perso/damnbloodyseagull.gif');	
 }
 
 var getElementByXpath = function (path, element)
@@ -42,7 +50,7 @@ var getElementByXpath = function (path, element)
 }
 
 var root = document.getElementById('mesdiscussions');
-var urlPost = 'http://forum.hardware.fr/bdd.php?config=hfr.inc';
+var urlPost = 'https://forum.hardware.fr/bdd.php?config=hfr.inc';
 
 getElementByXpath('//table//tr[starts-with(@class, "message")]//div[@class="left"]', root).filter(function(toolbar)
 {
@@ -156,8 +164,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

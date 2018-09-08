@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Edition rapide du Wiki smilies
-// @version 0.1.4
+// @version 0.1.4.2
 // @namespace http://toyonos.info
 // @description Permet de faire rapidement des modifications dans le wiki smilies via un double clic sur un smiley perso donné
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -20,6 +20,14 @@
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 
+
+// historique modifs r21 :
+// 0.1.4.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.1.4.1 (03/12/2017) :
+// - passage au https
+
+
 ({
 	getElementByXpath : function (path, element)
 	{
@@ -30,7 +38,7 @@
 	
 	getKeyWords : function (code, cbf)
 	{
-		toyoAjaxLib.loadDoc('http://forum.hardware.fr/wikismilies.php', 'get', 'config=hfr.inc&detail=' + encodeURIComponent(code), function(pageContent)
+		toyoAjaxLib.loadDoc('https://forum.hardware.fr/wikismilies.php', 'get', 'config=hfr.inc&detail=' + encodeURIComponent(code), function(pageContent)
 		{
 			var keyWords = pageContent.match(/name="keywords0"\s*value="(.*)"\s*onkeyup/).pop();
 			cbf(keyWords);
@@ -43,7 +51,7 @@
 		var root = document.getElementById('mesdiscussions');
 		var hashCheck = this.getElementByXpath('//input[@name="hash_check"]', document).pop().value;
 		var thisScript = this;
-		this.getElementByXpath('//table//td[@class="messCase2"]//div[starts-with(@id, "para" )]//img[starts-with(@src, "http://forum-images.hardware.fr/images/perso/" )]', root).forEach(function (img)
+		this.getElementByXpath('//table//td[@class="messCase2"]//div[starts-with(@id, "para" )]//img[starts-with(@src, "https://forum-images.hardware.fr/images/perso/" )]', root).forEach(function (img)
 		{		
 			// Mouseover (texte alternatif / titre)
 			img.addEventListener('mouseover', function()
@@ -116,7 +124,7 @@
 								{
 									var smiley = this.parentNode.lastChild.value;
 									var keyWords = this.parentNode.firstChild.value;
-									var url = 'http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0';
+									var url = 'https://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0';
 									var arguments = 'modif0=1&smiley0='+ encodeURIComponent(smiley) +'&keywords0=' + encodeURIComponent(keyWords);
 									arguments += '&hash_check=' + hashCheck;
 									toyoAjaxLib.loadDoc(url, 'post', arguments, function (pageContent)
@@ -239,8 +247,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

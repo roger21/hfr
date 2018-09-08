@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Vos smileys favoris
-// @version 1.4.0
-// @namespace http://forum.hardware.fr
+// @version 1.4.0.1
+// @namespace https://forum.hardware.fr
 // @description Permet d'afficher une liste illimitée de smileys favoris personnels, ainsi que des statistiques sur leur utilisation (historique et les plus utilisés)
-// @include http://forum.hardware.fr/*
-// @require http://forum-images.hardware.fr/compressed/editPost.js?v=11102781422
+// @include https://forum.hardware.fr/*
+// @require https://forum-images.hardware.fr/compressed/editPost.js?v=11102781422
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 1.4.0.1 (03/12/2017) :
+// - passage au https
+
 
 // Création : 15/09/2010
 // Dernière MAJ : 10/12/2011
@@ -56,9 +62,9 @@ var favoriteWindowHeight = "200px";
 var favoriteWindowWidth = "300px";
 var i_tab_yoursmileys = 2; // Indice de l'onglet "Vos smileys" dans le système d'onglets de la fenêtre de configuration
 
-var image_general_url = "http://forum-images.hardware.fr/icones/"; // Url pour les smileys de base généraux (:o)
-var image_base_url = "http://forum-images.hardware.fr/icones/smilies/"; // Url pour les smileys de base (:ouch:)
-var image_utilisateur_url = "http://forum-images.hardware.fr/images/perso/"; // Url pour les smileys utilisateur
+var image_general_url = "https://forum-images.hardware.fr/icones/"; // Url pour les smileys de base généraux (:o)
+var image_base_url = "https://forum-images.hardware.fr/icones/smilies/"; // Url pour les smileys de base (:ouch:)
+var image_utilisateur_url = "https://forum-images.hardware.fr/images/perso/"; // Url pour les smileys utilisateur
 
 // Variables de stockage temporaire
 var root = null; // Elément HTML correspondant à la racine du panneau d'édition d'un message sur la page HFR
@@ -907,10 +913,10 @@ function Main()
 	
 	// Switch suivant la page affichée
 	if(
-		current_url.match('http://forum.hardware.fr/message.php*')
-		|| current_url.match('http://forum.hardware.fr/hfr/.*/nouveau_sujet.htm')
-		|| current_url.match('http://forum.hardware.fr/hfr/.*/nouveau_sondage.htm')
-		|| current_url.match('http://forum.hardware.fr/hfr/.*/repondre.*'))
+		current_url.match('https://forum.hardware.fr/message.php*')
+		|| current_url.match('https://forum.hardware.fr/hfr/.*/nouveau_sujet.htm')
+		|| current_url.match('https://forum.hardware.fr/hfr/.*/nouveau_sondage.htm')
+		|| current_url.match('https://forum.hardware.fr/hfr/.*/repondre.*'))
 	{
 		// Page édition de message
 		HandleEditingMessagePage();

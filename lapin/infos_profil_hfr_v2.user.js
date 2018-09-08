@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Informations rapides sur le profil
-// @version 0.2.7b
+// @version 0.2.7b.2
 // @namespace http://toyonos.info
 // @description Rajoute un bouton pour avoir un accès rapide à certaines infos du profil d'un membre
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -20,6 +20,14 @@
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 
+
+// historique modifs r21 :
+// 0.2.7b.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.2.7b.1 (03/12/2017) :
+// - passage au https
+
+
 // Menu pour selectionner l'url de l'image
 GM_registerMenuCommand("[HFR] Informations rapides sur le profil -> Url de l'image", function()
 {
@@ -31,7 +39,7 @@ GM_registerMenuCommand("[HFR] Informations rapides sur le profil -> Url de l'ima
 
 var getCurrentImgUrl = function()
 {
-	return GM_getValue('hfr_irp_imgUrl', 'http://forum-images.hardware.fr/images/perso/mister_k.gif');	
+	return GM_getValue('hfr_irp_imgUrl', 'https://forum-images.hardware.fr/images/perso/mister_k.gif');	
 }
 
 function getElementByXpath(path, element)
@@ -76,7 +84,7 @@ for(var i = 0; i < linksMsg.length; i++)
 		{
 			var nbPosts = profilContent.match(/<td class=\"profilCase2\">Nombre de messages .*&nbsp;: <\/td>\s*<td class=\"profilCase3\">([0-9]+)<\/td>/).pop();
 			var dateInscription = profilContent.match(/<td class=\"profilCase2\">Date .* sur le forum&nbsp;: <\/td>\s*<td class=\"profilCase3\">([0-9]{2}\/[0-9]{2}\/[0-9]{4})<\/td>/).pop();
-			var tmp, smileyPerso = (tmp = profilContent.match(/<td class=\"profilCase4\" rowspan=\"\d\">\s*.*\s*<img src=\"(http:\/\/forum-images\.hardware\.fr\/images\/perso\/.*\.gif)\" alt=\"smilie perso\" \/>\s*&nbsp;<\/td>/)) != null ? tmp.pop() : null;
+			var tmp, smileyPerso = (tmp = profilContent.match(/<td class=\"profilCase4\" rowspan=\"\d\">\s*.*\s*<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/.*\.gif)\" alt=\"smilie perso\" \/>\s*&nbsp;<\/td>/)) != null ? tmp.pop() : null;
 			var dateNaissance = (tmp = profilContent.match(/<td class=\"profilCase2\">Date de naissance&nbsp;: <\/td>\s*<td class=\"profilCase3\">([0-9]{2}\/[0-9]{2}\/[0-9]{4})<\/td>/)) != null ? tmp.pop() : null;
 			var sexe = (tmp = profilContent.match(/<td class=\"profilCase2\">[s|S]exe&nbsp;: <\/td>\s*<td class=\"profilCase3\">(homme|femme)<\/td>/)) != null ? tmp.pop() : null;
 			var ville = (tmp = profilContent.match(/<td class=\"profilCase2\">[v|V]ille&nbsp;: <\/td>\s*<td class=\"profilCase3\">(.*?)<\/td>/)) != null ? tmp.pop() : null;
@@ -231,8 +239,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{	
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

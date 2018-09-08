@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Citation dans la reponse rapide
-// @version 0.2.1
+// @version 0.2.1.2
 // @namespace http://toyonos.info
 // @description Rajoute le systeme de citation dans la zone de réponse rapide via un double clic sur les icônes correspondantes
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.2.1.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.2.1.1 (03/12/2017) :
+// - passage au https
+
 
 /* Modifié par Fred82 le 12/11/2011 :
 - mise en conformité avec Firefox 8 (reste compatible avec anciennes versions de Firefox).
@@ -287,8 +295,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

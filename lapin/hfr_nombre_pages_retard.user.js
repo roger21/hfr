@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name [HFR] Nombre de pages en retard
-// @version 1.3.0
-// @namespace http://forum.hardware.fr
+// @version 1.3.0.1
+// @namespace https://forum.hardware.fr
 // @description Affiche le nombre de pages en retard dans la liste des sujets
-// @include http://forum.hardware.fr/forum1f.php*
-// @include http://forum.hardware.fr/forum1.php*
-// @include http://forum.hardware.fr/*liste_sujet*
+// @include https://forum.hardware.fr/forum1f.php*
+// @include https://forum.hardware.fr/forum1.php*
+// @include https://forum.hardware.fr/*liste_sujet*
 // @require http://code.jquery.com/jquery-1.8.2.min.js
 // @grant GM_info
 // @grant GM_deleteValue
@@ -21,6 +21,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 1.3.0.1 (03/12/2017) :
+// - passage au https
+
 
 /*
 	Authors : Fred82 && cytrouille

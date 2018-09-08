@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Apercu des posts dans la reponse/edition rapide
-// @version 0.2.5
+// @version 0.2.5.1
 // @namespace http://toyonos.info
 // @description Rajoute l'aperçu du message dans la réponse rapide et dans l'édition rapide du forum hardware.fr
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -20,12 +20,18 @@
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 
+
+// historique modifs r21 :
+// 0.2.5.1 (03/12/2017) :
+// - passage au https
+
+
 //Lib de generation de l'apercu (provenant de mdenhance)
 // uses code from Freekil (hfrenhance v1)
 var BBParser = {
 
-  lieu : "http://forum-images.hardware.fr/icones/", //"../../../icones/";
-  lieuPerso : "http://forum-images.hardware.fr/images/perso/", //"../../../images/perso/";
+  lieu : "https://forum-images.hardware.fr/icones/", //"../../../icones/";
+  lieuPerso : "https://forum-images.hardware.fr/images/perso/", //"../../../images/perso/";
 
   parse: function(str) {
  

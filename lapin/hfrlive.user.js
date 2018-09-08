@@ -92,7 +92,7 @@ var ready_to_refresh = true;
  */
     function appendMissingQuoteHref(message)
     {
-        var to_modify = jQ(message).find('img[src="http://forum-images.hardware.fr/themes_static/images_forum/1/quote.gif"]').get(0);
+        var to_modify = jQ(message).find('img[src="https://forum-images.hardware.fr/themes_static/images_forum/1/quote.gif"]').get(0);
         jQ(to_modify).wrap('<a href ="' + getMessageLink(message) + '"></a>');
     }
 

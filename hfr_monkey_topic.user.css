@@ -1,0 +1,31 @@
+/* @name          [HFR] monkey topic */
+/* @version       1.0.0 */
+/* @namespace     roger21.free.fr */
+/* @description   permet de décorer le titre du topic des scripts greasemonkey avec des têtes de singe dans la liste des topics */
+/* @revision      $Rev: 170 $ */
+
+/*
+historique :
+1.0.0 (29/04/2018) :
+- creation
+*/
+
+@namespace url(http://www.w3.org/1999/xhtml);
+
+@-moz-document url-prefix("https://forum.hardware.fr/forum1.php"),
+url-prefix("https://forum.hardware.fr/forum1f.php"),
+regexp("^https://forum\\.hardware\\.fr/.*/liste_sujet-.*.htm$"){
+
+  #mesdiscussions td.sujetCase3 a.cCatTopic[href*="&cat=13&subcat=432&post=116015&"],
+  #mesdiscussions td.sujetCase3 a.cCatTopic[href*="sujet_116015_"]{
+  }
+  #mesdiscussions td.sujetCase3 a.cCatTopic[href*="&cat=13&subcat=432&post=116015&"]:before,
+  #mesdiscussions td.sujetCase3 a.cCatTopic[href*="sujet_116015_"]::before{
+    content:"\1f435\fe0f\0020";
+  }
+  #mesdiscussions td.sujetCase3 a.cCatTopic[href*="&cat=13&subcat=432&post=116015&"]:after,
+  #mesdiscussions td.sujetCase3 a.cCatTopic[href*="sujet_116015_"]::after{
+    content:"\0020\1f435\fe0f";
+  }
+
+}

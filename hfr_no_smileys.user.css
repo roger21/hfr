@@ -1,0 +1,30 @@
+/* @name          [HFR] no smileys */
+/* @version       1.2.1 */
+/* @namespace     roger21.free.fr */
+/* @description   permet de masquer les smileys par défaut sur la page de réponse et de creation de topic */
+/* @revision      $Rev: 170 $ */
+
+/*
+historique :
+1.2.1 (28/11/2017) :
+- passage au https
+1.2.0 (11/11/2015) :
+- prise en compte des pages de reponse des topics sans sous-cat en url verbeuse, oui c'est pointu comme cas :o
+1.1.0 (26/09/2015) :
+- prise en compte des pages de creation de topic/sondage
+1.0.0 (07/03/2015) :
+- creation
+*/
+
+@namespace url(http://www.w3.org/1999/xhtml);
+
+@-moz-document url-prefix("https://forum.hardware.fr/message.php"),
+regexp("https://forum\\.hardware\\.fr/hfr/.*/(repondre-[0-9]+-[0-9]+\\.htm.*|nouveau_sujet\\.htm|nouveau_sondage\\.htm)") {
+
+  html body div.container div#mesdiscussions.mesdiscussions form#hop table.main tbody tr.reponse th.repCase1 div div.center div.smiley,
+  html body div.container div#mesdiscussions.mesdiscussions form#hop table.main tbody tr.reponse td.repCase2 input[type="radio"],
+  html body div.container div#mesdiscussions.mesdiscussions form#hop table.main tbody tr.reponse td.repCase2 input[type="radio"] + label{
+    display:none !important;
+  }
+
+}

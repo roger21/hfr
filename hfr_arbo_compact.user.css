@@ -1,0 +1,32 @@
+/* @name          [HFR] arbo compact */
+/* @version       1.1.0 */
+/* @namespace     roger21.free.fr */
+/* @description   permet de compacter l'affichage des arborescences cat/sous-cat/topic */
+/* @revision      $Rev: 170 $ */
+
+/*
+historique :
+1.1.0 (09/09/2016) :
+- meilleur compactage
+1.0.0 (28/04/2014) :
+- creation
+*/
+
+@namespace url(http://www.w3.org/1999/xhtml);
+
+@-moz-document domain("forum.hardware.fr") {
+
+  #mesdiscussions div.arbo {
+    margin-top:0 !important;
+    margin-bottom:0 !important;
+  }
+  #mesdiscussions div.arbo * {
+    line-height: 11px !important;
+    /*font-size:smaller !important;*/
+  }
+  #mesdiscussions div.arbo img {
+    margin:0 !important;
+    vertical-align:bottom !important;
+  }
+
+}

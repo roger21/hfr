@@ -1,878 +1,1385 @@
 // ==UserScript==
-// @name [HFR] Image Anti HS
-// @version 0.2.2
-// @namespace http://mycrub.info
-// @description Ajoute une icône anti-hs en haut d'une page d'un topic pour filtrer les messages sans intérêt
-// @include http://forum.hardware.fr/forum2.php*
-// @include http://forum.hardware.fr/*/*/*/*-sujet_*_*.htm*
+// @name          [HFR] Anti HS mod_r21
+// @version       3.1.2
+// @namespace     roger21.free.fr
+// @description   Permet de filtrer les messages sans intérêts d'un topic via un ensemble de règles configurables.
+// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @include       https://forum.hardware.fr/forum2.php*
+// @include       https://forum.hardware.fr/hfr/*/*-sujet_*_*.htm*
+// @author        roger21
+// @authororig    mycrub
+// @modifications Ajout d'un mode OU, ajout d'un filtre sur les vidéos, le nombre de fois cité, les spoilers, les liens internes, les mots obligatoires, les gifs, les tags et les messages récents et refonte de l'interface et du code.
+// @modtype       réécriture et évolutions
+// @homepageURL   http://roger21.free.fr/hfr/
+// @noframes
+// @grant         GM.getValue
+// @grant         GM_getValue
+// @grant         GM.setValue
+// @grant         GM_setValue
+// @grant         GM_registerMenuCommand
 // ==/UserScript==
 
-var hsImg = "data:image/gif,GIF89a%10%00%10%00%A1%02%00%00%00%00%FF%00%00%FF%FF%FF%FF%FF%FF!%FE%11Created%20with%20GIMP%00!%F9%04%01%0A%00%03%00%2C%00%00%00%00%10%00%10%00%00%02%3B%9C%17%A9y%B7%AF%9A%12%B4F%93%AA%B6%01%25%00%08%20%05%02%8F%18%8Ee%B8%A0%EEH%B5k%0A%CB%2B9%DA..%E8j%D9%5B%FCP%2CFf%A3a%60%8EI%E5%12%B2h%3C%1F%8D%02%00%3B";
-var noHsImg = "data:image/gif,GIF89a%10%00%10%00%A1%02%00%00%00%00%80%80%80%FF%FF%FF%FF%FF%FF!%FE%11Created%20with%20GIMP%00!%F9%04%01%0A%00%03%00%2C%00%00%00%00%10%00%10%00%00%02%3D%9C%17%A9y%B7%AF%9A%12%B4F%93%AA%16%0B%25%00%08%20%F5%3Db8~%E1r%9E%9F5%81%A0%1Ar%F1%1CP%B2%9D%E1u%CB%02%A8N)Hk%17%99l%60%18%A5%E6%D2%84t%1A%1EH%A3%00%00%3B";
+// modifications roger21 $Rev: 394 $
 
-var minLength = null;
-var blWords = null;
-var topicId = null;
+// historique :
+// 3.1.2 (05/08/2018) :
+// - ajout d'une majuscule dans la commande du menu GM
+// 3.1.1 (30/07/2018) :
+// - correction d'une fôte, signalée par Daphne :jap:
+// 3.1.0 (28/07/2018) :
+// - nouveau nom : [HFR] Anti HS mod_r21_gm4 -> [HFR] Anti HS mod_r21
+// - ajout du nombre de messages filtrés dans l'entête du topic
+// - ajout d'un filtre sur les messages récents
+// - utilisation d'une classe css au lieu de l'attribut style pour masquer les messages ->
+// plus propre et permet de fonctionner avec d'autres scripts comme black liste
+// 3.0.0 (09/06/2018) :
+// - gestion de la compatibilité gm4
+// - nouveau nom : [HFR] anti hs mod_r21 -> [HFR] Anti HS mod_r21_gm4
+// - refonte complète du code et check du code dans tm
+// - gestion des #HashTags en plus des tags dans le filtre sur les tags
+// - ajout d'un filtre supplémentaire sur les gifs en lien avec le filtre images
+// - prise en compte des citations pour les mots interdits et obligatoires
+// - compactage de la fenêtre de configuration ->
+// choix du mode de filtrage dans le titre des règles
+// - suppression des @grant inutiles
+// - maj de la metadata @homepageURL
+// - amélioration des @include
+// - appropriation des metadata @namespace et @author (passage en roger21)
+// - ajout de la metadata @authororig (mycrub)
+// - réécriture des metadata @description, @modifications et @modtype
+// 2.6.0 (23/04/2018) :
+// - ajout du filtre sur les tags
+// - petites corrections de code et check du code dans tm
+// 2.5.7 (23/12/2017) :
+// - suppression de la bordure rouge qui plait a personne ...
+// 2.5.6 (09/12/2017) :
+// - correction du selecteur de messages (evol du forum) par PetitJean
+// 2.5.5 (28/11/2017) :
+// - passage au https
+// 2.5.4 (09/10/2017) :
+// - désactivation de la tooltip "Le topic est filtré par [HFR] anti hs"
+// 2.5.3 (28/07/2017) :
+// - prise en compte des urls verbeuses pour les topics sans sous-cat
+// 2.5.2 (09/04/2017) :
+// - correction d'un bug sur la detection du nombre de quotes (chaine non convertie en int, signalé par nahouto)
+// 2.5.1 (30/03/2017) :
+// - resémentisation de l'interface :o (nan mais c'est encore plus clair là normalement)
+// 2.5.0 (19/03/2017)
+// - ajout des filtres sur les sploiers, les liens internes et les mots obligatoires
+// - suppresson des fonctions d'anti-scroll sur la fenêtre de configuration (et passage en fixed)
+// - compactage / simplification de la fenêtre de configuration
+// 2.4.0 (11/02/2017) :
+// - ajout du filtre sur le nombre de quotes
+// - léger restylage de bouts de code
+// - correction du style font-fammily à Verdana,Arial,Sans-serif,Helvetica (HFR Style)
+// - compression des images (pngoptimizer)
+// - légers restylages de la fenêtre de conf (oui, encore :o )
+// 2.3.0 (15/12/2016) :
+// - correction de la taille des polices dans la fenêtre de configuration
+// - légère remise en forme de la fenêtre de configuration
+// - ajout de la détection des videos (<video>, <audio> ou <iframe>)
+// 2.2.0 (24/11/2015) :
+// - nouveau nom (oui encore :o ) : [HFR] image anti hs mod_r21 -> [HFR] anti hs mod_r21
+// - remplacement des ' par des " (pasque !)
+// 2.1.0 (22/11/2015) :
+// - nouveau nom : [HFR] Image Anti HS mod_r21 -> [HFR] image anti hs mod_r21
+// 2.0.0 (21/11/2015) :
+// - ajout d'une bordure rouge et d'un tooltip explicite en mode filtré
+// - reformatage du tooltip sur le bouton HS
+// - reformatage du code (Online JavaScript beautifier : ->
+// "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
+// - nouveau numéro de version : 0.2.3 -> 2.0.0
+// - nouveau nom : [HFR] Image Anti HS -> [HFR] Image Anti HS mod_r21
+// - modification de l'année dans les dates de l'historique : passage de 2 a 4 chiffres
+// 0.2.3 (17/10/2015) :
+// - uniformisation du nom du script : "Anti HS" -> "Image Anti HS"
+// - genocide de commentaires et de lignes vides
+// - ajout de la commande de configuration dans le menu greasemonkey (puisqu'elle existe) et avec le bon nom
+// 0.2.2.8 (07/03/2015) :
+// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
+// 0.2.2.7 (19/01/2015) :
+// - reformatage du code (Online JavaScript beautifier : ->
+// "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
+// - + reformatage allin (emacs)
+// 0.2.2.6 (19/01/2015) :
+// - ajout de metadata pour la publication (@author, @modifications, @modtype)
+// - restylage de la fenêtre de conf
+// - ajout d'un mode OU sur les filtres (en plus du mode ET implicite précédent)
+// - meilleure gestion de l'affichage des parametres sélectionnés sur la fenêtre de conf
+// - réactivation du filtrage des images quotés (comportement par défaut)
+// - meilleure sémantique de l'affichage du bouton HS et de son title (tooltip)
+// - meilleure gestion de l'affichage du bouton HS au niveau du DOM (plus d'element perdus et recréés)
+// - suppression du log d'activité
+// - inversion de la sémantique du bouton HS : "gris" devient "désactivé" et "couleur" devient "activé"
+// - nouveaux titles (tooltip) pour le bouton HS
+// - nouvelles icones pour le bouton HS
+// - compactage du css
+// - reencodage des images en base64
+// - decoupage des lignes de code trop longue
+// - suppression de certains commentaires inutiles
+// - suppression de bouts de code mort
+// - reformatage du code (Online JavaScript beautifier : ->
+// "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
+// - suppression du module d'auto-update (code mort)
+// 0.2.2.5 (27/03/2014) :
+// - ajout d'une icone au script
+// - ajout des dates dans l'historique
+// 0.2.2.4 (18/03/2014) :
+// - maj des metadata @grant et indentation des metadata
+// 0.2.2.3 (14/09/2012) :
+// - ajout des metadata @grant
+// 0.2.2.1 à 0.2.2.2 (15/02/2012) :
+// - désactive le filtrage des images quotés
+// - modification de la marge à 5px au lieu de 3px
+// - ajout d'un .1 sur le numero de version
+// - désactivation de l'auto-update pour conserver les modifs
 
-var doubleClickInterval = 250;
-var lastClickTime = 0;
-var clickedImage;
+(function() {
 
-/**
- * Parses processes the whole page
- */ 
-var processPage = function () {
-  var startTime = new Date().valueOf();
-  var cmpt = 0;
-  var root = document.getElementById('mesdiscussions');
-  var messages = getElementByXpath('//table[@class="messagetable"]', root);
-  
-  if (isInFilter()) {
-    injectRemoveFilterButton();
-    for(var i = 0; i < messages.length; i++) {
-      if (complies(messages[i])) {
-        messages[i].setAttribute("style", null);
+  /* ---------------------------- */
+  /* gestion de compatibilité gm4 */
+  /* ---------------------------- */
+
+  if(typeof GM === "undefined") {
+    GM = {};
+  }
+  if(typeof GM_getValue !== "undefined" && typeof GM.getValue === "undefined") {
+    GM.getValue = function(...args) {
+      return new Promise((resolve, reject) => {
+        try {
+          resolve(GM_getValue.apply(null, args));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    };
+  }
+  if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
+    GM.setValue = function(...args) {
+      return new Promise((resolve, reject) => {
+        try {
+          resolve(GM_setValue.apply(null, args));
+        } catch (e) {
+          reject(e);
+        }
+      });
+    };
+  }
+
+  /* ---------------------------------------------------- */
+  /* construction des variables globales et vérifications */
+  /* ---------------------------------------------------- */
+
+  // élément racine pour les recherches en querySelector
+  var root = document.querySelector("div#mesdiscussions.mesdiscussions");
+
+  // verification de l'élément racine
+  if(root === null) {
+    console.log("[HFR] Anti HS md_r21 ERROR root is null")
+    return;
+  }
+
+  // identifiant du topic (cat_post)
+  var topic = null;
+
+  // construction de l'identifiant du topic (cat_post)
+  let result_topic = /.*forum2\.php\?.*&cat=(\d*)&.*&post=(\d*)&.*/.exec(document.location.href);
+  if(result_topic !== null) {
+    let cat = result_topic[1];
+    let post = result_topic[2];
+    topic = cat + "_" + post;
+  } else {
+    let search = root.querySelector("table.main tr th form[action=\"/transsearch.php\"]");
+    if(search !== null &&
+      search.querySelector("input[name=\"cat\"]") !== null &&
+      search.querySelector("input[name=\"post\"]") !== null) {
+      let cat = search.querySelector("input[name=\"cat\"]").value.trim();
+      let post = search.querySelector("input[name=\"post\"]").value.trim();
+      topic = cat + "_" + post;
+    }
+  }
+
+  // verification de la construction de l'identifiant du topic
+  if(topic === null) {
+    console.log("[HFR] Anti HS md_r21 ERROR topic is null")
+    return;
+  }
+
+  // valeurs de filtrage par défaut
+  var default_min_message_length = 500;
+  var default_min_quoted_number = 4;
+  var default_recent_messages_seconds = 60;
+
+  // regexp des dates
+  var date_regexp = "([0-9]{2})-([0-9]{2})-([0-9]{4}).*((?:[0-9]{2}:){2}[0-9]{2})";
+  var post_regexp = new RegExp("^.*Posté le " + date_regexp + ".*$");
+  var edit_regexp = new RegExp("^.*Message édité par .* le " + date_regexp + ".*$");
+
+  /* -------------------------------- */
+  /* gestion du message d'information */
+  /* -------------------------------- */
+
+  // construction de la div
+  var info_div = null;
+  topic_bar = root.querySelector("table.main tbody tr.cBackHeader td.padding div.pagepresuiv:last-of-type");
+  if(topic_bar && topic_bar.parentElement) {
+    info_div = document.createElement("div");
+    info_div.style.fontWeight = "bold";
+    info_div.style.color = "crimson";
+    topic_bar.parentElement.appendChild(info_div);
+  }
+
+  // function d'affichage du message
+  function display_count(cpt) {
+    if(info_div) {
+      if(cpt === 0) {
+        info_div.textContent = "Aucun message filtré par [HFR] Anti HS";
+      } else if(cpt === 1) {
+        info_div.textContent = "Un message filtré par [HFR] Anti HS";
+      } else {
+        info_div.textContent = cpt + " messages filtrés par [HFR] Anti HS";
       }
-      else {
-        cmpt++;
-        messages[i].setAttribute("style", "display:none");
+    }
+  }
+
+  // function de masquage du message
+  function hide_count() {
+    if(info_div) {
+      info_div.textContent = "";
+    }
+  }
+
+  /* ------------------------------------ */
+  /* construction des boutons de filtrage */
+  /* ------------------------------------ */
+
+  // images des boutons de fitrage
+  var enabled_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAB40lEQVR42oVTsUtCcRD%2BoTTk0mxUZjT0FySvwRoajCiHanAtCLcKaigUMYICEYJGh6QhaJGgKZIIjSAQgqZagkQRMS1fviyL93X3eJr1lA4O7%2FzdfXf33T0hWsizEBLpFmlMV7Yl8Z%2BUhBghfXgRola2WNTXnh7IVivY5v%2F4jWNaJheFWKAqaqWvD1%2Fr60AyCRQKQC4HJBL42thAxWYDxxDIiqEyP1SdTuD0FC3l%2FR21mRmUzWZQN6yjzQAPjN42meRzfl5L%2FnC5oNjtDJCuJ0vkfN663SAXTxR8nEo1bJY7hwMUjV3S3s5OpCYmUKaOKc%2FJAFtMUjIYNALIMmoej5Z82NGh%2Bec3N7gIBCB3dXEXOwwQY6bPIhEtqVmLU1NcCVHdHxofx%2Fb%2BPpDJgMkmgBMDwHU2i0g0ijDZRKzWgUwELoVC6B4e1mIONjd%2FAfwegdq8lyQ86h2wzC4v415RkFZVCJMJR15vfYQ9A4nFyUk80W9YB2MZHBtrjOUmAt%2FW1n5IbF7jB89MFWpzc23XiXgcysDAzxqbD6m%2BZ1SrbZOr1I1%2BSNN%2Fr3GRH%2FhIVJ8PuLoCSiUgnwcuL6H6%2FfXKrKstvwc%2BT26N52OSlP5%2BjW229ZnThsptgJzMMK9J170GYX%2FkGyk57Hc0wG6yAAAAAElFTkSuQmCC";
+  var disabled_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAB1ElEQVR42oVTu2pCQRT0H%2FwJawvBIPEDhFj5Awai4PuFWFgI4rMR06n4QBBFuE2wUbT0F%2ByiiGKpIIoPcHJn8RoTNTlwYPeendk5c%2FaqVHfC6XTq5YzLKZ2Ta73qv5APPbnd7s9AIHCIRqOnZDKJRCIBrvmNNZ65C3Y4HK8ej%2BeUSqXQ7XYxnU6x3%2B%2Bx3W7FutfrIZ1Og2dcLpfv5mYWCoUCxuMxHkWj0UAkEoHP54OsxnghoDSy%2FwWWJEmAq9UqstksvF7vVJGul%2Fs75nI5yFshezAYiPXhcBBgemG322E0GqFWq5HJZBAKhU7yxc8kiNOkWq12ASkEy%2BUSrVYLNpsNFotF7IfDISqVCmKxGNtIkUCi0%2B12W4Cus1QqIRwOw2w2i71Op0M%2Bn8d6vQbNlgk%2BbghGoxHK5TIMBgOCwaBQsNlsOEpoNBpxhiTXBD9aoEwWKZsKGFarFYvFAqvVSpxh%2FdzC%2B42JBPn9fqGAZAytVntpy2QyodPpfJt4PcZ6vS5G1Ww2H45zMpn8HOP1Q1Lm%2FBe4WCwqD%2Bnl92t8Y4Hs%2FX4f8%2Fkcx%2BMRu90Os9lMfGPtDA7e%2FR%2F4PCmN%2FdEkAhTD%2BI21m5sfED3TYY7pnO8Xw37FF%2BtGGhEY747bAAAAAElFTkSuQmCC";
+
+  // boutons d'activation et de désactivation du filtrage
+  var enabled_button;
+  var disabled_button;
+
+  // gestion du double click sur les boutons de filtrage
+  var double_click_interval = 333; // ms
+  var last_click_time = 0;
+  var click_time;
+
+  // action du clic sur le bouton en mode non filtré
+  function disabled_button_click_action() {
+    if(last_click_time === click_time) {
+      topic_has_filters(function(has_filters) {
+        if(has_filters) { // si le topic a des filtres
+          // passe en mode filtré
+          set_topic_filtered_status(true).then(function() {
+            // filtre la page
+            process_page();
+          });
+        } else { // sinon
+          // affiche le fenêtre de configuration
+          show_config_window();
+        }
+      });
+    }
+  }
+
+  // action du clic sur le bouton en mode filtré
+  function enabled_button_click_action() {
+    if(last_click_time === click_time) {
+      // passe en mode non filtré
+      set_topic_filtered_status(false).then(function() {
+        // dé-filtre la page
+        process_page();
+      });
+    }
+  }
+
+  // création des boutons d'activation et de désactivation du filtrage
+  var buttons_div = document.createElement("div");
+  buttons_div.className = "right";
+  disabled_button = document.createElement("img");
+  disabled_button.src = disabled_img;
+  disabled_button.style.cursor = "pointer";
+  disabled_button.style.marginRight = "5px";
+  disabled_button.addEventListener("click", function(event) {
+    click_time = new Date().getTime();
+    if(click_time - last_click_time > double_click_interval) {
+      // action sur simple clic
+      last_click_time = click_time;
+      setTimeout(disabled_button_click_action, double_click_interval);
+    } else {
+      // action sur double clic
+      last_click_time = 0;
+      // affiche la fenêtre de configuration
+      show_config_window();
+    }
+  }, false);
+  enabled_button = document.createElement("img");
+  enabled_button.src = enabled_img;
+  enabled_button.style.cursor = "pointer";
+  enabled_button.style.marginRight = "5px";
+  enabled_button.addEventListener("click", function(event) {
+    click_time = new Date().getTime();
+    if(click_time - last_click_time > double_click_interval) {
+      // action sur simple clic
+      last_click_time = click_time;
+      setTimeout(enabled_button_click_action, double_click_interval);
+    } else {
+      // action sur double clic
+      last_click_time = 0;
+      // affiche la fenêtre de configuration
+      show_config_window();
+    }
+  }, false);
+  buttons_div.appendChild(enabled_button);
+  buttons_div.appendChild(disabled_button);
+  root.querySelector("table.main tbody tr th div.right").appendChild(buttons_div);
+
+  // fonction de traitement de la page et de filtrage des messages
+  function process_page() {
+    let messages = root.querySelectorAll("table[class~=\"messagetable\"]");
+    get_topic_filtered_status().then(function(status) {
+      if(status) {
+        disabled_button.style.display = "none";
+        enabled_button.style.display = "inline";
+        filter_messages(messages);
+        enabled_button.title = "Le topic est en mode filtré\ncliquez pour désactiver le filtrage\ndouble-cliquez pour configurer";
+      } else {
+        disabled_button.style.display = "inline";
+        enabled_button.style.display = "none";
+        for(let message of messages) {
+          message.classList.remove("gmhfrr21_ah_hide");
+        }
+        topic_has_filters(function(has_filters) {
+          if(has_filters) {
+            disabled_button.title = "Le topic est en mode non filtré\ncliquez pour activer le filtrage\ndouble-cliquez pour configurer";
+          } else {
+            disabled_button.title = "Le topic est en mode non filtré\ncliquez pour configurer le filtrage";
+          }
+        });
+        hide_count();
       }
-    }
-    GM_log(cmpt + " messages filtered in " + (new Date().valueOf() - startTime) + " ms");
+    });
   }
-  else {
-    injectAddFilterButton();
-    for(var i = 0; i < messages.length; i++) {
-      messages[i].setAttribute("style", null);
-    }
+
+  /* ------------------------------------------------------- */
+  /* fonctions d'accès aux paramètres de filtrage configurés */
+  /* ------------------------------------------------------- */
+
+  // retourne l'état du topic (filtré ou non filtré)
+  async function get_topic_filtered_status() {
+    let value = await GM.getValue("ah_topic_filtered_status." + topic, false);
+    return value;
   }
-}
 
-/**
- * Tests if one message complies with the filtering rules of the topic
- */ 
-var complies = function (message) {
-  return (!filterOnImages() || (filterOnImages() && hasImage(message)))
-      && (!filterOnQuotes() || (filterOnQuotes() && hasQuote(message)))
-      && (!filterOnXQuotes() || (filterOnXQuotes() && hasXQuote(message)))
-      && (!filterOnLength() || (filterOnLength() && hasLength(message)))
-      && (!filterOnWords()  || (filterOnWords()  && !hasWord(message)))
-      && (!filterOnLinks()  || (filterOnLinks()  && hasLink(message)))
-  ;
-}
-
-/**
- * Is this topic configured for filtering on images?
- */ 
-var filterOnImages = function () {
-  return GM_getValue("ah_images." + getTopicId(), false);
-}
-
-/**
- * Is this topic configured for filtering on quotes?
- */ 
-var filterOnQuotes = function () {
-  return GM_getValue("ah_quotes." + getTopicId(), false);
-}
-
-/**
- * Is this topic configured for filtering on extra-topic quotes?
- */ 
-var filterOnXQuotes = function () {
-  return GM_getValue("ah_quotes_extra." + getTopicId(), false);
-}
-
-/**
- * Is this topic configured for filtering on message length?
- */ 
-var filterOnLength = function () {
-  return GM_getValue("ah_chars." + getTopicId(), false);
-}
-
-/**
- * Is this topic configured for filtering on blacklisted words?
- */ 
-var filterOnWords = function () {
-  return GM_getValue("ah_bl_words." + getTopicId(), false);
-}
-
-/**
- * Is this topic configured for filtering on links?
- */ 
-var filterOnLinks = function () {
-  return GM_getValue("ah_links." + getTopicId(), false);
-}
-
-/**
- * Does this message have an external image?
- */ 
-var hasImage = function (message) {
-  var images = getElementByXpath(".//div[starts-with(@id,'para')]//img[not(starts-with(@src, 'http://forum-images.hardware.fr'))]", message);
-  var quotedImages = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']//img[not(starts-with(@src, 'http://forum-images.hardware.fr'))]", message);
-  return images.length - quotedImages.length > 0;
-}
-
-/**
- * Does this message have an external link?
- */ 
-var hasLink = function (message) {
-  var links = getElementByXpath(".//div[starts-with(@id,'para')]//p//a[not(starts-with(@href, 'http://forum.hardware.fr'))]", message);
-  var quotedLinks = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']//p//a[not(starts-with(@href, 'http://forum.hardware.fr'))]", message);
-  return links.length - quotedLinks.length > 0;
-}
-
-/**
- * Does this message contain at least 1 quote?
- */ 
-var hasQuote = function (message) {
-  var quotes = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']", message);
-  return quotes.length > 0;
-}
-
-/**
- * Does this message contain at least 1 extra-topic quote?
- */ 
- var dbg = 0;
-var hasXQuote = function (message) {
-  var quotes = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']//tr//td//b[@class='s1']//a", message);
-  for (var i = 0; i < quotes.length; i++) {
-    var href = quotes[i].href;
-    var anchor = href.substring(href.lastIndexOf("#")+1);
-    if (document.getElementsByName(anchor).length == 0) {
-      return true
-    }
+  // enregistre l'état du topic (filtré ou non filtré)
+  async function set_topic_filtered_status(status) {
+    await GM.setValue("ah_topic_filtered_status." + topic, status);
   }
-  return false;
-}
 
-/**
- * Returns the (unquoted) text of this message
- */ 
-var getMessageText = function (message) {
-  var pars = getElementByXpath(".//div[starts-with(@id,'para')]/p", message);
-  var text = "";
-  for (var i = 0 ; i < pars.length ; i++) text += pars[i].textContent + " ";
-  return text;
-}
+  // filtrage du topic en ET
+  async function filter_on_and() {
+    let value = await GM.getValue("ah_filter_on_and." + topic, true);
+    return value;
+  }
 
-/**
- * Is this message long enough?
- */ 
-var hasLength = function (message) {
-  return getMessageText(message).length >= getMinLength();
-}
+  // filtrage du topic sur les images
+  async function filter_on_images() {
+    let value = await GM.getValue("ah_filter_on_images." + topic, false);
+    return value;
+  }
 
-/**
- * Does this message have 1 blacklisted word?
- */ 
-var hasWord = function (message) {
-  var blWords = getBlWords();
-  var text = getMessageText(message);
-  for (var i = 0; i < blWords.length; i++) {
-    if (blWords[i] != null && blWords[i].length > 0) {
-      if (text.indexOf(blWords[i]) >= 0) {
+  // filtrage du topic sur les gifs
+  async function filter_on_gifs() {
+    let value = await GM.getValue("ah_filter_on_gifs." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les citations
+  async function filter_on_quotes() {
+    let value = await GM.getValue("ah_filter_on_quotes." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les citations extra-pages
+  async function filter_on_extra_page_quotes() {
+    let value = await GM.getValue("ah_filter_on_extra_page_quotes." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur la longueur minimale du message
+  async function filter_on_min_message_length() {
+    let value = await GM.getValue("ah_filter_on_min_message_length." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les liens internes
+  async function filter_on_internal_links() {
+    let value = await GM.getValue("ah_filter_on_internal_links." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les liens externes
+  async function filter_on_external_links() {
+    let value = await GM.getValue("ah_filter_on_external_links." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur le nombre minimal de fois cité
+  async function filter_on_min_quoted_number() {
+    let value = await GM.getValue("ah_filter_on_min_quoted_number." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les vidéos
+  async function filter_on_videos() {
+    let value = await GM.getValue("ah_filter_on_videos." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les spoilers
+  async function filter_on_spoilers() {
+    let value = await GM.getValue("ah_filter_on_spoilers." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les tags et les #HashTags
+  async function filter_on_tags() {
+    let value = await GM.getValue("ah_filter_on_tags." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les messages récents
+  async function filter_on_recent_messages() {
+    let value = await GM.getValue("ah_filter_on_recent_messages." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les messages récents avec edit
+  async function filter_on_recent_messages_with_edit() {
+    let value = await GM.getValue("ah_filter_on_recent_messages_with_edit." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les mots interdits
+  async function filter_on_forbidden_words() {
+    let value = await GM.getValue("ah_filter_on_forbidden_words." + topic, false);
+    return value;
+  }
+
+  // filtrage du topic sur les mots obligatoires
+  async function filter_on_mandatory_words() {
+    let value = await GM.getValue("ah_filter_on_mandatory_words." + topic, false);
+    return value;
+  }
+
+  // test si le topic est déjà configuré avec des filtres
+  function topic_has_filters(callback) {
+    Promise.all([
+      filter_on_images(),
+      filter_on_quotes(),
+      filter_on_extra_page_quotes(),
+      filter_on_min_message_length(),
+      filter_on_internal_links(),
+      filter_on_external_links(),
+      filter_on_min_quoted_number(),
+      filter_on_videos(),
+      filter_on_spoilers(),
+      filter_on_tags(),
+      filter_on_recent_messages(),
+      filter_on_forbidden_words(),
+      filter_on_mandatory_words(),
+    ]).then(function([
+      on_images,
+      on_quotes,
+      on_extra_page_quotes,
+      on_min_message_length,
+      on_internal_links,
+      on_external_links,
+      on_min_quoted_number,
+      on_videos,
+      on_spoilers,
+      on_tags,
+      on_recent_messages,
+      on_forbidden_words,
+      on_mandatory_words,
+    ]) {
+      callback(on_images ||
+        on_quotes ||
+        on_extra_page_quotes ||
+        on_min_message_length ||
+        on_internal_links ||
+        on_external_links ||
+        on_min_quoted_number || on_videos ||
+        on_spoilers ||
+        on_tags ||
+        on_recent_messages ||
+        on_forbidden_words ||
+        on_mandatory_words);
+    });
+  }
+
+  // retourne la longueur minimale du message configuré pour le topic
+  async function get_topic_min_message_length() {
+    let value = await GM.getValue("ah_topic_min_message_length." + topic, default_min_message_length);
+    return value;
+  }
+
+  // retourne le nombre minimal de fois cité configuré pour le topic
+  async function get_topic_min_quoted_number() {
+    let value = await GM.getValue("ah_topic_min_quoted_number." + topic, default_min_quoted_number);
+    return value;
+  }
+
+  // retourne le nombre de secondes pour les messages récents configuré pour le topic
+  async function get_topic_recent_messages_seconds() {
+    let value = await GM.getValue("ah_topic_recent_messages_seconds." + topic, default_recent_messages_seconds);
+    return value;
+  }
+
+  // retourne la liste des mots interdits
+  async function get_forbidden_words() {
+    let words = await GM.getValue("ah_forbidden_words", "");
+    return words.split(/\s*\n\s*/);
+  }
+
+  // retourne la liste des mots obligatoires
+  async function get_mandatory_words() {
+    let words = await GM.getValue("ah_mandatory_words", "");
+    return words.split(/\s*\n\s*/);
+  }
+
+  /* -------------------------------- */
+  /* fonctions d'analyse des messages */
+  /* -------------------------------- */
+
+  // test si le message a des images
+  function message_has_images(message) {
+    let images = message.querySelectorAll(
+      "div[id^=\"para\"] img:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+    let quoted_images = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation img:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+    return images.length - quoted_images.length > 0;
+  }
+
+  // test si le message a des gifs
+  function message_has_gifs(message) {
+    let gifs = message.querySelectorAll(
+      "div[id^=\"para\"] img[src$=\".gif\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] img[src*=\".gif?\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+    let quoted_gifs = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation img[src$=\".gif\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.citation img[src*=\".gif?\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.citation img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src$=\".gif\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src*=\".gif?\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+    return gifs.length - quoted_gifs.length > 0;
+  }
+
+  // test si le message a des citations
+  function message_has_quotes(message) {
+    let quotes = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation," +
+      "div[id^=\"para\"] table.oldcitation");
+    return quotes.length > 0;
+  }
+
+  // test si le message a des citations extra-pages
+  function message_has_extra_page_quotes(message) {
+    let quotes = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation b.s1 a," +
+      "div[id^=\"para\"] table.oldcitation b.s1 a");
+    for(let quote of quotes) {
+      let href = quote.href;
+      let anchor = href.substring(href.lastIndexOf("#") + 1);
+      if(document.getElementsByName(anchor).length === 0) {
         return true;
       }
     }
+    return false;
   }
-  return false;
-}
 
-/**
- * Utility function to retrieve DOM element by XPath
- */ 
-var getElementByXpath = function (path, element) {
-	var arr = Array(), xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
-	for (;item = xpr.iterateNext();) arr.push(item);
-	return arr;
-}
-
-/**
- * Gets the list of filtered topics from persistence
- */ 
-var getFilteredTopicIds = function () {
-  return GM_getValue("ah_topic_ids", "").split(";");
-}
-
-/**
- * Sets the list of filtered topics to persistence
- */ 
-var setFilteredTopicIds = function (allIds) {
-  GM_setValue("ah_topic_ids", allIds.join(";"));
-}
-
-/**
- * Returns the topic id as "cat.post" where cat is the category id and post the post id 
- */
-var getTopicId = function () {
-  if (topicId == null) {
-    var postId;
-    var catId;
-
-    var m = new RegExp(".*forum2\\.php\\?.*\\&cat=(\\d*)\\&.*\\&post=(\\d*)\\&.*").exec(document.location.href);
-    if (m != null) {
-      catId = m[1];
-      postId = m[2];
+  // retourne le texte du message (hors citations)
+  function get_message_text(message) {
+    let text = "";
+    let ps = message.querySelectorAll("div[id^=\"para\"] > p");
+    for(let p of ps) {
+      text += p.textContent + " ";
     }
-    else {
-      var searchForm = getElementByXpath('//table[@class="main"]//tr//th//form[@action="/transsearch.php"]', document.body)[0];
-      postId = getElementByXpath('input[@name="post"]', searchForm)[0].value;
-      catId = getElementByXpath('input[@name="cat"]', searchForm)[0].value;    
+    return text;
+  }
+
+  // retourne le texte du message (avec citations)
+  function get_message_full_text(message) {
+    let text = "";
+    let els = message.querySelectorAll("div[id^=\"para\"] p");
+    for(let el of els) {
+      text += el.textContent + " ";
     }
-
-    topicId = catId + "." + postId;
+    return text;
   }
-  return topicId;
-}
 
-/**
- * Returns the minimum length of the accepted messages
- */ 
-var getMinLength = function () {
-  if (minLength == null) {
-    minLength = GM_getValue("ah_chars_length." + getTopicId(), 500);
+  // test si le message a des liens internes
+  function message_has_internal_links(message) {
+    let links = message.querySelectorAll(
+      "div[id^=\"para\"] p a[href^=\"http://forum.hardware.fr\"]," +
+      "div[id^=\"para\"] p a[href^=\"https://forum.hardware.fr\"]");
+    let quoted_links = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation p a[href^=\"http://forum.hardware.fr\"]," +
+      "div[id^=\"para\"] table.citation p a[href^=\"https://forum.hardware.fr\"]," +
+      "div[id^=\"para\"] table.oldcitation p a[href^=\"http://forum.hardware.fr\"]," +
+      "div[id^=\"para\"] table.oldcitation p a[href^=\"https://forum.hardware.fr\"]");
+    return links.length - quoted_links.length > 0;
   }
-  return minLength;
-}
 
-/**
- * Returns the list of blacklisted words
- */ 
-var getBlWords = function () {
-  if (blWords == null) {
-    blWords = GM_getValue("ah_bl_words", "").split("\n");
+  // test si le message a des liens externes
+  function message_has_external_links(message) {
+    let links = message.querySelectorAll(
+      "div[id^=\"para\"] p a:not([href^=\"http://forum.hardware.fr\"]):not([href^=\"https://forum.hardware.fr\"])");
+    let quoted_links = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation p a:not([href^=\"http://forum.hardware.fr\"]):not([href^=\"https://forum.hardware.fr\"])," +
+      "div[id^=\"para\"] table.oldcitation p a:not([href^=\"http://forum.hardware.fr\"]):not([href^=\"https://forum.hardware.fr\"])");
+    return links.length - quoted_links.length > 0;
   }
-  return blWords;
-}
 
-/**
- * Registers this topic in the list of topics that must be filtered
- */ 
-var addTopicToFilter = function () {
-  if (!isInFilter()) {
-    var id = getTopicId();
-    var allIds = getFilteredTopicIds();
-    allIds.push(id);
-    setFilteredTopicIds(allIds);
+  // retourne le nombre de fois cité du message
+  function get_message_quoted_number(message) {
+    let quoted = message.querySelector("div.edited > a");
+    if(quoted !== null) {
+      return parseInt(quoted.firstChild.nodeValue.match(/^.*Message[^0-9]+([0-9]+)[^0-9]+fois.*$/)[1], 10);
+    } else {
+      return 0;
+    }
   }
-}
 
-/**
- * Unregisters this topic
- */ 
-var removeTopicFromFilter = function () {
-  if (isInFilter()) {
-    var allIds = getFilteredTopicIds();
-    var newIds = new Array();
-    var id = getTopicId();
-    for (var i = 0; i < allIds.length; i++) {
-      if(allIds[i] != id) {
-        newIds.push(allIds[i]);
+  // test si le message a des videos
+  function message_has_videos(message) {
+    let videos = message.querySelectorAll(
+      "div[id^=\"para\"] video");
+    let audios = message.querySelectorAll(
+      "div[id^=\"para\"] audio");
+    let iframes = message.querySelectorAll(
+      "div[id^=\"para\"] iframe");
+    let quoted_videos = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation video," +
+      "div[id^=\"para\"] table.oldcitation video");
+    let quoted_audios = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation audio," +
+      "div[id^=\"para\"] table.oldcitation audio");
+    let quoted_iframes = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation iframe," +
+      "div[id^=\"para\"] table.oldcitation iframe");
+    return videos.length + audios.length + iframes.length -
+      quoted_videos.length + quoted_audios.length + quoted_iframes.length > 0;
+  }
+
+  // test si le message a des spoilers
+  function message_has_spoilers(message) {
+    let spoilers = message.querySelectorAll(
+      "div[id^=\"para\"] table.spoiler");
+    let quoted_spoilers = message.querySelectorAll(
+      "div[id^=\"para\"] table.citation table.spoiler," +
+      "div[id^=\"para\"] table.oldcitation table.spoiler");
+    return spoilers.length - quoted_spoilers.length > 0;
+  }
+
+  // test si le message a des tags ou des #HashTags
+  function message_has_tags(message) {
+    let text = get_message_text(message);
+    let re_tag_1 = /(:?^|[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF])(tag[0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]+)(?:[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]|$)/gi;
+    let re_tag_2 = /^[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]?(tags|tague|tagues|taguee|taguees|taguer|tagué|tagués|taguée|taguées|tagge|tagges|taggee|taggees|taggé|taggés|taggée|taggées|tagger)[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]?$/i;
+    let results_tag = text.match(re_tag_1);
+    if(results_tag !== null) {
+      for(let tag of results_tag) {
+        if(re_tag_2.test(tag) === false) {
+          return true;
+        }
+      }
+    } else {
+      let re_hash_1 = /(:?^|[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF])(#[0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]+)(?:[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]|$)/gi;
+      let re_hash_2 = /^[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]?(#(?:[0-9a-fA-F]{3}){1,2})[^0-9a-zA-Z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u00FF-\u024F\u1E00-\u1EFF]?$/i;
+      let results_hash = text.match(re_hash_1);
+      if(results_hash !== null) {
+        for(let hash of results_hash) {
+          if(re_hash_2.test(hash) === false) {
+            return true;
+          }
+        }
       }
     }
-    setFilteredTopicIds(newIds);
+    return false;
   }
-}
 
-/**
- * Returns true if the topic has to be filtered
- */ 
-var isInFilter = function () {
-  return getFilteredTopicIds().indexOf(getTopicId()) != -1;
-}
-
-/**
- * Returns the topic "toolbar" DOM element
- */ 
-var getTopicToolbar = function() {
-  return getElementByXpath('//table[@class="main"]//tr//th//div[@class="right"]', document.body)[0];
-}
-
-/**
- * Adds a button to the topic "toolbar" that enables the filter in this topic
- */ 
-var injectAddFilterButton = function () {
-  var newImg = document.createElement('img');
-  newImg.src = hsImg;
-  newImg.alt = newImg.title = 'Filtrer ce topic (masquer les posts sans images). Double-clic pour configurer.';
-  newImg.style.cursor = 'pointer';
-  newImg.style.marginRight = '3px';
-  newImg.addEventListener('click', 
-    function(event) {
-      var clickTime = new Date().getTime();
-      if (clickTime - lastClickTime > doubleClickInterval) {
-        lastClickTime = clickTime;
-        clickedImage = event.target;
-        setTimeout(
-          function() {
-            if (lastClickTime == clickTime) {
-              addTopicToFilter();
-              clickedImage.setAttribute("style", "display:none");
-              if (filterOnImages() || filterOnQuotes() || filterOnXQuotes() || filterOnLength() || filterOnWords() || filterOnLinks()) {
-                processPage();
-              }
-              else {
-                showConfigDialog();
-              }
-            }
-          }, doubleClickInterval);
+  // retourne la date du message en secondes
+  function get_message_timestamp(message) {
+    let timestamp = 0;
+    let post = message.querySelector("tr.message td.messCase2 div.toolbar");
+    if(post) {
+      let result = post_regexp.exec(post.textContent);
+      if(result !== null) {
+        let date = new Date(result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
+        timestamp = date.getTime();
+        //console.log("pouet post 1 " + result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
       }
-      else {
-        lastClickTime = clickTime;
-        showConfigDialog();
-      }
-    }, false);
-  
-  var newDiv = document.createElement('div');
-  newDiv.className = 'right';
-  newDiv.appendChild(newImg);
-  
-  getTopicToolbar().insertBefore(newDiv, toolbar.lastChild);
-}
-
-/**
- * Adds a button to the topic "toolbar" that disables the filter in this topic
- */ 
-var injectRemoveFilterButton = function () {
-  var newDiv = document.createElement('div');
-  var newImg = document.createElement('img');
-  
-  newImg.src = noHsImg;
-  newImg.alt = newImg.title = 'Ne plus filtrer ce topic (afficher les posts sans images). Double-clic pour configurer.';
-  newImg.style.cursor = 'pointer';
-  newImg.style.marginRight = '3px';
-  newImg.addEventListener('click', 
-    function(event) {
-      var clickTime = new Date().getTime();
-      if (clickTime - lastClickTime > doubleClickInterval) {
-        lastClickTime = clickTime;
-        clickedImage = event.target;
-        setTimeout(
-          function() {
-            if (lastClickTime == clickTime) {
-                removeTopicFromFilter();
-                clickedImage.setAttribute("style", "display:none");
-                processPage();
-            }
-          }, doubleClickInterval);
-      }
-      else {
-        lastClickTime = clickTime;
-        showConfigDialog();
-      }
-    }, false);
-
-  newDiv.className = 'right';
-  newDiv.appendChild(newImg);
-  
-  getTopicToolbar().insertBefore(newDiv, toolbar.lastChild);
-}
-
-function showConfigDialog() {
-  clickedImage.setAttribute("style", "display:none");
-  cmScript.showConfigWindow();
-}
-
-/**
- * Config window
- */ 
-var cmScript =
-{
-	backgroundDiv : null,
-	
-	configDiv : null,
-	
-	timer : null,
-	
-	setDivsPosition : function ()
-	{		
-		cmScript.setBackgroundPosition();
-		cmScript.setConfigWindowPosition();
-	},
-	
-	setBackgroundPosition : function ()
-	{				
-		cmScript.backgroundDiv.style.width = document.documentElement.clientWidth + 'px';	
-		cmScript.backgroundDiv.style.height = document.documentElement.clientHeight + 'px';
-		cmScript.backgroundDiv.style.top = window.scrollY + 'px';
-	},
-
-	setConfigWindowPosition : function ()
-	{
-		cmScript.configDiv.style.left = (document.documentElement.clientWidth / 2) - (parseInt(cmScript.configDiv.style.width) / 2) + window.scrollX + 'px';
-		cmScript.configDiv.style.top = (document.documentElement.clientHeight / 2) - (parseInt(cmScript.configDiv.clientHeight) / 2) + window.scrollY + 'px';
-	},	
-	
-	disableKeys : function (event)
-	{
-		var key = event.which;
-		if (key == 27)
-		{
-			clearInterval(cmScript.timer);
-			cmScript.hideConfigWindow();
-		}
-		//else if (key == 13) cmScript.validateConfig();
-		else if (event.altKey || (event.target.nodeName.toLowerCase() != 'input' && key >= 33 && key <= 40)) event.preventDefault();
-	},
-	
-	disableTabUp : function (elt)
-	{
-		elt.addEventListener('keydown', function(event)
-		{
-			var key = event.which;
-			if (key == 9 && event.shiftKey) event.preventDefault();
-		}
-		, false);
-	},
-	
-	disableTabDown : function (elt)
-	{
-		elt.addEventListener('keydown', function(event)
-		{
-			var key = event.which;
-			if (key == 9 && !event.shiftKey) event.preventDefault();
-		}
-		, false);
-	},
-	
-	disableScroll : function ()
-	{
-		document.body.style.overflow = 'hidden';
-		window.addEventListener('keydown', cmScript.disableKeys, false);
-	},
-	
-	enableScroll : function ()
-	{
-		document.body.style.overflow = 'visible';
-		window.removeEventListener('keydown', cmScript.disableKeys, false);
-	},
-	
-	alterWindow : function (opening)
-	{
-		if (opening)
-		{
-			// On fige la fenêtre
-			cmScript.disableScroll();
-			// A chaque resize, repositionnement des divs
-			window.addEventListener('resize', cmScript.setDivsPosition, false);
-			// On cache les iframes de m%$!§
-			getElementByXpath('//iframe', document.body).forEach(function(iframe){ iframe.style.visibility = 'hidden'; });		
-		}
-		else
-		{
-			cmScript.enableScroll();
-			window.removeEventListener('resize', cmScript.setDivsPosition, false);
-			getElementByXpath('//iframe', document.body).forEach(function(iframe){ iframe.style.visibility = 'visible'; });
-		}
-	},
-	
-	buildBackground : function ()
-	{
-		if (!document.getElementById('ah_back'))
-		{
-			cmScript.backgroundDiv = document.createElement("div");
-			cmScript.backgroundDiv.id = 'ah_back';
-			cmScript.backgroundDiv.addEventListener('click', function()
-			{
-				clearInterval(cmScript.timer);
-				cmScript.hideConfigWindow();
-			}
-			, false);
-			cssManager.addCssProperties("#ah_back { display: none; position: absolute; left: 0px; top: 0px; background-color: #242424; z-index: 1001;}");
-			document.body.appendChild(cmScript.backgroundDiv);
-		}
-	},
-	
-	buildConfigWindow : function ()
-	{
-	  if (top.location != self.document.location) {
-      return;
     }
-	
-		if (!document.getElementById('ah_front'))
-		{	
-			cmScript.configDiv = document.createElement("div");
-			cmScript.configDiv.id = 'ah_front';
-			cmScript.configDiv.style.width = '400px'; 
-			cssManager.addCssProperties("#ah_front { display: none; vertical-align: bottom; position: absolute; background-color: #F7F7F7; z-index: 1003; border: 1px dotted #000; padding: 8px; text-align: left; font-family: Verdana;}");
-			cssManager.addCssProperties("#ah_front span { font-size: 0.8em;}");
-			cssManager.addCssProperties("#ah_front select { border: 1px solid black; font-family: Verdana; font-size: 0.75em;}");
-			cssManager.addCssProperties("#ah_front img { display: block; margin-top: 10px; margin-left: auto; margin-right: auto;}");
-			cssManager.addCssProperties("#ah_front div { position: absolute; bottom: 8px; right: 8px;}");
-			cssManager.addCssProperties("#ah_front input[type=image] { margin: 2px; }");
-			cssManager.addCssProperties("#ah_front label { font-size: 0.8em; }");
-			
-			var topicId = getTopicId();
-			
-			var label1 = document.createElement('span');
-			label1.innerHTML = "<center><b>Configuration du script Anti HS</b></center><hr><center><b>Sur ce topic</b></center><br>Masquer les message :";
-			cmScript.configDiv.appendChild(label1);
-						
-      var imageContainer = document.createElement('p');
-      var imagesInput = document.createElement('input');
-			imagesInput.type = 'checkbox';
-			imagesInput.id = 'ah_images.' + topicId;
-			imagesInput.checked = filterOnImages();
-      imageContainer.appendChild(imagesInput);
-      var imageLabel = document.createElement('label');
-      imageLabel.htmlFor = 'ah_images.' + topicId;
-      imageLabel.innerHTML = "qui ne contiennent pas d'image";
-      imageContainer.appendChild(imageLabel);			
-      cmScript.configDiv.appendChild(imageContainer);
-			
-			var quotesContainer = document.createElement('p');
-      var quotesInput = document.createElement('input');
-			quotesInput.type = 'checkbox';
-			quotesInput.id = 'ah_quotes.' + topicId;
-			quotesInput.checked = filterOnQuotes();
-			quotesContainer.appendChild(quotesInput);
-      var quotesLabel = document.createElement('label');
-      quotesLabel.htmlFor = 'ah_quotes.' + topicId;
-      quotesLabel.innerHTML = "qui ne contiennent pas de quote";
-      quotesContainer.appendChild(quotesLabel);			
-      cmScript.configDiv.appendChild(quotesContainer);
+    //console.log("pouet post 2 " + timestamp);
+    return timestamp;
+  }
 
-			var quotesExtraContainer = document.createElement('p');
-      var quotesExtraInput = document.createElement('input');
-			quotesExtraInput.type = 'checkbox';
-			quotesExtraInput.id = 'ah_quotes_extra.' + topicId;
-			quotesExtraInput.checked = filterOnXQuotes();
-			quotesExtraContainer.appendChild(quotesExtraInput);
-      var quotesExtraLabel = document.createElement('label');
-      quotesExtraLabel.htmlFor = 'ah_quotes_extra.' + topicId;
-      quotesExtraLabel.innerHTML = "qui ne contiennent pas de quote extra-page";
-      quotesExtraContainer.appendChild(quotesExtraLabel);			
-      cmScript.configDiv.appendChild(quotesExtraContainer);
-
-			var charsContainer = document.createElement('p');
-      var charsInput = document.createElement('input');
-			charsInput.type = 'checkbox';
-			charsInput.id = 'ah_chars.' + topicId;
-			charsInput.checked = filterOnLength()
-			charsInput.addEventListener('focus',
-          function(event) {
-            document.getElementById('ah_chars_length.' + topicId).focus();
-          }, false);
-			charsContainer.appendChild(charsInput);
-      var charsLenInput = document.createElement('input');
-			charsLenInput.type = 'text';
-			charsLenInput.id = 'ah_chars_length.' + topicId;
-			charsLenInput.value = getMinLength();
-			charsLenInput.size = 3;
-			charsLenInput.maxLength = 5;
-			charsLenInput.addEventListener('blur', 
-          function (event) {
-            var val = parseInt(event.target.value);
-            if ((typeof val !== typeof 1) || (null === val) || !isFinite(val)) {
-              event.target.value = 0;
-            }
-            else {
-              event.target.value = val;
-            }
-          }, false);
-      var charsLabel = document.createElement('label');
-      charsLabel.htmlFor = 'ah_chars.' + topicId;      
-      charsLabel.appendChild(document.createTextNode("de moins de "));
-      charsLabel.appendChild(charsLenInput);
-      charsLabel.appendChild(document.createTextNode(" caractères"));
-      charsContainer.appendChild(charsLabel);			
-      cmScript.configDiv.appendChild(charsContainer);
-			
-			var linksContainer = document.createElement('p');
-      var linksInput = document.createElement('input');
-			linksInput.type = 'checkbox';
-			linksInput.id = 'ah_links.' + topicId;
-			linksInput.checked = filterOnLinks();
-			linksContainer.appendChild(linksInput);
-      var linksLabel = document.createElement('label');
-      linksLabel.htmlFor = 'ah_links.' + topicId;
-      linksLabel.innerHTML = "qui ne contiennent pas de lien";
-      linksContainer.appendChild(linksLabel);			
-      cmScript.configDiv.appendChild(linksContainer);
-			
-			var wordsContainer = document.createElement('p');
-      var wordsInput = document.createElement('input');
-			wordsInput.type = 'checkbox';
-			wordsInput.id = 'ah_bl_words.' + topicId;
-			wordsInput.checked = filterOnWords();
-			wordsContainer.appendChild(wordsInput);
-      var wordsLabel = document.createElement('label');
-      wordsLabel.htmlFor = 'ah_bl_words.' + topicId;
-      wordsLabel.innerHTML = "qui contiennent des mots-clés (voir dessous)";
-      wordsContainer.appendChild(wordsLabel);			
-      cmScript.configDiv.appendChild(wordsContainer);
-			
-			var label2 = document.createElement('span');
-			label2.innerHTML = "<hr><center><b>Sur tous les topics</b></center>";
-			cmScript.configDiv.appendChild(label2);
-			
-			var blackListContainer = document.createElement('p');
-      var blackListLabel = document.createElement('span');
-      blackListLabel.innerHTML = "Liste des mots-clés : ";
-      blackListContainer.appendChild(blackListLabel);
-      var blackListWords = document.createElement('textarea');
-			blackListWords.id = 'ah_bl_words';
-			blackListWords.cols = '40';
-			blackListWords.rows = '3';
-			blackListWords.value = getBlWords().join("\n").replace(/^\s+/g,'').replace(/\s+$/g,'');
-			blackListContainer.appendChild(blackListWords);
-      cmScript.configDiv.appendChild(blackListContainer);
-			
-			var buttonsContainer = document.createElement('div');
-			var inputOk = document.createElement('input');
-			inputOk.type = 'image';
-			inputOk.src = "data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%10%00%00%00%10%08%06%00%00%00%1F%F3%FFa%00%00%00%04gAMA%00%00%AF%C87%05%8A%E9%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%02%9FIDAT8%CB%A5%93%EBKSa%1C%C7%FD%3Bv%CEvl%03%09dD!%82%84P%7B%15%24%12%3B%9A%0D%C5%BC%2CK%D3%DD%BD%D26c%D8L%8B2r%5E%C6H)-%B3%D4jsNm%EA%D4%E6%D6%942q%D9QB%CC%BD%E9B%B5at%B1o%E7%EC%C5L%12%23z%E0%0B%0F%0F%CF%E7%F3%7B%AEq%00%E2%FE'%7F%0C%14%F8%0E%89r%A7%0F%EA%B3%3D)L%C6%E3%FDa%E9%888%2Cu%252Rg%A2%3E%DD%BEW%B4%AB%20%CF%9BJ%CB%3C%C9!%9DG%86%9BA%0B%FA%96%BB%A2%E9%5ClF%89%EB%18%24%BDTH%D2C%D1%3B%0A%D8%AAt%E6xR%E4%EA%9C%11%CE%D5~%D8%5E%5E%83i%AE2%1A%AE%EFX%EDC%E3L%15%0E%D8%F8%91d%1B%9F%DE%26%C8%F1%A4%083%DDI%EB%1C%CCM%AC%09%94%A1%C2_%02%CD%CC%19%E8%D8%94%B3%A9%F6%9D%85%FD%F5%3D%5C%9C%AA%80%D8B%AE%8B%AF%93%C2%98%40%E6N2%A8%C6%B2%A2%959%98%03U%DESPL%17B1U%00%F5T!%DCk%830x%95p%B0%92%DC%9E%23H%B8B%1Ab%82%8C%111%D3%19l%865%D8%84%0A_1%94O%E4%2C%98%0F%E5%24%1BO%3E%C6%DF%B8%C0%B5Pd%0Dm%CF%1Ba%9BkD%7C%3D%C9%C4%04G%ED%09%1B%0FVn%A36%A0%81%D6%5B%C4%AEd%00%8B%1F%E6%A1%9A(%C4%D8%DAP%14%FE%B1%F9%1Dm%CF.%C10Q%8C%BE%60'%04Fb%23%26%90%DC%A76%FA%97%BBa%F4%ABP%EB%D7%E2%D3%D7%8FQ%E8%FD%97%B71%D82%5B%0F%B5%2B%1Bz%F7i%F4%07%3B%20%A8%F9%5D%D0C17%E6%9B%D0%BEp%19%BAI9%CC%BEjD%BE%7D%8E%C2%9B%3F7ayz%01e%CE%2ChXAK%A0%0E%ED%5E3%A8*bk%0B%A9%B7%04%06%F9%40%1A%EC%2BwQ%3D!%87%DA%7D%12u%D3%E5Xz%B7%80%B6%D9%06%94%0E%1E%87%C2q%02%3Ag%0E%EC%AF%BA%91n%3D%0C%AA%92%D8%3A%C4d%2B_%B8%8F%BD%1A%B3G%83%87%CC%1DT%8E%E6A%3B%9C%03%D5%90%0CJ%07%17%0E%CE%C6%A3%A5.%18%87%8A!P%F3%D6)5!%DC%F6%90%12%9BH%3A%BE%81%88%98%DCep%B0%92%D6%80%19%FA%D1%22%9C%1B%96%A3%95%DD%82%9D%85%F5%CE%22%F0Ky%11%16%A6w%7C%CA%7B%1AH%9A2%11!i%87%04%ED~3z_X%D1%3Bo%85%C5kBZK*%04%0A%5E%88R%11%F4%AE%9F%89%3AO%8A(%03%A1%A7j%08F%A0%E5%85%05*%5E%98%AD%C8%B0%D1S%A5%84%E8%AF%BF%F1_%F3%0Bg%D0%AC%E5y%BA%D4c%00%00%00%00IEND%AEB%60%82";
-			inputOk.alt = 'Valider';
-			inputOk.addEventListener('click', cmScript.validateConfig, false);
-			
-			var inputCancel = document.createElement('input');
-			inputCancel.type = 'image';
-			inputCancel.src = "data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%10%00%00%00%10%08%06%00%00%00%1F%F3%FFa%00%00%00%04gAMA%00%00%AF%C87%05%8A%E9%00%00%00%19tEXtSoftware%00Adobe%20ImageReadyq%C9e%3C%00%00%02!IDAT8%CB%95%93%EBN%13Q%14%85%89%89%C9%89%CF%A0V%89%86%C8%91%80%C4%1BB%5B%06(%AD%0D%08%26%D0%FB%85%5E%A4%80%B4%A5%ED%A4M%A16%EA%0FM%7C%12%9F%0BD%C5%DE%B0%D2%99v%3A%D3%E5%AE%98J-%25%E1%C7N%CEd%CE%FA%F6%AC%B5%F7%0C%00%18%B8L%D5%D7B%D7%CE%3Ew_%103%3A*%DEW%EC%0Fr%D9%ED%8D%D7lNC%2F%A0-%CE%EC%A2%95%CEB%8B'%7B%20u_%80%D7%03a46%B6%F0%EB%E5%CA%E7%EA%E2%D2%BD%7F%80%BFb%E4%DF%A1E%A5%25D47%B7%3B%10%D9%BB%C6%A9%3B%9A%D18%90%CB%A3%7D%3E6%5B%E3%E5%19%D3%95S%40*%CDZ%09Qk%ED%BE%01%3E~%82%96%CD%B5%01h%04B%5C%F6%F89u%87%B2%1D%03%E8%BD%EC%0F%E0x%FE%B9Z%16%E6%AEvY%D0b%09%A6%BE%8E%A9%9A%98%01%DE%7F%80%9AJ%A3%1E%0C%83%BAC%D9%8A%02%D9%BD%3F%E7%8A%C9B%E2Yvn%88%CD%C8%26k%84%D6%D5ft%87%EC%BC%05%F6%F2%24%CC%01%99%2Cd%8F%0F%959%B3Z%9E%9Ea%FD%A7p%1A%16%93%5C%5E%0DY%B2%E3%F6%01%0E7%20%A6Q%99%9D%D7JF%81%FD%7F%BF%07%209%3D%EDQ%014%0D%D8%9C%C0%8A%1D%D8I%92o%0B%0A%13S%FCB%80%E4ps%C9%E5%81%12%8E%00I%91%84)%20Fv(%40y%D5%8E%B2%DE%88%EFc%E3%FC%5C%40%CD%EE%E2%92%D3%0D%25%B4%0E%D0%18%25%87%0B%14%96Z%9C2h'%8B%CB%40d%03%B5%17%CB(%3C%7C%8C%C3%A1a%DE%05%A0%CD%E2%D4%1DJ%F0%15uM%40%A2O%A7%B0%D4%E2%A4%81%15%9EL%B0%A3%F1Gj%D5d%06%82!%9CX%AC8%1A%19%C5%C1%ADA%DE%01%D0f%095%9B%03J%20%04i%D5%01%0AK-%3E%D3w%02%FB62%C6%BE%0E%DFW%7F%1A%05H%D6%05%FC%18%7D%80%FD%1B%3A%A1%CB%02m%96P%5DXB%C90%ADQX%3Di%1F%DE%1Db_%06%EF%A8g%C5%3D!%96%F4F%A1%F0t%92%F5%FB%99%0Et%B7%D9%FE%F5%9B%C2%85c%BCl%FD%06r%BB%A4%C7%DB%ED%BE%14%00%00%00%00IEND%AEB%60%82";
-			inputCancel.alt = 'Annuler';
-			inputCancel.addEventListener('click', cmScript.hideConfigWindow, false);
-			cmScript.disableTabDown(inputCancel);
-			
-			buttonsContainer.appendChild(inputOk);
-			buttonsContainer.appendChild(inputCancel);
-			cmScript.configDiv.appendChild(buttonsContainer);
-
-			document.body.appendChild(cmScript.configDiv);
-		}
-	},
-	
-	getInputValue : function(input)
-	{
-    if (input.type=="checkbox") {
-      return input.checked;
+  // retourne la date du message en secondes
+  function get_message_edit_timestamp(message) {
+    let timestamp = 0;
+    let edit = message.querySelector("tr.message td.messCase2 div[id^=\"para\"] div.edited");
+    if(edit) {
+      //console.log("pouet EDIT EDIT 0 " + edit.textContent);
+      let result = edit_regexp.exec(edit.textContent);
+      if(result !== null) {
+        let date = new Date(result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
+        timestamp = date.getTime();
+        //console.log("pouet EDIT EDIT 1 " + result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
+      }
     }
-    else {
-      return input.value;
+    //console.log("pouet EDIT EDIT 2 " + timestamp);
+    return timestamp;
+  }
+
+  // test si le message a un des mots fournis
+  function message_has_words(message, words) {
+    let text = get_message_full_text(message);
+    for(let word of words) {
+      if(word.trim() !== "") {
+        if(text.toLowerCase().includes(word.trim().toLowerCase())) {
+          return true;
+        }
+      }
     }
-  },
-	
-	validateConfig : function()
-	{
-	  addTopicToFilter();
-		getElementByXpath('.//*[starts-with(@id, "ah_")]', document.getElementById('ah_front')).forEach(function(input)
-		{
-			GM_setValue(input.id, cmScript.getInputValue(input));
-		}
-		);
-		cmScript.hideConfigWindow();	
-	},
-	
-	initBackAndFront : function()
-	{
-		if (document.getElementById('ah_back'))
-		{
-			cmScript.setBackgroundPosition();
-			cmScript.backgroundDiv.style.opacity = 0;
-			cmScript.backgroundDiv.style.display = 'block';
-		}
-		
-		if (document.getElementById('ah_front'))
-		{
-			//document.getElementById('ar_alias_url').value = sleathRehost.currentAliasUrl;
-		}
-	},
-	
-	showConfigWindow : function ()
-	{
-		cmScript.alterWindow(true);
-		cmScript.initBackAndFront();
-		var opacity = 0;
-		cmScript.timer = setInterval(function()
-		{
-			opacity = Math.round((opacity + 0.1) * 100) / 100;
-			cmScript.backgroundDiv.style.opacity = opacity;
-			if (opacity >= 0.8)
-			{
-				clearInterval(cmScript.timer);
-				cmScript.configDiv.style.display = 'block';
-				cmScript.setConfigWindowPosition();
-			}
-		}
-		, 1);
-	},
-	
-	hideConfigWindow : function ()
-	{
-	  //Reset current conf, it will be retrieved from the registry
-	  minLength = null;
-    blWords = null;
-    
-	  processPage();
-	  
-		cmScript.configDiv.style.display = 'none';
-		var opacity = cmScript.backgroundDiv.style.opacity;
-		cmScript.timer = setInterval(function()
-		{
-			opacity = Math.round((opacity - 0.1) * 100) / 100;
-			cmScript.backgroundDiv.style.opacity = opacity;
-			if (opacity <= 0)
-			{
-				clearInterval(cmScript.timer);
-				cmScript.backgroundDiv.style.display = 'none';
-				cmScript.alterWindow(false);
-			}
-		}
-		, 1);
-	},
-	
-	setUp : function()
-	{
-		// On construit l'arrière plan
-		cmScript.buildBackground();
-		// On construit la fenêtre de config
-		cmScript.buildConfigWindow();
-		// On ajoute la css
-		cssManager.insertStyle();
-	},
-	
-	createConfigMenu : function ()
-	{
-		GM_registerMenuCommand("[HFR] Auto Rehost -> Configuration", this.showConfigWindow);
-	}
-};
+    return false;
+  }
 
-var cssManager = 
-{
-	cssContent : '',
-	
-	addCssProperties : function (properties)
-	{
-		cssManager.cssContent += properties;
-	},
-	
-	insertStyle : function()
-	{
-		GM_addStyle(cssManager.cssContent);
-		cssManager.cssContent = '';
-	}
-}
+  // styles css pour le masquage des messages
+  var style = document.createElement("style");
+  style.setAttribute("type", "text/css");
+  style.textContent = ".gmhfrr21_ah_hide{display:none;}";
+  document.getElementsByTagName("head")[0].appendChild(style);
 
-cmScript.setUp();
+  // filtrage des messages
+  function filter_messages(messages) {
+    Promise.all([
+      filter_on_and(),
+      filter_on_images(),
+      filter_on_gifs(),
+      filter_on_quotes(),
+      filter_on_extra_page_quotes(),
+      filter_on_min_message_length(),
+      get_topic_min_message_length(),
+      filter_on_internal_links(),
+      filter_on_external_links(),
+      filter_on_min_quoted_number(),
+      get_topic_min_quoted_number(),
+      filter_on_videos(),
+      filter_on_spoilers(),
+      filter_on_tags(),
+      filter_on_recent_messages(),
+      filter_on_recent_messages_with_edit(),
+      get_topic_recent_messages_seconds(),
+      filter_on_forbidden_words(),
+      filter_on_mandatory_words(),
+      get_forbidden_words(),
+      get_mandatory_words()
+    ]).then(function([
+      on_and,
+      on_images,
+      on_gifs,
+      on_quotes,
+      on_extra_page_quotes,
+      on_min_message_length,
+      min_message_length,
+      on_internal_links,
+      on_external_links,
+      on_min_quoted_number,
+      min_quoted_number,
+      on_videos,
+      on_spoilers,
+      on_tags,
+      on_recent_messages,
+      on_recent_messages_with_edit,
+      recent_messages_seconds,
+      on_forbidden_words,
+      on_mandatory_words,
+      forbidden_words,
+      mandatory_words
+    ]) {
+      now = new Date().getTime();
+      cpt = 0;
+      for(let message of messages) {
+        let is_ok = false;
+        if(on_and) {
+          is_ok = (!on_images || (on_images && !on_gifs && message_has_images(message)) || (on_images && on_gifs && message_has_gifs(message))) &&
+            (!on_quotes || (on_quotes && message_has_quotes(message))) &&
+            (!on_extra_page_quotes || (on_extra_page_quotes && message_has_extra_page_quotes(message))) &&
+            (!on_min_message_length || (on_min_message_length && get_message_text(message).length >= min_message_length)) &&
+            (!on_internal_links || (on_internal_links && message_has_internal_links(message))) &&
+            (!on_external_links || (on_external_links && message_has_external_links(message))) &&
+            (!on_min_quoted_number || (on_min_quoted_number && get_message_quoted_number(message) >= min_quoted_number)) &&
+            (!on_videos || (on_videos && message_has_videos(message))) &&
+            (!on_spoilers || (on_spoilers && message_has_spoilers(message))) &&
+            (!on_tags || (on_tags && message_has_tags(message))) &&
+            (!on_recent_messages ||
+              (on_recent_messages && !on_recent_messages_with_edit &&
+                get_message_timestamp(message) < (now - (recent_messages_seconds * 1000))) ||
+              (on_recent_messages && on_recent_messages_with_edit &&
+                get_message_timestamp(message) < (now - (recent_messages_seconds * 1000)) &&
+                get_message_edit_timestamp(message) < (now - (recent_messages_seconds * 1000)))) &&
+            (!on_forbidden_words || (on_forbidden_words && !message_has_words(message, forbidden_words))) &&
+            (!on_mandatory_words || (on_mandatory_words && message_has_words(message, mandatory_words)));
+        } else {
+          is_ok = (on_images && !on_gifs && message_has_images(message)) ||
+            (on_images && on_gifs && message_has_gifs(message)) ||
+            (on_quotes && message_has_quotes(message)) ||
+            (on_extra_page_quotes && message_has_extra_page_quotes(message)) ||
+            (on_min_message_length && get_message_text(message).length >= min_message_length) ||
+            (on_internal_links && message_has_internal_links(message)) ||
+            (on_external_links && message_has_external_links(message)) ||
+            (on_min_quoted_number && get_message_quoted_number(message) >= min_quoted_number) ||
+            (on_videos && message_has_videos(message)) ||
+            (on_spoilers && message_has_spoilers(message)) ||
+            (on_tags && message_has_tags(message)) ||
+            (on_recent_messages && !on_recent_messages_with_edit && get_message_timestamp(message) < (now - (recent_messages_seconds * 1000))) ||
+            (on_recent_messages && on_recent_messages_with_edit &&
+              get_message_timestamp(message) < (now - (recent_messages_seconds * 1000)) &&
+              get_message_edit_timestamp(message) < (now - (recent_messages_seconds * 1000))) ||
+            (on_forbidden_words && !message_has_words(message, forbidden_words)) ||
+            (on_mandatory_words && message_has_words(message, mandatory_words));
+        }
+        if(is_ok) {
+          message.classList.remove("gmhfrr21_ah_hide");
+        } else {
+          ++cpt;
+          message.classList.add("gmhfrr21_ah_hide");
+        }
+      }
+      display_count(cpt);
+    });
+  }
 
-//
-// Script execution
-//
-processPage();
+  /* --------------------------------------- */
+  /* création de la fenêtre de configuration */
+  /* --------------------------------------- */
 
-// ============ Module d'auto update du script ============
-({
-	check4Update : function()
-	{
-		var autoUpdate = this;
-		var mirrorUrl = GM_getValue('mirrorUrl', 'null');
-		if (mirrorUrl == 'null') autoUpdate.retrieveMirrorUrl();
+  // styles css pour le fenêtre de configuration
+  var style = document.createElement("style");
+  style.setAttribute("type", "text/css");
+  style.textContent =
+    "#ah_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
+    "display:none;opacity:0;transition:opacity 0.7s ease 0s;}" +
+    "#ah_config_window{position:fixed;width:480px;height:auto;background:white;z-index:1002;display:none;" +
+    "opacity:0;transition:opacity 0.7s ease 0s;border:1px dotted black;padding:16px 16px 12px;" +
+    "font-size:14px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+    "#ah_config_window div.ah_main_title{font-size:16px;text-align:center;font-weight:bold;}" +
+    "#ah_config_window .ah_title{margin:12px 0;}" +
+    "#ah_config_window p.ah_input{margin:4px 0;}" +
+    "#ah_config_window p.ah_input_first{margin:-4px 0 4px;}" +
+    "#ah_config_window p.ah_input_last{margin:4px 0 0;}" +
+    "#ah_config_window input[type=text]{padding:0 1px;border:1px solid silver;height:14px;" +
+    "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;}" +
+    "#ah_config_window label.ah_words_title{display:block;float:left;width:50%;}" +
+    "#ah_config_window div.ah_clear{clear:both;}" +
+    "#ah_config_window div.ah_clear textarea{padding:1px;border:1px solid silver;width:236px;height:80px;" +
+    "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;margin:0 0 12px;float:left;}" +
+    "#ah_config_window div#ah_save_close_div{text-align:right;}" +
+    "#ah_config_window div#ah_save_close_div img{margin-left:8px;cursor:pointer;}" +
+    "#ah_config_window .ah_help{text-decoration:underline dotted;cursor:pointer;}";
+  document.getElementsByTagName("head")[0].appendChild(style);
 
-		var currentVersion = GM_getValue('currentVersion', '0.2.2');
-		// On met éventuellement la version stockée à jour avec la version courante, si la version courante est plus récente
-		if (autoUpdate.isLater('0.2.2', currentVersion))
-		{
-			GM_setValue('currentVersion', '0.2.2');
-			currentVersion = '0.2.2';
-		}			
-		// Par contre, si la version stockée est plus récente que la version courante -> création un menu d'update pour la dernière version
-		else if (autoUpdate.isLater(currentVersion, '0.2.2'))
-		{
-			GM_registerMenuCommand("[HFR] Image Anti HS -> Installer la version " + currentVersion, function()
-			{
-				GM_openInTab(mirrorUrl + 'others/hfr_image_anti_hs.user.js');
-			}
-			);
-		}
-		// Si la version courante et la version stockée sont identiques, on ne fait rien
+  // images des boutons de validation et de fermeture
+  var save_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACl0lEQVR42q2T60uTYRiH%2FTv2bnttAwlkRCGChFD7FCQSm2ZDMQ%2FL0nRnj7TNGDbTooychzFSSssstdqc8zB1anNrSpm47FVCzH3pQLVhdLBfzztoJlifvOEHz4fnuu7nGBe311XgOyLMnTmsz%2FakMBljB8OSEVFY4kpkJM5Efbp9v%2FC%2FcJ43VSrzJId0HhluBy3oW%2BmKpnOpGSWuExD30iFxDy3dFSZdpZkTSZHr80Y41%2Fphe3UDpvnKaNixY60PjbNVOGTjRZJtvJ2SHE%2BKINOdtMHC7MSaQBkq%2FCXQzJ6DjqScpNp3HvY3D3B5ugIiC3dDdJMriAlk7iSDajwr2pmFWVDlPQPFTCEU0wVQTxfCvT4Ig1cJB5Hk9hxDwjWuISbIGBExncFmWINNqPAVQ%2FlUTsB8KKdIPPmYeOsCW6HIOtpeNMI234j4ei4TExy3J2w%2BWr2L2oAGWm8RWckAlj4uQDVZiPH1oSj8c%2BsH2p5fgWGyGH3BTvCN1GZMIH5Ib%2FavdMPoV6HWr8Xnb5%2Bi0Iev72KwZa4ealc29O6z6A92gF%2Fzt6CHZm4tNKF98Sp0U3KYfdWIfP8Shbd%2BbcHy7BLKnFnQEEFLoA7tXjPoKmp7C6l3%2BAb5QBrsq%2FdRPSmH2n0adTPlWH6%2FiLa5BpQOnoTCcQo6Zw7sr7uRbj0KupLaPsRkK09wgFyN2aPBY%2BYeKkfzoB3OgWpIBqWDDQtn48lyF4xDxeCrORu0mhLseAuJTVxpfAMVMbnL4CCS1oAZ%2BtEiXBiWo5VswU5gvbMIvFJOhMC7v8Z9DVwpbaJCkg4x2v1m9L60onfBCovXhLSWVPAVnBCt%2Bgf8p%2BiLXCFtoPR0DcXwtZwwX8UJk44MiZ4upYR7%2Fnt%2FA%2Bw9sdKFchsrAAAAAElFTkSuQmCC";
+  var close_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACEklEQVR42q1S%2FU9SYRhlbW13%2FQ0V5Woub05zfZkCXhUhpmmb8v3h5ZKoCQjcwVBi1Q%2B19Zf0d2lWxpeR3AuX93J8qGVjgK2tZ3u3d3t2znmecx6D4R%2BrsS5dGdiEnDXS4weCQ2Fe9QUSdafH3B%2Bc3UM7k4OeSPWQNIIi3xAjaG5u48fz1Y%2B1peU7PWAU3qBNT0%2FKaG3tnJOogXWe1NGKJYB8AZ3%2Fic2RqMxaL%2F0iSGe4dlLW23uvgPcfoOfyHQI0RYlX%2FSGe1KHtxAHqqyERJwtPWUWYv9w1oh5PcuxlnOlyFnj7DiydQSMcAalD244Buf2f%2F6rVTuA5rq9JregW15Q2WCu2S%2Bu8BvYLBMwD2RxUfxDVeRurzMxyF8cUFDnFG9CRo3V8QcDtA%2BQMqnMLetkicH%2FNWfH4O1EBlAacHmDVBeymaG87ipPT%2FMVgt49XvH5okSiQkgmYBuK0DhmorrlQMVnwdXyiP0nd5eUVjw%2BatAFQjIrbCzKLlabN%2BunSChDdRP3ZCor3H%2BJoeKSbhC6LJ3Vo4RekmoRCo5NZrDRl5oqPJrnjiQesZrUBYQmndgeOR8dweGPoDwldllB3uqGJEpQ1N8gsVnpiOjfsy%2Bg493nkLvtuEaA4FvFt7B4OrhmFrinosoTa4jLK5hmdzOpx%2B%2Bj2MPdp6BbrC%2F5dZZNFKD6eGhjVofEmd3D1umD4n3UGltFKFDkd60gAAAAASUVORK5CYII%3D";
 
-		if (GM_getValue('lastVersionCheck') == undefined || GM_getValue('lastVersionCheck') == '') GM_setValue('lastVersionCheck', new Date().getTime() + '');
-		// Pas eu de check depuis 24h, on vérifie...
-		if ((new Date().getTime() - GM_getValue('lastVersionCheck')) > 86400000 && mirrorUrl != 'null')
-		{
-			var checkUrl = mirrorUrl + 'getLastVersion.php5?name=' + encodeURIComponent('[HFR] Image Anti HS');
-			if (isNaN(currentVersion.substring(currentVersion.length - 1))) checkUrl += '&sversion=' + currentVersion.substring(currentVersion.length - 1);
+  // création du voil de fond pour le fenêtre de configuration
+  var config_background = document.createElement("div");
+  config_background.id = "ah_config_background";
+  config_background.addEventListener("click", hide_config_window, false);
+  config_background.addEventListener("transitionend", background_transitionend, false);
+  document.body.appendChild(config_background);
 
-			GM_xmlhttpRequest({
-				method: "GET",
-				url: checkUrl,
-				onload: function(response)
-				{
-					var regExpVersion = new RegExp('^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}[a-zA-Z]?$');
-					var lastVersion = response.responseText;
-					// Pas d'erreur et nouvelle version plus récente
-					if (lastVersion != '-1' && regExpVersion.test(lastVersion) && autoUpdate.isLater(lastVersion, currentVersion))
-					{
-						if (confirm('Une nouvelle version de [HFR] Image Anti HS est disponible : ' + lastVersion + '\nVoulez-vous l\'installer ?'))
-						{
-							GM_openInTab(mirrorUrl + 'others/hfr_image_anti_hs.user.js');
-						}
-						else
-						{
-							// Mémorisation de la version refusée : elle servira de version de référence
-							GM_setValue('currentVersion', lastVersion);
-						}
-					}
-					GM_setValue('lastVersionCheck', new Date().getTime() + '');
-				}
-			});
-		}
-	},
+  // création de la fenêtre de configuration
+  var config_window = document.createElement("div");
+  config_window.id = "ah_config_window";
+  document.body.appendChild(config_window);
 
-	max : function(v1, v2)
-	{
-		var tabV1 = v1.split('.');
-		var tabV2 = v2.split('.');
-		
-		if (isNaN(tabV1[2].substring(tabV1[2].length - 1))) tabV1[2] = tabV1[2].substring(0, tabV1[2].length - 1);
-		if (isNaN(tabV2[2].substring(tabV2[2].length - 1))) tabV2[2] = tabV2[2].substring(0, tabV2[2].length - 1);
+  // titre de la fenêtre de configuration
+  var main_title = document.createElement("div");
+  main_title.className = "ah_main_title";
+  main_title.textContent = "Configuration du script [HFR] Anti HS";
+  config_window.appendChild(main_title);
 
-		if ((tabV1[0] > tabV2[0])
-		|| (tabV1[0] == tabV2[0] && tabV1[1] > tabV2[1])
-		|| (tabV1[0] == tabV2[0] && tabV1[1] == tabV2[1] && tabV1[2] > tabV2[2]))
-		{
-			return v1;
-		}
-		else
-		{
-			return v2;
-		}		
-	},
+  // titre du mode de combinaison des règles (ET ou OU)
+  var criteria_title = document.createElement("div");
+  criteria_title.className = "ah_title";
+  criteria_title.appendChild(document.createTextNode("Mode de combinaison des règles : "));
+  // ET
+  var and_label = document.createElement("label");
+  and_label.htmlFor = "ah_and_radio";
+  and_label.className = "ah_help";
+  and_label.textContent = "ET";
+  and_label.style.cursor = "help";
+  and_label.setAttribute("title", "Le message doit respecter toutes les règles cochées");
+  criteria_title.appendChild(and_label);
+  criteria_title.appendChild(document.createTextNode(" "));
+  var and_radio = document.createElement("input");
+  and_radio.type = "radio";
+  and_radio.id = "ah_and_radio";
+  and_radio.name = "ah_and_or_radio";
+  criteria_title.appendChild(and_radio);
+  // OU
+  var or_radio = document.createElement("input");
+  or_radio.type = "radio";
+  or_radio.id = "ah_or_radio";
+  or_radio.name = "ah_and_or_radio";
+  criteria_title.appendChild(or_radio);
+  criteria_title.appendChild(document.createTextNode(" "));
+  var or_label = document.createElement("label");
+  or_label.htmlFor = "ah_or_radio";
+  or_label.className = "ah_help";
+  or_label.textContent = "OU";
+  or_label.style.cursor = "help";
+  or_label.setAttribute("title", "Le message doit respecter au moins une règle cochée");
+  criteria_title.appendChild(or_label);
+  config_window.appendChild(criteria_title);
 
-	isLater : function(v1, v2)
-	{
-		return v1 != v2 && this.max(v1, v2) == v1;
-	},
+  // images
+  var images_p = document.createElement("p");
+  images_p.className = "ah_input_first";
+  var images_checkbox = document.createElement("input");
+  images_checkbox.type = "checkbox";
+  images_checkbox.id = "ah_images_checkbox";
+  images_p.appendChild(images_checkbox);
+  var images_label = document.createElement("label");
+  images_label.htmlFor = "ah_images_checkbox";
+  images_label.textContent = " Le message doit contenir au moins une image ";
+  images_p.appendChild(images_label);
+  var gifs_checkbox = document.createElement("input");
+  gifs_checkbox.type = "checkbox";
+  gifs_checkbox.id = "ah_gifs_checkbox";
+  images_p.appendChild(gifs_checkbox);
+  var gifs_label = document.createElement("label");
+  gifs_label.htmlFor = "ah_gifs_checkbox";
+  gifs_label.textContent = " dont un gif";
+  images_p.appendChild(gifs_label);
+  config_window.appendChild(images_p);
 
-	retrieveMirrorUrl : function()
-	{	
-		var mirrors = 'http://hfr.toyonos.info/gm/;http://hfr-mirror.toyonos.info/gm/'.split(';');
-		var checkMirror = function (i)
-		{
-			var mirror = mirrors[i];
-			GM_xmlhttpRequest({
-				url: mirror + 'getLastVersion.php5',
-				method: "HEAD",
-				onload: function(response)
-				{
-					// Dès qu'un miroir répond, on le mémorise.
-					if (response.status == 200)
-					{
-						GM_setValue('mirrorUrl', mirror);
-					}
-					else
-					{
-						// Sinon on test le prochain
-						if ((i + 1) < mirrors.length)
-						{
-							checkMirror(i + 1);
-						}
-						else
-						{
-							GM_setValue('mirrorUrl', 'null');
-						}
-					}
-				}
-			});		
-		};
-		checkMirror(0);
-	},
-}).check4Update();
+  // citations
+  var quotes_p = document.createElement("p");
+  quotes_p.className = "ah_input";
+  var quotes_checkbox = document.createElement("input");
+  quotes_checkbox.type = "checkbox";
+  quotes_checkbox.id = "ah_quotes_checkbox";
+  quotes_p.appendChild(quotes_checkbox);
+  var quotes_label = document.createElement("label");
+  quotes_label.htmlFor = "ah_quotes_checkbox";
+  quotes_label.textContent = " Le message doit contenir au moins une citation";
+  quotes_p.appendChild(quotes_label);
+  config_window.appendChild(quotes_p);
+
+  // citations extra page
+  var extra_page_quotes_p = document.createElement("p");
+  extra_page_quotes_p.className = "ah_input";
+  var extra_page_quotes_checkbox = document.createElement("input");
+  extra_page_quotes_checkbox.type = "checkbox";
+  extra_page_quotes_checkbox.id = "ah_extra_page_quotes_checkbox";
+  extra_page_quotes_p.appendChild(extra_page_quotes_checkbox);
+  var extra_page_quotes_label = document.createElement("label");
+  extra_page_quotes_label.htmlFor = "ah_extra_page_quotes_checkbox";
+  extra_page_quotes_label.textContent = " Le message doit contenir au moins une citation extra-page";
+  extra_page_quotes_p.appendChild(extra_page_quotes_label);
+  config_window.appendChild(extra_page_quotes_p);
+
+  // longueur du message
+  var min_message_length_p = document.createElement("p");
+  min_message_length_p.className = "ah_input";
+  var min_message_length_checkbox = document.createElement("input");
+  min_message_length_checkbox.type = "checkbox";
+  min_message_length_checkbox.id = "ah_min_message_length_checkbox";
+  min_message_length_p.appendChild(min_message_length_checkbox);
+  var min_message_length_label_1 = document.createElement("label");
+  min_message_length_label_1.htmlFor = "ah_min_message_length_checkbox";
+  min_message_length_label_1.textContent = " Le message doit faire au moins ";
+  min_message_length_p.appendChild(min_message_length_label_1);
+  var min_message_length_input = document.createElement("input");
+  min_message_length_input.type = "text";
+  min_message_length_input.id = "ah_min_message_length_input";
+  min_message_length_input.size = 3;
+  min_message_length_input.maxLength = 5;
+  min_message_length_input.pattern = "[0-9]+";
+  min_message_length_p.appendChild(min_message_length_input);
+  var min_message_length_label_2 = document.createElement("label");
+  min_message_length_label_2.htmlFor = "ah_min_message_length_input";
+  min_message_length_label_2.textContent = " caractères";
+  min_message_length_p.appendChild(min_message_length_label_2);
+  config_window.appendChild(min_message_length_p);
+
+  // liens internes
+  var internal_links_p = document.createElement("p");
+  internal_links_p.className = "ah_input";
+  var internal_links_checkbox = document.createElement("input");
+  internal_links_checkbox.type = "checkbox";
+  internal_links_checkbox.id = "ah_internal_links_checkbox";
+  internal_links_p.appendChild(internal_links_checkbox);
+  var internal_links_label = document.createElement("label");
+  internal_links_label.htmlFor = "ah_internal_links_checkbox";
+  internal_links_label.textContent = " Le message doit contenir au moins un lien interne";
+  internal_links_p.appendChild(internal_links_label);
+  config_window.appendChild(internal_links_p);
+
+  // liens externes
+  var external_links_p = document.createElement("p");
+  external_links_p.className = "ah_input";
+  var external_links_checkbox = document.createElement("input");
+  external_links_checkbox.type = "checkbox";
+  external_links_checkbox.id = "ah_external_links_checkbox";
+  external_links_p.appendChild(external_links_checkbox);
+  var external_links_label = document.createElement("label");
+  external_links_label.htmlFor = "ah_external_links_checkbox";
+  external_links_label.textContent = " Le message doit contenir au moins un lien externe";
+  external_links_p.appendChild(external_links_label);
+  config_window.appendChild(external_links_p);
+
+  // nombre de fois cité
+  var min_quoted_number_p = document.createElement("p");
+  min_quoted_number_p.className = "ah_input";
+  var min_quoted_number_checkbox = document.createElement("input");
+  min_quoted_number_checkbox.type = "checkbox";
+  min_quoted_number_checkbox.id = "ah_min_quoted_number_checkbox";
+  min_quoted_number_p.appendChild(min_quoted_number_checkbox);
+  var min_quoted_number_label_1 = document.createElement("label");
+  min_quoted_number_label_1.htmlFor = "ah_min_quoted_number_checkbox";
+  min_quoted_number_label_1.textContent = " Le message doit être cité au moins ";
+  min_quoted_number_p.appendChild(min_quoted_number_label_1);
+  var min_quoted_number_input = document.createElement("input");
+  min_quoted_number_input.type = "text";
+  min_quoted_number_input.id = "ah_min_quoted_number_input";
+  min_quoted_number_input.size = 1;
+  min_quoted_number_input.maxLength = 2;
+  min_quoted_number_input.pattern = "[0-9]+";
+  min_quoted_number_p.appendChild(min_quoted_number_input);
+  var min_quoted_number_label_2 = document.createElement("label");
+  min_quoted_number_label_2.htmlFor = "ah_min_quoted_number_input";
+  min_quoted_number_label_2.textContent = " fois";
+  min_quoted_number_p.appendChild(min_quoted_number_label_2);
+  config_window.appendChild(min_quoted_number_p);
+
+  // vidéos
+  var videos_p = document.createElement("p");
+  videos_p.className = "ah_input";
+  var videos_checkbox = document.createElement("input");
+  videos_checkbox.type = "checkbox";
+  videos_checkbox.id = "ah_videos_checkbox";
+  videos_p.appendChild(videos_checkbox);
+  var videos_label = document.createElement("label");
+  videos_label.htmlFor = "ah_videos_checkbox";
+  videos_label.textContent = " Le message doit contenir au moins une vidéo";
+  videos_p.appendChild(videos_label);
+  config_window.appendChild(videos_p);
+
+  // spoilers
+  var spoilers_p = document.createElement("p");
+  spoilers_p.className = "ah_input";
+  var spoilers_checkbox = document.createElement("input");
+  spoilers_checkbox.type = "checkbox";
+  spoilers_checkbox.id = "ah_spoilers_checkbox";
+  spoilers_p.appendChild(spoilers_checkbox);
+  var spoilers_label = document.createElement("label");
+  spoilers_label.htmlFor = "ah_spoilers_checkbox";
+  spoilers_label.textContent = " Le message doit contenir au moins un spoiler";
+  spoilers_p.appendChild(spoilers_label);
+  config_window.appendChild(spoilers_p);
+
+  // tags et #HashTags
+  var tags_p = document.createElement("p");
+  tags_p.className = "ah_input";
+  var tags_checkbox = document.createElement("input");
+  tags_checkbox.type = "checkbox";
+  tags_checkbox.id = "ah_tags_checkbox";
+  tags_p.appendChild(tags_checkbox);
+  var tags_label = document.createElement("label");
+  tags_label.htmlFor = "ah_tags_checkbox";
+  tags_label.textContent = " Le message doit contenir au moins un tag ou un #HashTag";
+  tags_p.appendChild(tags_label);
+  config_window.appendChild(tags_p);
+
+  // messages récents
+  var recent_messages_p = document.createElement("p");
+  recent_messages_p.className = "ah_input";
+  var recent_messages_checkbox = document.createElement("input");
+  recent_messages_checkbox.type = "checkbox";
+  recent_messages_checkbox.id = "ah_recent_messages_checkbox";
+  recent_messages_p.appendChild(recent_messages_checkbox);
+  var recent_messages_label_1 = document.createElement("label");
+  recent_messages_label_1.htmlFor = "ah_recent_messages_checkbox";
+  recent_messages_label_1.textContent = " Le message ";
+  recent_messages_p.appendChild(recent_messages_label_1);
+  var recent_messages_with_edit_checkbox = document.createElement("input");
+  recent_messages_with_edit_checkbox.type = "checkbox";
+  recent_messages_with_edit_checkbox.id = "ah_recent_messages_with_edit_checkbox";
+  recent_messages_p.appendChild(recent_messages_with_edit_checkbox);
+  var recent_messages_with_edit_label = document.createElement("label");
+  recent_messages_with_edit_label.htmlFor = "ah_recent_messages_with_edit_checkbox";
+  recent_messages_with_edit_label.textContent = " ou son edit";
+  recent_messages_p.appendChild(recent_messages_with_edit_label);
+  var recent_messages_label_2 = document.createElement("label");
+  recent_messages_label_2.htmlFor = "ah_recent_messages_checkbox";
+  recent_messages_label_2.textContent = " doit avoir plus de ";
+  recent_messages_p.appendChild(recent_messages_label_2);
+  var recent_messages_input = document.createElement("input");
+  recent_messages_input.type = "text";
+  recent_messages_input.id = "ah_recent_messages_input";
+  recent_messages_input.size = 4;
+  recent_messages_input.maxLength = 5;
+  recent_messages_input.pattern = "[0-9]+";
+  recent_messages_p.appendChild(recent_messages_input);
+  var recent_messages_input_label = document.createElement("label");
+  recent_messages_input_label.htmlFor = "ah_recent_messages_input";
+  recent_messages_input_label.textContent = " secondes";
+  recent_messages_p.appendChild(recent_messages_input_label);
+  config_window.appendChild(recent_messages_p);
+
+  // mots interdits
+  var forbidden_words_p = document.createElement("p");
+  forbidden_words_p.className = "ah_input";
+  var forbidden_words_checkbox = document.createElement("input");
+  forbidden_words_checkbox.type = "checkbox";
+  forbidden_words_checkbox.id = "ah_forbidden_words_checkbox";
+  forbidden_words_p.appendChild(forbidden_words_checkbox);
+  var forbidden_words_label = document.createElement("label");
+  forbidden_words_label.htmlFor = "ah_forbidden_words_checkbox";
+  forbidden_words_label.textContent = " Le message ne doit contenir aucun mot interdit";
+  forbidden_words_p.appendChild(forbidden_words_label);
+  config_window.appendChild(forbidden_words_p);
+
+  // mots obligatoires
+  var mandatory_words_p = document.createElement("p");
+  mandatory_words_p.className = "ah_input_last";
+  var mandatory_words_checkbox = document.createElement("input");
+  mandatory_words_checkbox.type = "checkbox";
+  mandatory_words_checkbox.id = "ah_mandatory_words_checkbox";
+  mandatory_words_p.appendChild(mandatory_words_checkbox);
+  var mandatory_words_label = document.createElement("label");
+  mandatory_words_label.htmlFor = "ah_mandatory_words_checkbox";
+  mandatory_words_label.textContent = " Le message doit contenir au moins un mot obligatoire";
+  mandatory_words_p.appendChild(mandatory_words_label);
+  config_window.appendChild(mandatory_words_p);
+
+  // titres des mots interdits et obligatoires
+  var words_title_div = document.createElement("div");
+  words_title_div.setAttribute("title", "Un mot ou phrase par ligne");
+  var forbidden_words_title = document.createElement("label");
+  forbidden_words_title.htmlFor = "ah_forbidden_words_textarea";
+  forbidden_words_title.className = "ah_title ah_words_title";
+  forbidden_words_title.textContent = "Mots interdits :";
+  words_title_div.appendChild(forbidden_words_title);
+  var mandatory_words_title = document.createElement("label");
+  mandatory_words_title.htmlFor = "ah_mandatory_words_textarea";
+  mandatory_words_title.className = "ah_title ah_words_title";
+  mandatory_words_title.textContent = "Mots obligatoires :";
+  words_title_div.appendChild(mandatory_words_title);
+  config_window.appendChild(words_title_div);
+
+  // mots interdits et obligatoires
+  var words_textarea_div = document.createElement("div");
+  words_textarea_div.setAttribute("title", "Un mot ou phrase par ligne");
+  words_textarea_div.className = "ah_clear";
+  var forbidden_words_textarea = document.createElement("textarea");
+  forbidden_words_textarea.id = "ah_forbidden_words_textarea";
+  forbidden_words_textarea.setAttribute("spellcheck", "false");
+  words_textarea_div.appendChild(forbidden_words_textarea);
+  var mandatory_words_textarea = document.createElement("textarea");
+  mandatory_words_textarea.id = "ah_mandatory_words_textarea";
+  mandatory_words_textarea.setAttribute("spellcheck", "false");
+  words_textarea_div.appendChild(mandatory_words_textarea);
+  config_window.appendChild(words_textarea_div);
+
+  // boutons de validation et de fermeture
+  var save_close_div = document.createElement("div");
+  save_close_div.id = "ah_save_close_div";
+  save_close_div.className = "ah_clear";
+  var save_button = document.createElement("img");
+  save_button.src = save_img;
+  save_button.setAttribute("title", "Valider");
+  save_button.addEventListener("click", save_config_window, false);
+  save_close_div.appendChild(save_button);
+  var close_button = document.createElement("img");
+  close_button.src = close_img;
+  close_button.setAttribute("title", "Annuler");
+  close_button.addEventListener("click", hide_config_window, false);
+  save_close_div.appendChild(close_button);
+  config_window.appendChild(save_close_div);
+
+  // fonction de validation de la fenêtre de configuration
+  function save_config_window() {
+    // sauvegarde des paramètres de la fenêtre de configuration
+    let length = parseInt(min_message_length_input.value.trim(), 10);
+    if(isNaN(length) || length < 1) {
+      length = default_min_message_length;
+    }
+    let number = parseInt(min_quoted_number_input.value.trim(), 10);
+    if(isNaN(number) || number < 1) {
+      number = default_min_quoted_number;
+    }
+    let seconds = parseInt(recent_messages_input.value.trim(), 10);
+    if(isNaN(seconds) || seconds < 1) {
+      seconds = default_recent_messages_seconds;
+    }
+    Promise.all([
+      GM.setValue("ah_filter_on_and." + topic, and_radio.checked),
+      GM.setValue("ah_filter_on_images." + topic, images_checkbox.checked),
+      GM.setValue("ah_filter_on_gifs." + topic, gifs_checkbox.checked),
+      GM.setValue("ah_filter_on_quotes." + topic, quotes_checkbox.checked),
+      GM.setValue("ah_filter_on_extra_page_quotes." + topic, extra_page_quotes_checkbox.checked),
+      GM.setValue("ah_filter_on_min_message_length." + topic, min_message_length_checkbox.checked),
+      GM.setValue("ah_topic_min_message_length." + topic, length),
+      GM.setValue("ah_filter_on_internal_links." + topic, internal_links_checkbox.checked),
+      GM.setValue("ah_filter_on_external_links." + topic, external_links_checkbox.checked),
+      GM.setValue("ah_filter_on_min_quoted_number." + topic, min_quoted_number_checkbox.checked),
+      GM.setValue("ah_topic_min_quoted_number." + topic, number),
+      GM.setValue("ah_filter_on_videos." + topic, videos_checkbox.checked),
+      GM.setValue("ah_filter_on_spoilers." + topic, spoilers_checkbox.checked),
+      GM.setValue("ah_filter_on_tags." + topic, tags_checkbox.checked),
+      GM.setValue("ah_filter_on_recent_messages." + topic, recent_messages_checkbox.checked),
+      GM.setValue("ah_filter_on_recent_messages_with_edit." + topic, recent_messages_with_edit_checkbox.checked),
+      GM.setValue("ah_topic_recent_messages_seconds." + topic, seconds),
+      GM.setValue("ah_filter_on_forbidden_words." + topic, forbidden_words_checkbox.checked),
+      GM.setValue("ah_filter_on_mandatory_words." + topic, mandatory_words_checkbox.checked),
+      GM.setValue("ah_forbidden_words", forbidden_words_textarea.value.trim()),
+      GM.setValue("ah_mandatory_words", mandatory_words_textarea.value.trim())
+    ]).then(function() {
+      topic_has_filters(function(has_filters) {
+        set_topic_filtered_status(has_filters).then(function() {
+          // traitement de la page et filtrage des messages
+          process_page();
+          // fermeture de la fenêtre de configuration
+          hide_config_window();
+        });
+      });
+    });
+  }
+
+  // fonction de fermeture de la fenêtre de configuration
+  function hide_config_window() {
+    config_window.style.opacity = "0";
+    config_background.style.opacity = "0";
+  }
+
+  // fonction de fermeture de la fenêtre de configuration par la touche echap
+  function esc_config_window(e) {
+    if(e.key === "Escape") {
+      hide_config_window();
+    }
+  }
+
+  // fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
+  function background_transitionend() {
+    if(config_background.style.opacity === "0") {
+      config_window.style.display = "none";
+      config_background.style.display = "none";
+      document.removeEventListener("keydown", esc_config_window, false);
+    }
+    if(config_background.style.opacity === "0.8") {
+      document.addEventListener("keydown", esc_config_window, false);
+    }
+  }
+
+  // fonction d'affichage de la fenêtre de configuration
+  function show_config_window() {
+    // affichage de la fenêtre de configuration
+    config_window.style.display = "block";
+    config_background.style.display = "block";
+    config_window.style.left = parseInt((document.documentElement.clientWidth - config_window.offsetWidth) / 2, 10) + "px";
+    config_window.style.top = parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) + "px";
+    config_background.style.width = document.documentElement.scrollWidth + "px";
+    config_background.style.height = document.documentElement.scrollHeight + "px";
+    config_window.style.opacity = "1";
+    config_background.style.opacity = "0.8";
+    // initialisation des paramètres de la fenêtre de configuration
+    Promise.all([
+      filter_on_and(),
+      filter_on_images(),
+      filter_on_gifs(),
+      filter_on_quotes(),
+      filter_on_extra_page_quotes(),
+      filter_on_min_message_length(),
+      get_topic_min_message_length(),
+      filter_on_internal_links(),
+      filter_on_external_links(),
+      filter_on_min_quoted_number(),
+      get_topic_min_quoted_number(),
+      filter_on_videos(),
+      filter_on_spoilers(),
+      filter_on_tags(),
+      filter_on_recent_messages(),
+      filter_on_recent_messages_with_edit(),
+      get_topic_recent_messages_seconds(),
+      filter_on_forbidden_words(),
+      filter_on_mandatory_words(),
+      get_forbidden_words(),
+      get_mandatory_words()
+    ]).then(function([
+      on_and,
+      on_images,
+      on_gifs,
+      on_quotes,
+      on_extra_page_quotes,
+      on_min_message_length,
+      min_message_length,
+      on_internal_links,
+      on_external_links,
+      on_min_quoted_number,
+      min_quoted_number,
+      on_videos,
+      on_spoilers,
+      on_tags,
+      on_recent_messages,
+      on_recent_messages_with_edit,
+      recent_messages_seconds,
+      on_forbidden_words,
+      on_mandatory_words,
+      forbidden_words,
+      mandatory_words
+    ]) {
+      and_radio.checked = on_and;
+      or_radio.checked = !on_and;
+      images_checkbox.checked = on_images;
+      gifs_checkbox.checked = on_gifs;
+      quotes_checkbox.checked = on_quotes;
+      extra_page_quotes_checkbox.checked = on_extra_page_quotes;
+      min_message_length_checkbox.checked = on_min_message_length;
+      min_message_length_input.value = min_message_length;
+      internal_links_checkbox.checked = on_internal_links;
+      external_links_checkbox.checked = on_external_links;
+      min_quoted_number_checkbox.checked = on_min_quoted_number;
+      min_quoted_number_input.value = min_quoted_number;
+      videos_checkbox.checked = on_videos;
+      spoilers_checkbox.checked = on_spoilers;
+      tags_checkbox.checked = on_tags;
+      recent_messages_checkbox.checked = on_recent_messages;
+      recent_messages_with_edit_checkbox.checked = on_recent_messages_with_edit;
+      recent_messages_input.value = recent_messages_seconds;
+      forbidden_words_checkbox.checked = on_forbidden_words;
+      mandatory_words_checkbox.checked = on_mandatory_words;
+      forbidden_words_textarea.value = forbidden_words.join("\n");
+      mandatory_words_textarea.value = mandatory_words.join("\n");
+    });
+  }
+
+  // ajout d'une entrée de configuration dand le menu greasemonkey si c'est possible (pas gm4 yet)
+  if(typeof GM_registerMenuCommand !== "undefined") {
+    GM_registerMenuCommand("[HFR] Anti HS -> Configuration", show_config_window);
+  }
+
+  // traitement de la page et filtrage des messages
+  process_page();
+
+})();

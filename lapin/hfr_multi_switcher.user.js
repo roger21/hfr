@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name [HFR] Multi Switcher
-// @version 0.1.2
+// @version 0.1.2.2
 // @namespace http://toyonos.info
 // @description Permet de poster rapidement avec un multi sans avoir besoin de se déconnecter du forum
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
-// @exclude http://forum.hardware.fr/forum*cat=prive*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
+// @exclude https://forum.hardware.fr/forum*cat=prive*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -20,6 +20,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.2.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.1.2.1 (03/12/2017) :
+// - passage au https
+
 
 var toyoAjaxLib = (function()
 {
@@ -72,8 +80,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}
@@ -659,7 +667,7 @@ var multiSwitcher =
 		}
 
 		// On repositionne si besoin est, le cookie sur le pseudo principal
-		if (GM_getValue('restore_identity', 0) != 0 && document.location == 'http://forum.hardware.fr/bddpost.php')
+		if (GM_getValue('restore_identity', 0) != 0 && document.location == 'https://forum.hardware.fr/bddpost.php')
 		{
 			var user2Restore = GM_getValue('restore_identity');
 			self.switchCookies(user2Restore, identities[user2Restore]);

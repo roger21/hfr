@@ -1,0 +1,22 @@
+/* @name          [HFR] bigger response */
+/* @version       1.0.0 */
+/* @namespace     roger21.free.fr */
+/* @description   permet une plus grosse réponse rapide par défaut */
+/* @revision      $Rev: 170 $ */
+
+/*
+historique :
+1.0.0 (29/04/2018) :
+- creation
+*/
+
+@namespace url(http://www.w3.org/1999/xhtml);
+
+@-moz-document domain("forum.hardware.fr") {
+
+  #mesdiscussions .reponserapide {
+    height: 200px !important;
+    width: 50% !important;
+  }
+
+}

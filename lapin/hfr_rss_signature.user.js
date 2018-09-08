@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [HFR] RSS Signature
-// @version 0.1.3
+// @version 0.1.3.2
 // @namespace http://toyonos.info
 // @description Permet d'avoir une signature dynamique qui reprend le dernier élément d'un flux RSS
-// @include http://forum.hardware.fr/*
+// @include https://forum.hardware.fr/*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -18,6 +18,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.3.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.1.3.1 (03/12/2017) :
+// - passage au https
+
 
 var toyoAjaxLib = (function()
 {
@@ -70,8 +78,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}
@@ -193,7 +201,7 @@ var rssSignature =
 		var signature = this.signatureTemplate;
 		if (signature == null)
 		{
-			toyoAjaxLib.loadDoc('http://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function (pageContent)
+			toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function (pageContent)
 			{
 				var contentNode = document.createElement('div');
 				contentNode.innerHTML = pageContent;
@@ -268,7 +276,7 @@ var rssSignature =
 					bbCode += '[/url]';
 					signature = signature.replace(self.rssPattern, bbCode);
 
-					toyoAjaxLib.loadDoc('http://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function (pageContent)
+					toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function (pageContent)
 					{
 						var contentNode = document.createElement('div');
 						contentNode.innerHTML = pageContent;
@@ -277,7 +285,7 @@ var rssSignature =
 						args += '&citation=' + encodeURIComponent(getElementByXpath('.//input[@name="citation"]', contentNode).pop().value);
 						args += '&active_signature=' + encodeURIComponent(getElementByXpath('.//select[@name="active_signature"]', contentNode).pop().value);
 						args += '&configuration=' + encodeURIComponent(getElementByXpath('.//textarea[@name="configuration"]', contentNode).pop().innerHTML);
-						toyoAjaxLib.loadDoc('http://forum.hardware.fr/user/editprofil_validation.php?config=hfr.inc', 'post', args, null);
+						toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil_validation.php?config=hfr.inc', 'post', args, null);
 					});
 				}
 			});				

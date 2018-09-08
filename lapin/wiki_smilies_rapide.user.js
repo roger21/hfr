@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Wiki smilies & raccourcis dans la reponse/edition rapide
-// @version 0.6.3a
+// @version 0.6.3a.2
 // @namespace http://toyonos.info
 // @description Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide du forum hardware.fr
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.6.3a.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.6.3a.1 (03/12/2017) :
+// - passage au https
+
 
 var cssManager = 
 {
@@ -534,7 +542,7 @@ cmScript.createConfigMenu();
 
 var getKeyWords = function (code, cbf)
 {
-	toyoAjaxLib.loadDoc('http://forum.hardware.fr/wikismilies.php', 'get', 'config=hfr.inc&detail=' + code, function(pageContent)
+	toyoAjaxLib.loadDoc('https://forum.hardware.fr/wikismilies.php', 'get', 'config=hfr.inc&detail=' + code, function(pageContent)
 	{
 		var keyWords = pageContent.match(/name="keywords0"\s*value="(.*)"\s*onkeyup/).pop();
 		cbf(keyWords);
@@ -646,9 +654,9 @@ if ($('content_form'))
 
 			if (searchkeyword.length > 2 && searchkeyword != findSmiliesBuffer)
 			{
-				divsmilies.innerHTML = '<br /><img src="http://forum-images.hardware.fr/icones/mm/wait.gif" alt="" />';
+				divsmilies.innerHTML = '<br /><img src="https://forum-images.hardware.fr/icones/mm/wait.gif" alt="" />';
 				findSmiliesBuffer = searchkeyword;
-				toyoAjaxLib.loadDoc('http://forum.hardware.fr/message-smi-mp-aj.php', 'get', 'config=hfr.inc&findsmilies=' + encodeURIComponent(searchkeyword), function (reponse)
+				toyoAjaxLib.loadDoc('https://forum.hardware.fr/message-smi-mp-aj.php', 'get', 'config=hfr.inc&findsmilies=' + encodeURIComponent(searchkeyword), function (reponse)
 				{
 					divsmilies.innerHTML = reponse;
 					if (getElementByXpath('.//img', divsmilies).length > 0) document.documentElement.scrollTop += divsmilies.clientHeight;
@@ -722,7 +730,7 @@ if ($('content_form'))
 											{
 												var smiley = this.parentNode.lastChild.value;
 												var keyWords = this.parentNode.firstChild.value;
-												var url = 'http://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0';
+												var url = 'https://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0';
 												var arguments = 'modif0=1&smiley0='+ smiley +'&keywords0=' + encodeURIComponent(keyWords);
 												arguments += '&hash_check=' + hashCheck;
 												toyoAjaxLib.loadDoc(url, 'post', arguments, function (pageContent)
@@ -836,7 +844,7 @@ if ($('content_form'))
 		var smileyTab = $('smilies_helper').firstChild.value.split(':');
 		var code = smileyTab[0];
 		var rang = smileyTab.length > 1 ?  smileyTab[1] : null;
-		var url = 'http://forum-images.hardware.fr/images/perso/';
+		var url = 'https://forum-images.hardware.fr/images/perso/';
 		if (rang != null) url += rang + '/';
 		url += code + '.gif';
 	
@@ -1330,8 +1338,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

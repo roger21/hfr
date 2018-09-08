@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [HFR] Ouverture de drapeaux en masse
-// @version 0.2.5
+// @version 0.2.5.2
 // @namespace http://toyonos.info
 // @description Permet d'ouvrir ses drapeaux dans de nouveaux onglets pour une catégorie donnée
-// @include http://forum.hardware.fr/forum1f.php*
+// @include https://forum.hardware.fr/forum1f.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -18,6 +18,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.2.5.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.2.5.1 (03/12/2017) :
+// - passage au https
+
 
 var toyoAjaxLib = (function()
 {
@@ -70,8 +78,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}
@@ -227,7 +235,7 @@ var toyoAjaxLib = (function()
 		});
 		
 		// Boutons pour les MPs
-		var url = 'http://forum.hardware.fr/forum1.php';
+		var url = 'https://forum.hardware.fr/forum1.php';
 		var args = 'config=hfr.inc&cat=prive&page=1';
 		toyoAjaxLib.loadDoc(url, 'get', args, function(pageContent)
 		{		

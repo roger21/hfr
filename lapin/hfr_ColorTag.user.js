@@ -1,15 +1,21 @@
 ﻿// ==UserScript==
 // @name          [HFR] ColorTag
-// @version       1.0.0
+// @version       1.0.0.1
 // @namespace     n/a
 // @downloadURL   https://github.com/DdsT/hfr_ColorTag/raw/master/hfr_ColorTag.user.js
 // @description   Ajoute une étiquette de couleur aux pseudos
 // @icon          http://reho.st/self/8be6cfd410001113ffc0e909a807205fdb5b6751.png
-// @include       http://forum.hardware.fr/forum2.php*
-// @include       http://forum.hardware.fr/hfr/*
+// @include       https://forum.hardware.fr/forum2.php*
+// @include       https://forum.hardware.fr/hfr/*
 // @grant         GM_getValue
 // @grant         GM_setValue
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 1.0.0.1 (03/12/2017) :
+// - passage au https
+
 
 var root = document.getElementById("mesdiscussions");
 var download_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAK2SURBVBgZBcFNiJRlAADg532/b2Z2Z9fdUdfWUlwNooJIFNryEEUSBAVCVy9eIrwJngqCwI4Jdg46VBIdukRQtBAdOliUHQ0qlbXE9afdmXVn5vt7v54ntG0Lznx1axWXHh/MnBhXybhKqpRM6jTENu6jwSYe4DN8nwOkun7+6P75E+df2gcAdsq0OC7T4ua0OVhWbBeNm/cf+vbvnVdxLgdIdb280A3g1lajE4I8kOX0OtGhXpTFqJNx7OCsxxbn9nz8y+2LEaCpqoW5nDqxXQbDiq2C4ZThlAcT7j5swDuX1504MueZpc6+HKCpqj27utFOwc60EWOQI8uIGZkgCySEZuTK9U1X14e3c4CmLJcXZzPDSW1ctGJsZZHYBFkk08oytJmNUeGjtb9GOJMD1GW5srzQMZy2any99qddPcZlbfd81+27EyEy38882u/aHE0Wfvj932EO0JTFyv7FnmsbjRCZjKdeWX3SqePzvrnyj/dOPw0APv3xnpTCzxFeu/DdrKbu9jpR2RC1xkXlv+0arP26AWBaMyq4t1UKIYlQF+W+XiAGErTEGGQtVZNcPHtcSq0mtTJJP0+KojDaKeXQlEU/n+vKI1kMmhTMdKJpUfngy5tioG6S1CQt2ralpd9J8hfPXV7ChdWnDrkzat3caMzNUKdW0dSy2EEraIQQtKnVtkldV8qyljdleRKv/3bths1J7mHRqprW9rjSCbmzb+xSpxKRljYkM3nXh1+sezDakTdVdfzUy8/Ovnv6BQDw5vs/yXQkE59cfdtS/5Aguje+5a3nLolmjItS3lTVjTv3hz5fu2YwP2uwMGMw15PnmcP7WZ7fdvLoqkH3AJGt6QGPzNX6XfIQhGOnLy3hHFawF3uxO/aPHH5iZU9n0BuYyRfUqRJSEtpGCmN/rF93d1T5H4CHTHMseNtCAAAAAElFTkSuQmCC";

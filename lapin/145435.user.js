@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name		[HFR] Vos smileys favoris
-// @namespace	http://forum.hardware.fr
+// @namespace	https://forum.hardware.fr
 // @description	Permet d'afficher une liste illimitée de smileys favoris personnels, ainsi que des statistiques sur leur utilisation (historique et les plus utilisés)
-// @include		http://forum.hardware.fr/*
-// @version		1.4.6
-// @require		http://forum-images.hardware.fr/compressed/editPost.js?v=11102781422
+// @include		https://forum.hardware.fr/*
+// @version		1.4.6.1
+// @require		https://forum-images.hardware.fr/compressed/editPost.js?v=11102781422
 // @require		http://fred.82.free.fr/hfr_greasemonkey/VSF/libs/redips-drag-min.js
 //
 // @resource	Script_CSS http://fred.82.free.fr/hfr_greasemonkey/VSF/libs/styles.css
@@ -28,6 +28,12 @@
 // @resource    ui-bg_highlight-soft_100_eeeeee_1x100.png       http://fred.82.free.fr/hfr_greasemonkey/VSF/libs/jquery-ui-1.8.16/images/ui-bg_highlight-soft_100_eeeeee_1x100.png
 //
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 1.4.6.1 (03/12/2017) :
+// - passage au https
+
 
 // Création : 15/09/2010
 // Dernière MAJ : 22/11/2012
@@ -56,9 +62,9 @@ var favoriteWindowWidth = "300px";
 var i_tab_yoursmileys = 2; // Indice de l'onglet "Vos smileys" dans le système d'onglets de la fenêtre de configuration
 var panelMaxHeight = "200px"; // Hauteur de chaque contenu d'onglet en "réponse classique"
 
-var image_general_url = "http://forum-images.hardware.fr/icones/"; // Url pour les smileys de base généraux (:o)
-var image_base_url = "http://forum-images.hardware.fr/icones/smilies/"; // Url pour les smileys de base (:ouch:)
-var image_utilisateur_url = "http://forum-images.hardware.fr/images/perso/"; // Url pour les smileys utilisateur
+var image_general_url = "https://forum-images.hardware.fr/icones/"; // Url pour les smileys de base généraux (:o)
+var image_base_url = "https://forum-images.hardware.fr/icones/smilies/"; // Url pour les smileys de base (:ouch:)
+var image_utilisateur_url = "https://forum-images.hardware.fr/images/perso/"; // Url pour les smileys utilisateur
 
 // Variables de stockage temporaire
 var root = null; // Elément HTML correspondant à la racine du panneau d'édition d'un message sur la page HFR
@@ -658,7 +664,7 @@ function CreateSmileyDefaultObject(full_code)
 */
 function IncludeHFRFavoriteSmileys()
 {
-	var url = "http://forum.hardware.fr/user/editprofil.php";
+	var url = "https://forum.hardware.fr/user/editprofil.php";
 	var args = "config=hfr.inc&page=5";
 	
 	// Chargement de la page du profil contenant les smileys favoris
@@ -1202,10 +1208,10 @@ function Main()
 	
 	// Switch suivant la page affichée
 	if(
-		current_url.match('http://forum.hardware.fr/message.php*')
-		|| current_url.match('http://forum.hardware.fr/hfr/.*/nouveau_sujet.htm')
-		|| current_url.match('http://forum.hardware.fr/hfr/.*/nouveau_sondage.htm')
-		|| current_url.match('http://forum.hardware.fr/hfr/.*/repondre.*'))
+		current_url.match('https://forum.hardware.fr/message.php*')
+		|| current_url.match('https://forum.hardware.fr/hfr/.*/nouveau_sujet.htm')
+		|| current_url.match('https://forum.hardware.fr/hfr/.*/nouveau_sondage.htm')
+		|| current_url.match('https://forum.hardware.fr/hfr/.*/repondre.*'))
 	{
 		// Page édition de message
 		editingMessagePage = true;

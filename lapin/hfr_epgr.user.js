@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [HFR] Plugin epgr
-// @version 0.1.1
+// @version 0.1.1.1
 // @namespace http://toyonos.info
 // @description Plugin epgr pour HFR, afin d'obtenir la date de diffusion d'épisodes d'une série
-// @include http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -18,6 +18,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.1.1 (03/12/2017) :
+// - passage au https
+
 
 var templateMaster = '[quote][b]%show%[/b]\n%episodes%[/quote]';
 var templateEpisode = '- %date% : %season%x%episode% %name%\n';

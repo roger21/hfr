@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [HFR] Spoiler Reductor
-// @version 1.0.0
-// @namespace http://forum.hardware.fr
+// @version 1.0.0.1
+// @namespace https://forum.hardware.fr
 // @description Contracte les balises spoiler du forum hardware.fr en une ligne
-// @include http://forum.hardware.fr/*
+// @include https://forum.hardware.fr/*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -18,6 +18,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 1.0.0.1 (03/12/2017) :
+// - passage au https
+
 
 function xpath(expr, ref, type) {
 	ref = (ref ? ref : document);

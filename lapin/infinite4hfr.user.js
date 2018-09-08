@@ -1,11 +1,17 @@
 // ==UserScript==
 // @name        InfinitScrol@HFR
-// @namespace   http://forum.hardware.fr/forum2.php
-// @include     http://forum.hardware.fr/forum2.php*
-// @version     1
+// @namespace   https://forum.hardware.fr/forum2.php
+// @include     https://forum.hardware.fr/forum2.php*
+// @version     1.0.0.1
 // @grant       none
 // @require  http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 1.0.0.1 (03/12/2017) :
+// - passage au https
+
 
 this.$ = this.jQuery = jQuery.noConflict(true);
 

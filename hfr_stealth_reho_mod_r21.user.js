@@ -1,469 +1,352 @@
 // ==UserScript==
-// @name [HFR] Sleath Rehost
-// @version 0.1.0
-// @namespace http://toyonos.info
-// @description Permet de remplacer le domaine hfr-rehost.net par un alias dans les liens et les images
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @name          [HFR] stealth rehost mod_r21
+// @version       2.2.1
+// @namespace     http://toyonos.info
+// @description   Permet de remplacer le domaine reho.st par un alias dans les liens et les images
+// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @include       https://forum.hardware.fr/*
+// @exclude       https://forum.hardware.fr/message.php*
+// @author        toyonos
+// @modifications remplacement de l'url (morte) des aliases, ajout du support pour reho.st, ajout d'un throbber au chargement de l'image de test, meilleur alignement de l'image de test (et grosse maj des aliases dans http://roger21.free.fr/hfr/stealthrehost.php)
+// @modtype       évolution de fonctionnalités
+// @homepageURL   http://roger21.free.fr/hfr/
+// @noframes
+// @connect       roger21.free.fr
+// @grant         GM_getValue
+// @grant         GM_setValue
+// @grant         GM_addStyle
+// @grant         GM_registerMenuCommand
+// @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-var getElementByXpath = function (path, element)
-{
-	var arr = Array(), xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
-	for (;item = xpr.iterateNext();) arr.push(item);
-	return arr;
+// modifications roger21 $Rev: 184 $
+
+// historique :
+// 2.2.1 (13/05/2018) :
+// - check du code dans tm
+// - suppression des @grant inutiles
+// - ajout de la metadata @connect pour tm
+// - maj de la metadata @homepageURL
+// 2.2.0 (06/12/2017) :
+// - ajout du support pour les urls en https pour reho.st
+// - suppression de la gestion de hfr-rehost.net
+// 2.1.2 (28/11/2017) :
+// - passage au https
+// 2.1.1 (11/02/2017) :
+// - correction du style font-fammily à Verdana,Arial,Sans-serif,Helvetica (HFR Style)
+// 2.1.0 (30/12/2015) :
+// - meilleure descrition dans @modifications
+// 2.0.0 (22/12/2015) :
+// - ajout d'un throbber lors du chargement de l'image de test
+// - meilleur alignement vertical de l'image de test (et du throbber) et du message d'indisponibilité
+// - remplacement des ' par des " (pasque !)
+// - genocide de commentaires et de lignes vides
+// - compactage du css
+// - découpage des lignes trop longues
+// - reformatage du code (Online JavaScript beautifier : ->
+// "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
+// - nouveau numéro de version : 0.1.0.9 -> 2.0.0
+// - nouveau nom : [HFR] Sleath Rehost -> [HFR] stealth rehost mod_r21
+// - modification de l'année dans les dates de l'historique : passage de 2 a 4 chiffres
+// 0.1.0.9 (22/11/2015) :
+// - suppression du module d'auto-update (code mort)
+// 0.1.0.8 (07/03/2015) :
+// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
+// 0.1.0.7 (04/04/2014) :
+// - changement de l'url des aliases (nouvelle organisation des scripts)
+// - ajout de metadata pour la publication (@author, @modifications, @modtype)
+// - ajout d'une icone au script
+// - ajout des dates dans l'historique
+// 0.1.0.6 (18/03/2014) :
+// - maj des metadata @grant et indentation des metadata
+// 0.1.0.5 (11/01/2014) :
+// - désactivation de l'activation pour tous les sites (pas pasque ça marche
+// pas mais pasque ça me saoul de voir ce script sur toutes les pages)
+// @include *
+// 0.1.0.4 (23/10/2013) :
+// - ajout de Principal 2 : reho.st dans les aliases (exterieur au script)
+// pour permetre la conversion hfr-rehost.net -> reho.st
+// - activation des pages pour tous les sites (experimental)
+// 0.1.0.3 (10/10/2013) :
+// - gestion du domaine reho.st
+// - remplacement des images toutes mortes de la boîte de dialogue
+// 0.1.0.2 (14/09/2012) :
+// - ajout des metadata @grant
+// 0.1.0.1 (28/11/2011) :
+// - modification de l'url des stealth rehost
+// - ajout d'un .1 sur le numero de version
+// - désactivation de l'auto-update pour conserver les modifs
+
+var getElementByXpath = function(path, element) {
+  let arr = Array();
+  let xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+  let item = xpr.iterateNext();
+  while(item) {
+    arr.push(item);
+    item = xpr.iterateNext();
+  }
+  return arr;
 }
-
-var cssManager = 
-{
-	cssContent : '',
-	
-	addCssProperties : function (properties)
-	{
-		cssManager.cssContent += properties;
-	},
-	
-	insertStyle : function()
-	{
-		GM_addStyle(cssManager.cssContent);
-		cssManager.cssContent = '';
-	}
+var cssManager = {
+  cssContent: "",
+  addCssProperties: function(properties) {
+    cssManager.cssContent += properties;
+  },
+  insertStyle: function() {
+    GM_addStyle(cssManager.cssContent);
+    cssManager.cssContent = "";
+  }
 }
-
-var sleathRehost =
-{
-	get currentAliasUrl()
-	{
-		return GM_getValue('sr_alias_url', 'hfr-rehost.net');
-	},
-
-	launch : function()
-	{
-		var thisScript = this;
-		var prefix = 'http://hfr-rehost.net';
-		Array.forEach(document.getElementsByTagName('img'), function(img)
-		{
-			if (img.src.substr(0, prefix.length) == prefix)
-			{
-				img.src = img.title = img.alt = 'http://' + thisScript.currentAliasUrl + img.src.substr(prefix.length);
-			}
-		}
-		);
-		
-		Array.forEach(document.getElementsByTagName('a'), function(a)
-		{
-			if (a.href.substr(0, prefix.length) == prefix)
-			{
-				a.href = 'http://' + thisScript.currentAliasUrl + a.href.substr(prefix.length);
-			}
-		}
-		);
-	}
+var sleathRehost = {
+  get currentAliasUrl() {
+    return GM_getValue("sr_alias_url", "reho.st");
+  },
+  launch: function() {
+    var thisScript = this;
+    var prefix1 = "http://reho.st";
+    var prefix2 = "https://reho.st";
+    Array.forEach(document.getElementsByTagName("img"), function(img) {
+      if(img.src.substr(0, prefix1.length) == prefix1) {
+        img.src = img.title = img.alt = "http://" + thisScript.currentAliasUrl + img.src.substr(prefix1.length);
+      }
+      if(img.src.substr(0, prefix2.length) == prefix2) {
+        img.src = img.title = img.alt = "http://" + thisScript.currentAliasUrl + img.src.substr(prefix2.length);
+      }
+    });
+    Array.forEach(document.getElementsByTagName("a"), function(a) {
+      if(a.href.substr(0, prefix1.length) == prefix1) {
+        a.href = "http://" + thisScript.currentAliasUrl + a.href.substr(prefix1.length);
+      }
+      if(a.href.substr(0, prefix2.length) == prefix2) {
+        a.href = "http://" + thisScript.currentAliasUrl + a.href.substr(prefix2.length);
+      }
+    });
+  }
 };
-
 sleathRehost.launch();
-
-
-// Script de création du menu de configuration
-var cmScript =
-{
-	backgroundDiv : null,
-	
-	configDiv : null,
-	
-	timer : null,
-	
-	aliases : null,
-	
-	aliasesUrl : 'http://nazztazz.ovh.org/rehost.xml',
-	
-	thumbUrl : '/thumb/http://self/pic/ee3db761946b74326ab79ae177e9d17add96fdea.jpeg',
-	
-	retrieveAliasList : function (cbf)
-	{		
-		GM_xmlhttpRequest({
-			method: "GET",
-			url: cmScript.aliasesUrl,
-			onload: function(response)
-			{
-				var aliasNodes = new DOMParser().parseFromString(response.responseText, 'text/xml').documentElement.getElementsByTagName('alias');
-				cmScript.aliases = Array();
-				Array.forEach(aliasNodes, function(aliasNode)
-			  	{
-					cmScript.aliases[aliasNode.getAttribute('name')] = aliasNode.getAttribute('domain');
-				}
-				);
-				cbf();
-			}
-		});
-		
-	},	
-	
-	setDivsPosition : function ()
-	{		
-		cmScript.setBackgroundPosition();
-		cmScript.setConfigWindowPosition();
-	},
-	
-	setBackgroundPosition : function ()
-	{				
-		cmScript.backgroundDiv.style.width = document.documentElement.clientWidth + 'px';	
-		cmScript.backgroundDiv.style.height = document.documentElement.clientHeight + 'px';
-		cmScript.backgroundDiv.style.top = window.scrollY + 'px';
-	},
-
-	setConfigWindowPosition : function ()
-	{
-		cmScript.configDiv.style.left = (document.documentElement.clientWidth / 2) - (parseInt(cmScript.configDiv.style.width) / 2) + window.scrollX + 'px';
-		cmScript.configDiv.style.top = (document.documentElement.clientHeight / 2) - (parseInt(cmScript.configDiv.clientHeight) / 2) + window.scrollY + 'px';
-	},	
-	
-	disableKeys : function (event)
-	{
-		var key = event.which;
-		if (key == 27)
-		{
-			clearInterval(cmScript.timer);
-			cmScript.hideConfigWindow();
-		}
-		else if (key == 13) cmScript.validateConfig();
-		else if (event.altKey || (event.target.nodeName.toLowerCase() != 'input' && key >= 33 && key <= 40)) event.preventDefault();
-	},
-	
-	disableTabUp : function (elt)
-	{
-		elt.addEventListener('keydown', function(event)
-		{
-			var key = event.which;
-			if (key == 9 && event.shiftKey) event.preventDefault();
-		}
-		, false);
-	},
-	
-	disableTabDown : function (elt)
-	{
-		elt.addEventListener('keydown', function(event)
-		{
-			var key = event.which;
-			if (key == 9 && !event.shiftKey) event.preventDefault();
-		}
-		, false);
-	},
-	
-	disableScroll : function ()
-	{
-		document.body.style.overflow = 'hidden';
-		window.addEventListener('keydown', cmScript.disableKeys, false);
-	},
-	
-	enableScroll : function ()
-	{
-		document.body.style.overflow = 'visible';
-		window.removeEventListener('keydown', cmScript.disableKeys, false);
-	},
-	
-	alterWindow : function (opening)
-	{
-		if (opening)
-		{
-			// On fige la fenêtre
-			cmScript.disableScroll();
-			// A chaque resize, repositionnement des divs
-			window.addEventListener('resize', cmScript.setDivsPosition, false);
-			// On cache les iframes de m%$!§
-			getElementByXpath('//iframe', document.body).forEach(function(iframe){ iframe.style.visibility = 'hidden'; });		
-		}
-		else
-		{
-			cmScript.enableScroll();
-			window.removeEventListener('resize', cmScript.setDivsPosition, false);
-			getElementByXpath('//iframe', document.body).forEach(function(iframe){ iframe.style.visibility = 'visible'; });
-		}
-	},
-	
-	buildBackground : function ()
-	{
-		if (!document.getElementById('sr_back'))
-		{
-			cmScript.backgroundDiv = document.createElement("div");
-			cmScript.backgroundDiv.id = 'sr_back';
-			cmScript.backgroundDiv.addEventListener('click', function()
-			{
-				clearInterval(cmScript.timer);
-				cmScript.hideConfigWindow();
-			}
-			, false);
-			cssManager.addCssProperties("#sr_back { display: none; position: absolute; left: 0px; top: 0px; background-color: #242424; z-index: 1001;}");
-			document.body.appendChild(cmScript.backgroundDiv);
-		}
-	},
-	
-	buildConfigWindow : function ()
-	{
-		if (!document.getElementById('sr_front'))
-		{	
-			cmScript.configDiv = document.createElement("div");
-			cmScript.configDiv.id = 'sr_front';
-			cmScript.configDiv.style.width = '300px'; 
-			cssManager.addCssProperties("#sr_front { display: none; vertical-align: bottom; height: 110px; position: absolute; background-color: #F7F7F7; z-index: 1002; border: 1px dotted #000; padding: 8px; text-align: center; font-family: Verdana;}");
-			cssManager.addCssProperties("#sr_front span { font-size: 0.8em;}");
-			cssManager.addCssProperties("#sr_front select { border: 1px solid black; font-family: Verdana; font-size: 0.75em;}");
-			cssManager.addCssProperties("#sr_front img { display: block; margin-top: 10px; margin-left: auto; margin-right: auto;}");
-			cssManager.addCssProperties("#sr_front div { position: absolute; bottom: 8px; right: 8px;}");
-			cssManager.addCssProperties("#sr_front input[type=image] { margin: 2px; }");
-			
-			var label = document.createElement('span');
-			label.innerHTML = "Choix de l'alias : ";
-			cmScript.configDiv.appendChild(label);
-			cmScript.retrieveAliasList(function()
-			{
-				var aliasList = document.createElement('select');
-				aliasList.id = 'sr_alias_url';
-				aliasList.addEventListener('change', function()
-				{
-					this.nextSibling.src = 'http://' + this.value + cmScript.thumbUrl;
-					this.nextSibling.alt = 'Alias indisponible';
-					this.nextSibling.title = 'L\'alias est-il disponible ?';
-				}
-				, false);
-
-				for (var name in cmScript.aliases)
-				{
-					var domain = cmScript.aliases[name];
-					var alias = document.createElement('option');
-					alias.value = domain;
-					if (domain == sleathRehost.currentAliasUrl) alias.selected = 'selected';
-					alias.innerHTML = name;
-					aliasList.appendChild(alias);
-				}
-				cmScript.configDiv.insertBefore(aliasList, cmScript.configDiv.firstChild.nextSibling);
-			}
-			);
-			
-			var newImg = document.createElement('img');
-			newImg.src = 'http://' + sleathRehost.currentAliasUrl + cmScript.thumbUrl;
-			newImg.alt = 'Alias indisponible';
-			newImg.title = 'L\'alias est-il disponible ?';
-			cmScript.configDiv.appendChild(newImg);
-			
-			var buttonsContainer = document.createElement('div');
-			var inputOk = document.createElement('input');
-			inputOk.type = 'image';
-			inputOk.src = 'http://www.izipik.com/images/20081007/gnndzom4alg0hqh7uh-accept.png';
-			inputOk.alt = 'Valider';
-			inputOk.addEventListener('click', cmScript.validateConfig, false);
-			
-			var inputCancel = document.createElement('input');
-			inputCancel.type = 'image';
-			inputCancel.src = 'http://www.izipik.com/images/20081007/klmnxxj9h2uqkjzjef-cross.png';
-			inputCancel.alt = 'Annuler';
-			inputCancel.addEventListener('click', cmScript.hideConfigWindow, false);
-			cmScript.disableTabDown(inputCancel);
-			
-			buttonsContainer.appendChild(inputOk);
-			buttonsContainer.appendChild(inputCancel);
-			cmScript.configDiv.appendChild(buttonsContainer);
-
-			document.body.appendChild(cmScript.configDiv);
-		}
-	},
-	
-	validateConfig : function()
-	{
-		getElementByXpath('.//*[starts-with(@id, "sr_")]', document.getElementById('sr_front')).forEach(function(input)
-		{
-			GM_setValue(input.id, input.value);
-		}
-		);
-		cmScript.hideConfigWindow();	
-	},
-	
-	initBackAndFront : function()
-	{
-		if (document.getElementById('sr_back'))
-		{
-			cmScript.setBackgroundPosition();
-			cmScript.backgroundDiv.style.opacity = 0;
-			cmScript.backgroundDiv.style.display = 'block';
-		}
-		
-		if (document.getElementById('sr_front'))
-		{
-			document.getElementById('sr_alias_url').value = sleathRehost.currentAliasUrl;
-		}
-	},
-	
-	showConfigWindow : function ()
-	{
-		cmScript.alterWindow(true);
-		cmScript.initBackAndFront();
-		var opacity = 0;
-		cmScript.timer = setInterval(function()
-		{
-			opacity = Math.round((opacity + 0.1) * 100) / 100;
-			cmScript.backgroundDiv.style.opacity = opacity;
-			if (opacity >= 0.8)
-			{
-				clearInterval(cmScript.timer);
-				cmScript.configDiv.style.display = 'block';
-				cmScript.setConfigWindowPosition();
-			}
-		}
-		, 1);
-	},
-	
-	hideConfigWindow : function ()
-	{
-		cmScript.configDiv.style.display = 'none';
-		var opacity = cmScript.backgroundDiv.style.opacity;
-		cmScript.timer = setInterval(function()
-		{
-			opacity = Math.round((opacity - 0.1) * 100) / 100;
-			cmScript.backgroundDiv.style.opacity = opacity;
-			if (opacity <= 0)
-			{
-				clearInterval(cmScript.timer);
-				cmScript.backgroundDiv.style.display = 'none';
-				cmScript.alterWindow(false);
-			}
-		}
-		, 1);
-	},
-	
-	setUp : function()
-	{
-		// On construit l'arrière plan
-		cmScript.buildBackground();
-		// On construit la fenêtre de config
-		cmScript.buildConfigWindow();
-		// On ajoute la css
-		cssManager.insertStyle();
-	},
-	
-	createConfigMenu : function ()
-	{
-		GM_registerMenuCommand("[HFR] Sleath Rehost -> Configuration", this.showConfigWindow);
-	}
+var cmScript = {
+  backgroundDiv: null,
+  configDiv: null,
+  timer: null,
+  aliases: null,
+  aliasesUrl: "http://roger21.free.fr/hfr/stealthrehost.php",
+  thumbUrl: "/gif/ac25a5d8d4a79449758c9ee51548652221dacb06.gif",
+  retrieveAliasList: function(cbf) {
+    GM_xmlhttpRequest({
+      method: "GET",
+      url: cmScript.aliasesUrl,
+      onload: function(response) {
+        var aliasNodes = new DOMParser().parseFromString(response.responseText, "text/xml").
+        documentElement.getElementsByTagName("alias");
+        cmScript.aliases = Array();
+        Array.forEach(aliasNodes, function(aliasNode) {
+          cmScript.aliases[aliasNode.getAttribute("name")] = aliasNode.getAttribute("domain");
+        });
+        cbf();
+      }
+    });
+  },
+  setDivsPosition: function() {
+    cmScript.setBackgroundPosition();
+    cmScript.setConfigWindowPosition();
+  },
+  setBackgroundPosition: function() {
+    cmScript.backgroundDiv.style.width = document.documentElement.clientWidth + "px";
+    cmScript.backgroundDiv.style.height = document.documentElement.clientHeight + "px";
+    cmScript.backgroundDiv.style.top = window.scrollY + "px";
+  },
+  setConfigWindowPosition: function() {
+    cmScript.configDiv.style.left = (document.documentElement.clientWidth / 2) -
+      (parseInt(cmScript.configDiv.style.width) / 2) + window.scrollX + "px";
+    cmScript.configDiv.style.top = (document.documentElement.clientHeight / 2) -
+      (parseInt(cmScript.configDiv.clientHeight) / 2) + window.scrollY + "px";
+  },
+  disableKeys: function(event) {
+    var key = event.which;
+    if(key == 27) {
+      clearInterval(cmScript.timer);
+      cmScript.hideConfigWindow();
+    } else if(key == 13) {
+      cmScript.validateConfig();
+    } else if(event.altKey || (event.target.nodeName.toLowerCase() != "input" && key >= 33 && key <= 40)) {
+      event.preventDefault();
+    }
+  },
+  disableTabUp: function(elt) {
+    elt.addEventListener("keydown", function(event) {
+      var key = event.which;
+      if(key == 9 && event.shiftKey) {
+        event.preventDefault();
+      }
+    }, false);
+  },
+  disableTabDown: function(elt) {
+    elt.addEventListener("keydown", function(event) {
+      var key = event.which;
+      if(key == 9 && !event.shiftKey) {
+        event.preventDefault();
+      }
+    }, false);
+  },
+  disableScroll: function() {
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", cmScript.disableKeys, false);
+  },
+  enableScroll: function() {
+    document.body.style.overflow = "visible";
+    window.removeEventListener("keydown", cmScript.disableKeys, false);
+  },
+  alterWindow: function(opening) {
+    if(opening) {
+      cmScript.disableScroll();
+      window.addEventListener("resize", cmScript.setDivsPosition, false);
+      getElementByXpath("//iframe", document.body).forEach(function(iframe) {
+        iframe.style.visibility = "hidden";
+      });
+    } else {
+      cmScript.enableScroll();
+      window.removeEventListener("resize", cmScript.setDivsPosition, false);
+      getElementByXpath("//iframe", document.body).forEach(function(iframe) {
+        iframe.style.visibility = "visible";
+      });
+    }
+  },
+  buildBackground: function() {
+    if(!document.getElementById("sr_back")) {
+      cmScript.backgroundDiv = document.createElement("div");
+      cmScript.backgroundDiv.id = "sr_back";
+      cmScript.backgroundDiv.addEventListener("click", function() {
+        clearInterval(cmScript.timer);
+        cmScript.hideConfigWindow();
+      }, false);
+      cssManager.addCssProperties("#sr_back{display:none;position:absolute;left:0px;top:0px;" +
+        "background-color:#242424;z-index:1001;}");
+      document.body.appendChild(cmScript.backgroundDiv);
+    }
+  },
+  buildConfigWindow: function() {
+    if(!document.getElementById("sr_front")) {
+      cmScript.configDiv = document.createElement("div");
+      cmScript.configDiv.id = "sr_front";
+      cmScript.configDiv.style.width = "300px";
+      cssManager.addCssProperties("#sr_front{display:none;vertical-align:bottom;height:110px;position:absolute;" +
+        "background-color:#F7F7F7;z-index:1002;border:1px dotted #000;padding:8px;" +
+        "text-align:center;font-family:Verdana,Arial,Sans-serif,Helvetica;}");
+      cssManager.addCssProperties("#sr_front span{font-size:0.8em;}");
+      cssManager.addCssProperties("#sr_front select{border:1px solid black;font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:0.75em;}");
+      cssManager.addCssProperties("#sr_front img{display:block;margin-top:12px;margin-left:auto;margin-right:auto;}");
+      cssManager.addCssProperties("#sr_front div{position:absolute;bottom:8px;right:8px;}");
+      cssManager.addCssProperties("#sr_front input[type=image]{margin:2px;}");
+      var label = document.createElement("span");
+      label.innerHTML = "Choix de l'alias : ";
+      cmScript.configDiv.appendChild(label);
+      cmScript.retrieveAliasList(function() {
+        var aliasList = document.createElement("select");
+        aliasList.id = "sr_alias_url";
+        aliasList.addEventListener("change", function() {
+          this.nextSibling.style.display = "block";
+          this.nextSibling.nextSibling.style.display = "none";
+          this.nextSibling.nextSibling.src = "http://" + this.value + cmScript.thumbUrl;
+          this.nextSibling.nextSibling.alt = "Alias indisponible";
+        }, false);
+        for(var name in cmScript.aliases) {
+          var domain = cmScript.aliases[name];
+          var alias = document.createElement("option");
+          alias.value = domain;
+          if(domain == sleathRehost.currentAliasUrl) alias.selected = "selected";
+          alias.innerHTML = name;
+          aliasList.appendChild(alias);
+        }
+        cmScript.configDiv.insertBefore(aliasList, cmScript.configDiv.firstChild.nextSibling);
+      });
+      var throbberImg = document.createElement("img");
+      throbberImg.src = "data:image/gif;base64,R0lGODlhFAAUAKIFALW1tZmZmWZmZjMzMwAAAP%2F%2F%2FwAAAAAAACH%2FC05FVFNDQVBFMi4wAwEAAAAh%2BQQJCgAFACwEAAQADgAOAAADLVi6S8RQORfZfLXhzMbgiueB4keaABAJwpKmDMsqrxoEhdzS9o3PER8OdKskAAAh%2BQQJCQAFACwCAAgAEAAKAAADK1gA1f6EqMWei5FWW7BcHCQ5QcANg1WWD4o%2BqykIhZvC8ky%2FYaHTvccslAAAIfkECQkABQAsAgAEAA4ADgAAAy1YCqD%2BizX45KSOYRfC5p33heJYfoogUAThqOrTtilcDEMxu%2FWN5zTKL4fCQRIAIfkECQkABQAsAgACAAoAEAAAAylYugXAy7kVQpOq1ks1zBYkCF8xjt9JpmtZDEMJw98cEwRD4%2FjH575cAgAh%2BQQJCQAFACwCAAIADgAOAAADLFi6FcFQOReLEG0WANa92cZ11seMZBlxyjBUjOvCrUzXN0MQ%2Bb7fPh5QWEkAACH5BAkJAAUALAIAAgAQAAoAAAMqWLolwpA5F9cYbZYQ4L3ZxnXWx4xkGXEMQVQLABSuC8ty%2FVb4bMMFWSEBACH5BAkJAAUALAQAAgAOAA4AAAMtWKoz%2B681qAgp0gmxrMXaxhXetYgjaT4b5RZB8C5xPMP1jd8AoPc9HvDnUyQAACH5BAkJAAUALAgAAgAKABAAAAMqWETVros9uMoYr9477e4e6AgCSJLdWabrEwTg%2BzoAUMhwUdd3ru8gXicBADs%3D";
+      throbberImg.style.marginTop = "27px";
+      var newImg = document.createElement("img");
+      newImg.src = "http://" + sleathRehost.currentAliasUrl + cmScript.thumbUrl;
+      newImg.alt = "Alias indisponible";
+      newImg.style.display = "none";
+      newImg.addEventListener("load", function() {
+        this.previousSibling.style.display = "none";
+        this.style.display = "block";
+        this.style.marginTop = "12px";
+      }, false);
+      newImg.addEventListener("error", function() {
+        this.previousSibling.style.display = "none";
+        this.style.display = "block";
+        this.style.marginTop = "28px";
+      }, false);
+      cmScript.configDiv.appendChild(throbberImg);
+      cmScript.configDiv.appendChild(newImg);
+      var buttonsContainer = document.createElement("div");
+      var inputOk = document.createElement("input");
+      inputOk.type = "image";
+      inputOk.src = "data:image/gif;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKfSURBVDjLpZPrS1NhHMf9O3bOdmwDCWREIYKEUHsVJBI7mg3FvCxL09290jZj2EyLMnJexkgpLbPUanNOberU5taUMnHZUULMvelCtWF0sW/n7MVMEiN64AsPD8/n83uucQDi/id/DBT4Dolypw/qsz0pTMbj/WHpiDgsdSUyUmeiPt2+V7SrIM+bSss8ySGdR4abQQv6lrui6VxsRonrGCS9VEjSQ9E7CtiqdOZ4UuTqnBHO1X7YXl6Daa4yGq7vWO1D40wVDtj4kWQbn94myPGkCDPdSesczE2sCZShwl8CzcwZ6NiUs6n2nYX99T1cnKqA2EKui6+TwphA5k4yqMayopU5mANV3lNQTBdCMVUA9VQh3GuDMHiVcLCS3J4jSLhCGmKCjBEx0xlshjXYhApfMZRP5CyYD+UkG08+xt+4wLVQZA1tzxthm2tEfD3JxARH7QkbD1ZuozaggdZbxK5kAIsf5qGaKMTY2lAU/rH5HW3PLsEwUYy+YCcERmIjJpDcpzb6l7th9KtQ69fi09ePUej9l7cx2DJbD7UrG3r3afQHOyCo+V3QQzE35pvQvnAZukk5zL5qRL59jsKbPzdheXoBZc4saFhBS6AO7V4zqCpiawuptwQG+UAa7Ct3UT0hh9p9EnXT5Vh6t4C22QaUDh6HwnECOmcO7K+6kW49DKqS2DrEZCtfuI+9GrNHg4fMHVSO5kE7nAPVkAxKBxcOzsajpS4Yh4ohUPPWKTUh3PaQEptIOr6BiJjcZXCwktaAGfrRIpwblqOV3YKdhfXOIvBLeREWpnd8ynsaSJoyESFphwTtfjN6X1jRO2+FxWtCWksqBApeiFIR9K6fiTpPiigDoadqCEag5YUFKl6Yrciw0VOlhOivv/Ff8wtn0KzlebrUYwAAAABJRU5ErkJggg==";
+      inputOk.alt = "Valider";
+      inputOk.addEventListener("click", cmScript.validateConfig, false);
+      var inputCancel = document.createElement("input");
+      inputCancel.type = "image";
+      inputCancel.src = "data:image/gif;base64,R0lGODlhEAAQAPcAAAAAAIQdC4keDIwfDJQdCZkeCY4oGZArGpUyJJ02JKoZHK8dHboZC7UcIqghC6QtGbcmGrcpGqA2JK04JLwgLcoJCcsZGdIJEtkMGdkMHd4LGN4aKswkJsQjM84lNtMsPdkkMNskMtg9OuAZLOEkNsYzQswzQsw1RMs6Tss8TdYsQMZDV8ZHWMtEUsxBU8xDU85EUs5KW91CQt1FQt1HQt1ERN5NSN5MSd1OSdNFVNFPXt1NUN1RTt9TTtNUYdhYZd1fadNldNNre9Zre9hoc9hqddprdthqd9tvfN5wdt11fuBHR+BIReBVVeFeWuRkZORpaORvbOJxdeV1deV1duJ6fuJ6f+V7gduDkN2FkuCLk+CIlOKOmuKOm+iPkeqRjuWQk+WSnOWVmuaVm+iSleiWmOiWmeqYmOqanOmfpeylqPK6uPPBv/XLyfXKyvjX1fjX1vjc2/nd3Png3/ri4fni4vrm5fvo5/vp6fzs6/3z8/75+f///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAAP8ALAAAAAAQABAAAAjBAP8JHEiwoMF/JDJgAHFw4AgVVrx4qeLBwkENQNBQadKEypkfDApuAHJmCRMaM2TUKOMjAsEPaJa0gYNDBJs5asxQGBjiypQbdPjE+aKHz5MkSCYIvEBmBw0nePhIXdMjh5YCAiuAcRrFjtQ6NmjA2EJAIAclUqDsEZqHzxseRIQkGNhBTBo+cmw4ueMmBZcFBCHoGGPkhIkSLVBwYXGgoIMYYYq8cHGky4oABx80GJIFSxAFBhoKlDBAAALRqAcGBAA7";
+      inputCancel.alt = "Annuler";
+      inputCancel.addEventListener("click", cmScript.hideConfigWindow, false);
+      cmScript.disableTabDown(inputCancel);
+      buttonsContainer.appendChild(inputOk);
+      buttonsContainer.appendChild(inputCancel);
+      cmScript.configDiv.appendChild(buttonsContainer);
+      document.body.appendChild(cmScript.configDiv);
+    }
+  },
+  validateConfig: function() {
+    getElementByXpath(".//*[starts-with(@id, 'sr_')]", document.getElementById("sr_front")).forEach(function(input) {
+      GM_setValue(input.id, input.value);
+    });
+    cmScript.hideConfigWindow();
+  },
+  initBackAndFront: function() {
+    if(document.getElementById("sr_back")) {
+      cmScript.setBackgroundPosition();
+      cmScript.backgroundDiv.style.opacity = 0;
+      cmScript.backgroundDiv.style.display = "block";
+    }
+    if(document.getElementById("sr_front")) {
+      document.getElementById("sr_alias_url").value = sleathRehost.currentAliasUrl;
+    }
+  },
+  showConfigWindow: function() {
+    cmScript.alterWindow(true);
+    cmScript.initBackAndFront();
+    var opacity = 0;
+    cmScript.timer = setInterval(function() {
+      opacity = Math.round((opacity + 0.1) * 100) / 100;
+      cmScript.backgroundDiv.style.opacity = opacity;
+      if(opacity >= 0.8) {
+        clearInterval(cmScript.timer);
+        cmScript.configDiv.style.display = "block";
+        cmScript.setConfigWindowPosition();
+      }
+    }, 1);
+  },
+  hideConfigWindow: function() {
+    cmScript.configDiv.style.display = "none";
+    var opacity = cmScript.backgroundDiv.style.opacity;
+    cmScript.timer = setInterval(function() {
+      opacity = Math.round((opacity - 0.1) * 100) / 100;
+      cmScript.backgroundDiv.style.opacity = opacity;
+      if(opacity <= 0) {
+        clearInterval(cmScript.timer);
+        cmScript.backgroundDiv.style.display = "none";
+        cmScript.alterWindow(false);
+      }
+    }, 1);
+  },
+  setUp: function() {
+    cmScript.buildBackground();
+    cmScript.buildConfigWindow();
+    cssManager.insertStyle();
+  },
+  createConfigMenu: function() {
+    GM_registerMenuCommand("[HFR] stealth rehost -> configuration", this.showConfigWindow);
+  }
 };
-
 cmScript.setUp();
 cmScript.createConfigMenu();
-
-// ============ Module d'auto update du script ============
-({
-	check4Update : function()
-	{
-		var autoUpdate = this;
-		var mirrorUrl = GM_getValue('mirrorUrl', 'null');
-		if (mirrorUrl == 'null') autoUpdate.retrieveMirrorUrl();
-
-		var currentVersion = GM_getValue('currentVersion', '0.1.0');
-		// On met éventuellement la version stockée à jour avec la version courante, si la version courante est plus récente
-		if (autoUpdate.isLater('0.1.0', currentVersion))
-		{
-			GM_setValue('currentVersion', '0.1.0');
-			currentVersion = '0.1.0';
-		}			
-		// Par contre, si la version stockée est plus récente que la version courante -> création un menu d'update pour la dernière version
-		else if (autoUpdate.isLater(currentVersion, '0.1.0'))
-		{
-			GM_registerMenuCommand("[HFR] Sleath Rehost -> Installer la version " + currentVersion, function()
-			{
-				GM_openInTab(mirrorUrl + 'hfr_sleath_rehost.user.js');
-			}
-			);
-		}
-		// Si la version courante et la version stockée sont identiques, on ne fait rien
-
-		if (GM_getValue('lastVersionCheck') == undefined || GM_getValue('lastVersionCheck') == '') GM_setValue('lastVersionCheck', new Date().getTime() + '');
-		// Pas eu de check depuis 24h, on vérifie...
-		if ((new Date().getTime() - GM_getValue('lastVersionCheck')) > 86400000 && mirrorUrl != 'null')
-		{
-			var checkUrl = mirrorUrl + 'getLastVersion.php5?name=' + encodeURIComponent('[HFR] Sleath Rehost');
-			if (isNaN(currentVersion.substring(currentVersion.length - 1))) checkUrl += '&sversion=' + currentVersion.substring(currentVersion.length - 1);
-
-			GM_xmlhttpRequest({
-				method: "GET",
-				url: checkUrl,
-				onload: function(response)
-				{
-					var regExpVersion = new RegExp('^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}[a-zA-Z]?$');
-					var lastVersion = response.responseText;
-					// Pas d'erreur et nouvelle version plus récente
-					if (lastVersion != '-1' && regExpVersion.test(lastVersion) && autoUpdate.isLater(lastVersion, currentVersion))
-					{
-						if (confirm('Une nouvelle version de [HFR] Sleath Rehost est disponible : ' + lastVersion + '\nVoulez-vous l\'installer ?'))
-						{
-							GM_openInTab(mirrorUrl + 'hfr_sleath_rehost.user.js');
-						}
-						else
-						{
-							// Mémorisation de la version refusée : elle servira de version de référence
-							GM_setValue('currentVersion', lastVersion);
-						}
-					}
-					GM_setValue('lastVersionCheck', new Date().getTime() + '');
-				}
-			});
-		}
-	},
-
-	max : function(v1, v2)
-	{
-		var tabV1 = v1.split('.');
-		var tabV2 = v2.split('.');
-		
-		if (isNaN(tabV1[2].substring(tabV1[2].length - 1))) tabV1[2] = tabV1[2].substring(0, tabV1[2].length - 1);
-		if (isNaN(tabV2[2].substring(tabV2[2].length - 1))) tabV2[2] = tabV2[2].substring(0, tabV2[2].length - 1);
-
-		if ((tabV1[0] > tabV2[0])
-		|| (tabV1[0] == tabV2[0] && tabV1[1] > tabV2[1])
-		|| (tabV1[0] == tabV2[0] && tabV1[1] == tabV2[1] && tabV1[2] > tabV2[2]))
-		{
-			return v1;
-		}
-		else
-		{
-			return v2;
-		}		
-	},
-
-	isLater : function(v1, v2)
-	{
-		return v1 != v2 && this.max(v1, v2) == v1;
-	},
-
-	retrieveMirrorUrl : function()
-	{	
-		var mirrors = 'http://hfr.toyonos.info/gm/;http://hfr-mirror.toyonos.info/gm/'.split(';');
-		var checkMirror = function (i)
-		{
-			var mirror = mirrors[i];
-			GM_xmlhttpRequest({
-				url: mirror + 'getLastVersion.php5',
-				method: "HEAD",
-				onload: function(response)
-				{
-					// Dès qu'un miroir répond, on le mémorise.
-					if (response.status == 200)
-					{
-						GM_setValue('mirrorUrl', mirror);
-					}
-					else
-					{
-						// Sinon on test le prochain
-						if ((i + 1) < mirrors.length)
-						{
-							checkMirror(i + 1);
-						}
-						else
-						{
-							GM_setValue('mirrorUrl', 'null');
-						}
-					}
-				}
-			});		
-		};
-		checkMirror(0);
-	},
-}).check4Update();

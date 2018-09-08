@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Informations rapides sur le profil
-// @version 0.2.5c
+// @version 0.2.5c.2
 // @namespace http://toyonos.info
 // @description Rajoute un accès rapide à certaines infos du profil d'un membre au passage de la souris sur le pseudo
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.2.5c.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.2.5c.1 (03/12/2017) :
+// - passage au https
+
 
 function getElementByXpath(path, element)
 {
@@ -39,7 +47,7 @@ function getRealPseudo(pseudoValue)
 }
 
 var root = document.getElementById('mesdiscussions');
-var profilUrl = 'http://forum.hardware.fr/profilebdd.php?config=hfr.inc&pseudo=';
+var profilUrl = 'https://forum.hardware.fr/profilebdd.php?config=hfr.inc&pseudo=';
 var cancel = false;
 
 var pseudos = getElementByXpath('.//table//td[@class="messCase1"]//b[@class="s2"]', root);
@@ -77,12 +85,12 @@ function enhancePseudo(pseudo)
 			var tmp;
 			var nbPosts = profilContent.match(/<td class=\"profilCase2\">Nombre de messages .*&nbsp;: <\/td>\s*<td class=\"profilCase3\">([0-9]+)<\/td>/).pop();
 			var dateInscription = profilContent.match(/<td class=\"profilCase2\">Date .* sur le forum&nbsp;: <\/td>\s*<td class=\"profilCase3\">([0-9]{2}\/[0-9]{2}\/[0-9]{4})<\/td>/).pop();
-			var smileyPerso = (tmp = profilContent.match(/<img src=\"(http:\/\/forum-images\.hardware\.fr\/images\/perso\/.*\.gif)\" alt=\"smilie perso\" \/>/)) != null ? tmp.pop() : null;
-			var smileyPerso1 = (tmp = profilContent.match(/<img src=\"(http:\/\/forum-images\.hardware\.fr\/images\/perso\/1\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
-			var smileyPerso2 = (tmp = profilContent.match(/<img src=\"(http:\/\/forum-images\.hardware\.fr\/images\/perso\/2\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
-			var smileyPerso3 = (tmp = profilContent.match(/<img src=\"(http:\/\/forum-images\.hardware\.fr\/images\/perso\/3\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
-			var smileyPerso4 = (tmp = profilContent.match(/<img src=\"(http:\/\/forum-images\.hardware\.fr\/images\/perso\/4\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
-			var smileyPerso5 = (tmp = profilContent.match(/<img src=\"(http:\/\/forum-images\.hardware\.fr\/images\/perso\/5\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
+			var smileyPerso = (tmp = profilContent.match(/<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/.*\.gif)\" alt=\"smilie perso\" \/>/)) != null ? tmp.pop() : null;
+			var smileyPerso1 = (tmp = profilContent.match(/<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/1\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
+			var smileyPerso2 = (tmp = profilContent.match(/<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/2\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
+			var smileyPerso3 = (tmp = profilContent.match(/<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/3\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
+			var smileyPerso4 = (tmp = profilContent.match(/<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/4\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
+			var smileyPerso5 = (tmp = profilContent.match(/<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/5\/.*\.gif)\".*\/>/)) != null ? tmp.pop() : null;
 			var dateNaissance = (tmp = profilContent.match(/<td class=\"profilCase2\">Date de naissance&nbsp;: <\/td>\s*<td class=\"profilCase3\">([0-9]{2}\/[0-9]{2}\/[0-9]{4})<\/td>/)) != null ? tmp.pop() : null;
 			var sexe = (tmp = profilContent.match(/<td class=\"profilCase2\">[s|S]exe&nbsp;: <\/td>\s*<td class=\"profilCase3\">(homme|femme)<\/td>/)) != null ? tmp.pop() : null;
 			var ville = (tmp = profilContent.match(/<td class=\"profilCase2\">[v|V]ille&nbsp;: <\/td>\s*<td class=\"profilCase3\">(.*?)<\/td>/)) != null ? tmp.pop() : null;
@@ -248,8 +256,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

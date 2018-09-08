@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [HFR] Suppression rapide de mps
-// @version 0.2.3
+// @version 0.2.3.2
 // @namespace http://toyonos.info
 // @description Permet de supprimer un mp donné via un bouton dans la liste des mps et dans le mp lui-même
-// @include  http://forum.hardware.fr/forum*cat=prive*
+// @include  https://forum.hardware.fr/forum*cat=prive*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,14 @@
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
 
+
+// historique modifs r21 :
+// 0.2.3.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.2.3.1 (03/12/2017) :
+// - passage au https
+
+
 // Menu pour selectionner l'url de l'image
 GM_registerMenuCommand("[HFR] Suppression rapide de mps -> Url de l'image", function()
 {
@@ -30,7 +38,7 @@ GM_registerMenuCommand("[HFR] Suppression rapide de mps -> Url de l'image", func
 
 var getCurrentImgUrl = function()
 {
-	return GM_getValue('hfr_srmp_imgUrl', 'http://forum-images.hardware.fr/images/perso/damnbloodyseagull.gif');	
+	return GM_getValue('hfr_srmp_imgUrl', 'https://forum-images.hardware.fr/images/perso/damnbloodyseagull.gif');	
 }
 
 
@@ -51,7 +59,7 @@ var generateImg = function (idMp, hashCheck, action)
 	{
 		if (confirm('Supprimer ce MP ?'))
 		{
-			var url = 'http://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat=prive&type_page=forum1&moderation=0';
+			var url = 'https://forum.hardware.fr/modo/manageaction.php?config=hfr.inc&cat=prive&type_page=forum1&moderation=0';
 			var arguments = 'action_reaction=valid_eff_prive&topic1=' + idMp + '&hash_check=' + hashCheck;
 			toyoAjaxLib.loadDoc(url, 'post', arguments, action);
 		}
@@ -119,7 +127,7 @@ if (div.length > 0)
 	var hashCheck = getElementByXpath('//input[@name="hash_check"]', document).pop().value;
 	var newImg = generateImg(idMp, hashCheck, function ()
 	{
-		document.location = 'http://forum.hardware.fr/forum1.php?config=hfr.inc&cat=prive';
+		document.location = 'https://forum.hardware.fr/forum1.php?config=hfr.inc&cat=prive';
 	}
 	);
 	div.insertBefore(newImg, div.firstChild);
@@ -178,8 +186,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

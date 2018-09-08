@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Réparateur d'ancres
-// @version 0.1.0
-// @namespace http://forum.hardware.fr
+// @version 0.1.0.1
+// @namespace https://forum.hardware.fr
 // @description Répare les ancres en cas de suppression du dernier mesage d'un sujet
-// @include http://forum.hardware.fr/hfr/*#t*
-// @include http://forum.hardware.fr/forum2.php*#t*
+// @include https://forum.hardware.fr/hfr/*#t*
+// @include https://forum.hardware.fr/forum2.php*#t*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.0.1 (03/12/2017) :
+// - passage au https
+
 
 var getElementByXpath = function(path, element) {
 	var arr = Array(), xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);

@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [Mes Discussions] Video Link Replacer
-// @version 0.1.8
+// @version 0.1.8.1
 // @namespace http://noledgedis.com/
 // @description Replace a youtube, dailymotion or vimeo link by an embed video
-// @include http://forum.hardware.fr/*
+// @include https://forum.hardware.fr/*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -18,6 +18,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.8.1 (03/12/2017) :
+// - passage au https
+
 
 (function() {
   var SELECTOR = '.spoiler .cLink, .messCase2 > div[id] > p > .cLink';

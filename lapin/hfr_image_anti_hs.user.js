@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Image Anti HS
-// @version 0.2.3
+// @version 0.2.3.1
 // @namespace http://mycrub.info
 // @description Ajoute une icône anti-hs en haut d'une page d'un topic pour filtrer les messages sans intérêt
-// @include http://forum.hardware.fr/forum2.php*
-// @include http://forum.hardware.fr/*/*/*/*-sujet_*_*.htm*
+// @include https://forum.hardware.fr/forum2.php*
+// @include https://forum.hardware.fr/*/*/*/*-sujet_*_*.htm*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.2.3.1 (03/12/2017) :
+// - passage au https
+
 
 var hsImg = "data:image/gif,GIF89a%10%00%10%00%A1%02%00%00%00%00%FF%00%00%FF%FF%FF%FF%FF%FF!%FE%11Created%20with%20GIMP%00!%F9%04%01%0A%00%03%00%2C%00%00%00%00%10%00%10%00%00%02%3B%9C%17%A9y%B7%AF%9A%12%B4F%93%AA%B6%01%25%00%08%20%05%02%8F%18%8Ee%B8%A0%EEH%B5k%0A%CB%2B9%DA..%E8j%D9%5B%FCP%2CFf%A3a%60%8EI%E5%12%B2h%3C%1F%8D%02%00%3B";
 var noHsImg = "data:image/gif,GIF89a%10%00%10%00%A1%02%00%00%00%00%80%80%80%FF%FF%FF%FF%FF%FF!%FE%11Created%20with%20GIMP%00!%F9%04%01%0A%00%03%00%2C%00%00%00%00%10%00%10%00%00%02%3D%9C%17%A9y%B7%AF%9A%12%B4F%93%AA%16%0B%25%00%08%20%F5%3Db8~%E1r%9E%9F5%81%A0%1Ar%F1%1CP%B2%9D%E1u%CB%02%A8N)Hk%17%99l%60%18%A5%E6%D2%84t%1A%1EH%A3%00%00%3B";
@@ -120,8 +126,8 @@ var filterOnLinks = function () {
  * Does this message have an external image?
  */ 
 var hasImage = function (message) {
-  var images = getElementByXpath(".//div[starts-with(@id,'para')]//img[not(starts-with(@src, 'http://forum-images.hardware.fr'))]", message);
-  var quotedImages = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']//img[not(starts-with(@src, 'http://forum-images.hardware.fr'))]", message);
+  var images = getElementByXpath(".//div[starts-with(@id,'para')]//img[not(starts-with(@src, 'https://forum-images.hardware.fr'))]", message);
+  var quotedImages = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']//img[not(starts-with(@src, 'https://forum-images.hardware.fr'))]", message);
   return images.length - quotedImages.length > 0;
 }
 
@@ -129,8 +135,8 @@ var hasImage = function (message) {
  * Does this message have an external link?
  */ 
 var hasLink = function (message) {
-  var links = getElementByXpath(".//div[starts-with(@id,'para')]//p//a[not(starts-with(@href, 'http://forum.hardware.fr'))]", message);
-  var quotedLinks = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']//p//a[not(starts-with(@href, 'http://forum.hardware.fr'))]", message);
+  var links = getElementByXpath(".//div[starts-with(@id,'para')]//p//a[not(starts-with(@href, 'https://forum.hardware.fr'))]", message);
+  var quotedLinks = getElementByXpath(".//div[starts-with(@id,'para')]//table[@class='citation' or @class='oldcitation' or @class='quote']//p//a[not(starts-with(@href, 'https://forum.hardware.fr'))]", message);
   return links.length - quotedLinks.length > 0;
 }
 

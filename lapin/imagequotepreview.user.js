@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [HFR] Image quote preview
-// @version 0.1.0
+// @version 0.1.0.1
 // @namespace http://untitled-document.info/
 // @description Adds a preview on image quoted in mes discussions
-// @include http://forum.hardware.fr/*
+// @include https://forum.hardware.fr/*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -18,6 +18,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.0.1 (03/12/2017) :
+// - passage au https
+
 
 function $x(p, context) {
   if (!context) context = document;

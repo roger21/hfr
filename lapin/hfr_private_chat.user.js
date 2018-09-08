@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Private Chat
-// @version 0.1.7
+// @version 0.1.7.3
 // @namespace http://toyonos.info
 // @description Permet de communiquer par chat avec tout membre du forum, en sa basant sur le système des mps
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/bddpost.php
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/bddpost.php
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,16 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.7.3 (10/12/2017) :
+// - commentage des alert XML
+// 0.1.7.2 (09/12/2017) :
+// - correction du selecteur de messages (evol du forum) par PetitJean
+// 0.1.7.1 (03/12/2017) :
+// - passage au https
+
 
 var toyoAjaxLib = (function()
 {
@@ -71,8 +81,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}
@@ -290,7 +300,7 @@ var hfrPrivateChat =
 	retrieveMetaInfosByPage : function(postId, pageNumber, disableNotify, flood, chatMps)
 	{
 		var tmp;
-		var url = 'http://forum.hardware.fr/forum1.php';
+		var url = 'https://forum.hardware.fr/forum1.php';
 		var args = 'config=hfr.inc&cat=prive';
 		args += pageNumber != null ? '&page=' + pageNumber : '';
 		toyoAjaxLib.loadDoc(url, 'get', args, function(pageContent)
@@ -328,7 +338,7 @@ var hfrPrivateChat =
 	
 	retrieveMpsByPage : function(postId, pageNumber, remainingMps, newMp, flood, chatMps)
 	{	
-		var url = 'http://forum.hardware.fr/forum2.php';
+		var url = 'https://forum.hardware.fr/forum2.php';
 		var args = 'config=hfr.inc&cat=prive&post=' + postId;
 		args += pageNumber != null ? '&page=' + pageNumber : '';
 		toyoAjaxLib.loadDoc(url, 'get', args, function(pageContent)
@@ -345,7 +355,7 @@ var hfrPrivateChat =
 			
 			var contentNode = document.createElement('div');
 			contentNode.innerHTML = pageContent;
-			var currentMps = getElementByXpath('.//table[@class="messagetable"]', contentNode);
+			var currentMps = getElementByXpath('.//table[starts-with(@class, "messagetable")]', contentNode);
 			for (var ind in currentMps = currentMps.reverse())
 			{
 				var mpDiv = document.createElement('div');
@@ -395,7 +405,7 @@ var hfrPrivateChat =
 			{
 				var mpDiv = document.createElement('div');
 				mpDiv.className = 'hpc_mp flood';
-				mpDiv.innerHTML = 'Flood interdit <img src="http://forum-images.hardware.fr/images/perso/o_non.gif" alt="[:o_non]" title="[:o_non]" />';
+				mpDiv.innerHTML = 'Flood interdit <img src="https://forum-images.hardware.fr/images/perso/o_non.gif" alt="[:o_non]" title="[:o_non]" />';
 				chatMps.appendChild(mpDiv);				
 			}
 			
@@ -436,7 +446,7 @@ var hfrPrivateChat =
 		cssManager.addCssProperties("div.hpc_mp p {margin: 0; padding: 0;}");
 		cssManager.addCssProperties("div.hpc_mp img {max-width: 150px;}");
 		cssManager.addCssProperties("div.mp_edited {background-color: #ededed;}");
-		cssManager.addCssProperties("div.hpc_mp img[src^='http://forum-images.hardware.fr'] {display: inline; width: auto;}");
+		cssManager.addCssProperties("div.hpc_mp img[src^='https://forum-images.hardware.fr'] {display: inline; width: auto;}");
 		cssManager.addCssProperties("div.flood {color: red; font-weight: bold;}");
 		cssManager.addCssProperties("div[id^='hpc_post'] {padding: 10px; background-color: #F7F7F7;}");
 		cssManager.addCssProperties("div[id^='hpc_post'] textarea {border: 1px solid black; width: 100%; font-size: 0.75em;}");
@@ -457,7 +467,7 @@ var hfrPrivateChat =
 		chatDiv.appendChild(chatHeader);
 		var titleLink = document.createElement('a');
 		titleLink.innerHTML = '&nbsp;';
-		titleLink.href = 'http://forum.hardware.fr/forum2.php?config=hfr.inc&cat=prive&post=' + postId;
+		titleLink.href = 'https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=prive&post=' + postId;
 		titleLink.title = 'Aller sur le MP correspondant';
 		chatHeader.appendChild(titleLink);
 
@@ -521,7 +531,7 @@ var hfrPrivateChat =
 					{
 						hfrPrivateChat.lockPost = true;
 						this.readOnly = true;
-						var url = 'http://forum.hardware.fr/bddpost.php?config=hfr.inc';
+						var url = 'https://forum.hardware.fr/bddpost.php?config=hfr.inc';
 						var args = 'content_form=' + encodeURIComponent(this.value) + '&post=' + postId + '&pseudo=' + encodeURIComponent(hfrPrivateChat.myPseudo) + '&cat=prive&verifrequet=1100&sujet=DTC';
 						args += '&hash_check=' + getElementByXpath('//input[@name="hash_check"]', document).pop().value;
 						toyoAjaxLib.loadDoc(url, 'post', args, function(response)
@@ -597,7 +607,7 @@ var hfrPrivateChat =
 	
 	insertShortcuts : function()
 	{
-		if (('' + document.location).match(/http:\/\/forum.hardware.fr\/forum.*?cat=prive/) != null)
+		if (('' + document.location).match(/https:\/\/forum.hardware.fr\/forum.*?cat=prive/) != null)
 		{
 			var root = document.getElementById('mesdiscussions');
 			var tr = null;
@@ -654,7 +664,7 @@ var hfrPrivateChat =
 	
 	insertQuickOpener : function ()
 	{
-		var url = 'http://forum.hardware.fr/forum1.php';
+		var url = 'https://forum.hardware.fr/forum1.php';
 		var args = 'config=hfr.inc&cat=prive&page=1';
 		toyoAjaxLib.loadDoc(url, 'get', args, function(pageContent)
 		{

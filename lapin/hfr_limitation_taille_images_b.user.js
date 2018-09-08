@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name [HFR] Limitation de la taille des images
-// @version 0.2.5b
+// @version 0.2.5b.1
 // @namespace http://toyonos.info
 // @description Permet de limiter la taille des images dans les posts et de leur rendre leur taille d'origine par un clic sur une icône
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -19,6 +19,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.2.5b.1 (03/12/2017) :
+// - passage au https
+
 
 ({
 	getElementByXpath : function (path, element)

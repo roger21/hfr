@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name [HFR] Alerte Qualitaÿ
-// @version 0.1.5
+// @version 0.1.5.2
 // @namespace http://toyonos.info
 // @description Permet de signaler une alerte qualitaÿ à la communauté
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
-// @exclude http://forum.hardware.fr/forum*cat=prive*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
+// @exclude https://forum.hardware.fr/forum*cat=prive*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -20,6 +20,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.5.2 (10/12/2017) :
+// - commentage des alert XML
+// 0.1.5.1 (03/12/2017) :
+// - passage au https
+
 
 var cssManager = 
 {
@@ -380,8 +388,8 @@ var toyoAjaxLib = (function()
 					}
 					else
 					{
-						alert("There was a problem retrieving the XML data:\n" +
-						req.statusText);
+						//alert("There was a problem retrieving the XML data:\n" +
+						//req.statusText);
 					}
 				}
 			}

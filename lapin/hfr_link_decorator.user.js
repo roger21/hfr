@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name [HFR] Liens explicites
-// @version 0.0.3
+// @version 0.0.3.2
 // @namespace http://blabla.info
 // @description Insère un texte explicite dans les liens à la place de celui créé automatiquement par le forum
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
-// @exclude http://forum.hardware.fr/forum1f.php*
-// @exclude http://forum.hardware.fr/forum1.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
+// @exclude https://forum.hardware.fr/forum1f.php*
+// @exclude https://forum.hardware.fr/forum1.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -21,6 +21,14 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.0.3.2 (09/02/2018) :
+// - correction du passage au https
+// 0.0.3.1 (03/12/2017) :
+// - passage au https
+
 
 /* ====================== Listes de cats et souscats ======================== */
 
@@ -582,7 +590,7 @@ GM_log( liens.length +" liens en " + (tmp2.getTime()-tmp.getTime()) + " ms, ");
 function parseHFR(str) {
  var parsed = parseUri (str);
 
- if (parsed.host != "forum.hardware.fr" || parsed.protocol != "http") 
+ if (parsed.host != "forum.hardware.fr" || parsed.protocol != "https") 
 	{	 parsed.type = "!topic"; return parsed; }
  
  if (parsed.file == "forum2.php") {
@@ -592,7 +600,7 @@ function parseHFR(str) {
 			if (parsed.queryKey.subcat)
 				parsed.souscat = parsed.queryKey.subcat;
 			parsed.page = parsed.queryKey.page ?	parsed.queryKey.page : 1; 
-			parsed.rewrite = "http://forum.hardware.fr/hfr/" + id2cat[parsed.cat] + 
+			parsed.rewrite = "https://forum.hardware.fr/hfr/" + id2cat[parsed.cat] + 
 				 (parsed.souscat ? "/" + id2subcat[parsed.souscat] : "") + 
 				"/sujet_" + parsed.topic + "_" + parsed.page + ".htm" + 
 				(parsed.anchor ? "#" + parsed.anchor : "") ;

@@ -1,0 +1,27 @@
+/* @name          [HFR] images smileys */
+/* @version       1.1.0 */
+/* @namespace     roger21.free.fr */
+/* @description   permet un affichage identique des images et des smileys (sans marge) */
+/* @revision      $Rev: 170 $ */
+
+/*
+historique :
+1.1.0 (27/04/2014) :
+- ajout du support de l'aperçu dans la réponse normale
+1.0.0 (26/04/2014) :
+- creation
+*/
+
+@namespace url(http://www.w3.org/1999/xhtml);
+
+@-moz-document domain("forum.hardware.fr") {
+
+  div[id^="para"] img:not(.ws_toyo_smilies):not(.ws_toyo_help_icon),
+  div#apercu_reponse img, body#mesdiscussions img{
+    border:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    vertical-align:bottom !important;
+  }
+
+}

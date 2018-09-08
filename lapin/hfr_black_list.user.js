@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name [HFR] Black List
-// @version 0.7.2
+// @version 0.7.2.1
 // @namespace http://nykal.fr
 // @description Mask messages from black listed users on forum.hardware.fr
-// @include http://forum.hardware.fr/*
-// @exclude http://forum.hardware.fr/message.php*
-// @exclude http://forum.hardware.fr/forum1.php*
-// @exclude http://forum.hardware.fr/forum1f.php*
+// @include https://forum.hardware.fr/*
+// @exclude https://forum.hardware.fr/message.php*
+// @exclude https://forum.hardware.fr/forum1.php*
+// @exclude https://forum.hardware.fr/forum1f.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -21,6 +21,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.7.2.1 (03/12/2017) :
+// - passage au https
+
 
 // file:  hfr_black_list.user.js
 // author:  Nykal

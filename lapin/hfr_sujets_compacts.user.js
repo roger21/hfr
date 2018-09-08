@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name [HFR] Sujets compacts
-// @version 0.1.1
+// @version 0.1.1.1
 // @namespace http://toyonos.info
 // @description Elimine les catégories sans nouveaux messages dans la page 'Vos sujets'
-// @include http://forum.hardware.fr/forum1f.php*
+// @include https://forum.hardware.fr/forum1f.php*
 // @grant GM_info
 // @grant GM_deleteValue
 // @grant GM_getValue
@@ -18,6 +18,12 @@
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
 // ==/UserScript==
+
+
+// historique modifs r21 :
+// 0.1.1.1 (03/12/2017) :
+// - passage au https
+
 
 function getElementByXpath(path, element)
 {
