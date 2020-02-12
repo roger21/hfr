@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          [HFR] stealth rehost statique mod_r21
-// @version       2.2.1.s
+// @version       2.2.4.s
 // @namespace     http://toyonos.info
 // @description   Permet de remplacer le domaine reho.st par un alias dans les liens et les images
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
 // @exclude       https://forum.hardware.fr/message.php*
 // @author        toyonos
@@ -17,9 +17,15 @@
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
-// modifications roger21 $Rev: 181 $
+// modifications roger21 $Rev: 1256 $
 
 // historique :
+// 2.2.4.s (05/11/2019) :
+// - ajout d'un message d'information concernant le passage à [HFR] Smart Auto Rehost mod_r21 6+
+// 2.2.3.s (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 2.2.2.s (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
 // 2.2.1.s (13/05/2018) :
 // - check du code dans tm
 // - suppression des @grant inutiles
@@ -75,6 +81,26 @@
 // - modification de l'url des stealth rehost
 // - ajout d'un .1 sur le numero de version
 // - désactivation de l'auto-update pour conserver les modifs
+
+
+var info_smart_auto_rehost_displayed_once = GM_getValue("info_smart_auto_rehost_displayed_once", false);
+function display_info_smart_auto_rehost() {
+  GM_setValue("info_smart_auto_rehost_displayed_once", true);
+  window.alert("Information du script \u00ab\u202f[HFR] stealth rehost statique mod_r21\u202f\u00bb\n\n" +
+    "Ce message n'apparaitra automatiquement qu'une seule fois.\n" +
+    "Vous pouvez le réafficher manuellement depuis le menu de l'extension " +
+    "\u00ab\u202f[HFR] stealth rehost statique -> information\u202f\u00bb.\n\n" +
+    "Les scripts \u00ab\u202f[HFR] stealth rehost mod_r21\u202f\u00bb et " +
+    "\u00ab\u202f[HFR] stealth rehost statique mod_r21\u202f\u00bb ne sont plus maintenus, ils\n"+
+    "sont remplacés par le script \u00ab\u202f[HFR] Smart Auto Rehost mod_r21\u202f\u00bb " +
+    "version 6+ qui intègre la fonctionnalité stealth rehost.\n\n" +
+    "Je vous invite donc à envisager la migration vers " +
+    "\u00ab\u202f[HFR] Smart Auto Rehost mod_r21\u202f\u00bb version 6+.\n\n" +
+    "Bonne journée."
+  );
+}
+GM_registerMenuCommand("[HFR] stealth rehost -> information", display_info_smart_auto_rehost);
+
 
 var getElementByXpath = function(path, element) {
   let arr = Array();
@@ -344,3 +370,8 @@ var cmScript = {
 };
 cmScript.setUp();
 cmScript.createConfigMenu();
+
+
+if(!info_smart_auto_rehost_displayed_once){
+  display_info_smart_auto_rehost();
+}

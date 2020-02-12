@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name          [HFR] wiki smileys et raccourcis mod_r21
-// @version       2.3.0
+// @version       2.3.8
 // @namespace     http://toyonos.info
 // @description   Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
 // @author        toyonos
-// @modifications basé sur la version 1 (ou a) - simplification de l'edition des mots-clé (reduction des délais d'affichage et suppression de la popup de confirmation), contournement d'un problème pour le raccourcis url, ajout du support pour reho.st, unification des fonctionalités pour chaque mode d'édition, ajout de trois raccourcis et meilleure intégration des stickers
+// @modifications basé sur la version 1 (ou a) - simplification de l'edition des mots-clé (reduction des délais d'affichage et suppression de la popup de confirmation), contournement d'un problème pour le raccourcis url, ajout du support pour reho.st, unification des fonctionalités pour chaque mode d'édition et ajout de trois raccourcis
 // @modtype       modification de fonctionnalités
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
@@ -18,9 +18,29 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 181 $
+// modifications roger21 $Rev: 1570 $
 
 // historique :
+// 2.3.8 (11/02/2020) :
+// - adaptation du code pour fonctionner avec [HFR] Vos smileys favoris mod_r21 3.0.0 (à venir)
+// - correction des marges autour des smileys
+// 2.3.7 (11/01/2020) :
+// - petites modifications des styles pour être homogène avec [HFR] Vos smileys favoris mod_r21 3.0.0 (à venir)
+// - nettoyage du code relatif aux stickers
+// 2.3.6 (17/12/2019) :
+// - correction de la taille de la réponse normale et limitation au resize vertical
+// 2.3.5 (14/12/2019) :
+// - correction de la mise en page de la colonne de gauche sur la réponse normale
+// 2.3.4 (21/11/2019) :
+// - deplace le curseur après le = pour l'insertion d'url (proposé par Heeks)
+// 2.3.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 2.3.2 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 2.3.1 (28/10/2018) :
+// - modification de la gestion des raccourcis pour prendre en compte la nouvelle gestion de altGr depuis ff63 ->
+// https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/63#DOM_events
+// - modification du raccourcis puce par défaut de '*' (mal géré) à 'x'
 // 2.3.0 (13/05/2018) :
 // - check du code dans tm
 // - ajout de la metadata @connect pour tm
@@ -213,7 +233,7 @@ var cmScript = {
       key: 80
     },
     "ws_img_rehost": {
-      left: "[img]http://reho.st/",
+      left: "[img]https://reho.st/",
       sample: "image",
       right: "[/img]",
       key: 72
@@ -252,7 +272,7 @@ var cmScript = {
       left: "[*]",
       sample: "texte",
       right: "",
-      key: 220
+      key: 88
     },
     "ws_smiley": {
       left: "[:",
@@ -362,8 +382,7 @@ var cmScript = {
     102: "numpad 6",
     103: "numpad 7",
     104: "numpad 8",
-    105: "numpad 9",
-    220: "*"
+    105: "numpad 9"
   },
   backgroundDiv: null,
   configDiv: null,
@@ -745,38 +764,51 @@ var getKeyWords = function(code, cbf) {
 }
 
 if($("content_form")) {
+  $("content_form").style.marginTop = "2px";
+  $("content_form").style.marginBottom = "2px";
+  var addCommentMessage = document.getElementById("addCommentMessage");
   var newDiv = document.createElement("div");
   newDiv.setAttribute("style", "display:inline;");
   newDiv.innerHTML = " <input id=\"search_smilies_pouet\" type=\"text\" style=\"height:16px;width:100px;\" " +
     "accesskey=\"q\" autocomplete=\"off\" />";
-  if(document.getElementById("addCommentMessage")) {
-    var br = document.querySelector("td.repCase2 div.spacer + br");
-    if(br) {
-      br.parentNode.removeChild(br);
+  if(addCommentMessage) {
+    // suppression des br en trop
+    let l_brs = document.querySelectorAll("tr.reponse > td.repCase2 div.spacer + br, " +
+      "tr.reponse > th.repCase1 > br");
+    for(let l_br of l_brs) {
+      l_br.parentNode.removeChild(l_br);
     }
-    var brs = document.querySelectorAll("th.repCase1 > br");
-    for(br of brs) {
-      br.parentNode.removeChild(br);
-    }
-    var argh = document.querySelector("div.smiley");
-    if(argh) {
-      argh.parentNode.removeChild(argh.previousElementSibling);
+    // ajout de br mieux placés
+    let l_new_br = document.querySelector("tr.reponse > th.repCase1 > div:first-of-type > " +
+      "div.center:first-child > br:first-child");
+    if(!l_new_br) {
+      var l_div_smiley = document.querySelector("tr.reponse > th.repCase1 > div:first-of-type > " +
+        "div.center:first-child > div.smiley");
+      if(l_div_smiley) {
+        l_div_smiley.parentNode.removeChild(l_div_smiley.previousSibling);
+        l_div_smiley.parentNode.removeChild(l_div_smiley.previousElementSibling);
+        l_div_smiley.parentNode.insertBefore(document.createElement("br"), l_div_smiley.previousElementSibling);
+        l_div_smiley.parentNode.insertBefore(document.createElement("br"), l_div_smiley);
+        l_div_smiley.parentNode.insertBefore(document.createElement("br"), l_div_smiley);
+      }
     }
     var style = document.createElement("style");
     document.head.appendChild(style);
-    style.sheet.insertRule("div#dynamic_smilies img,div.smiley img{margin:5px 5px 0 0 !important;" +
+    style.sheet.insertRule("div.smiley img{margin:0 !important;padding:2px !important;" +
       "vertical-align:middle !important;}", 0);
-    style.sheet.insertRule("div.smiley{width:155px !important;padding-left:5px !important;}", 0);
-    style.sheet.insertRule("div#dynamic_smilies{font-weight:normal !important;padding-left:5px !important;" +
-      "padding-bottom:1px !important;}", 0);
+    style.sheet.insertRule("div#dynamic_smilies img{margin:0 !important;padding:4px 2px 0 2px !important;" +
+      "vertical-align:middle !important;}", 0);
+    style.sheet.insertRule("div.smiley{width:147px !important;}", 0);
+    style.sheet.insertRule("div#dynamic_smilies{font-weight:normal !important;}", 0);
     style.sheet.insertRule("div#dynamic_smilies a.s1Topic{font-weight:bold !important;}", 0);
     var helpGenDiv = document.createElement("div");
     helpGenDiv.setAttribute("style", "display:inline;");
     helpGenDiv.appendChild(document.createTextNode(" "));
-    $("content_form").parentNode.insertBefore(newDiv, document.getElementById("addCommentMessage"));
-    $("content_form").parentNode.insertBefore(helpGenDiv, document.getElementById("addCommentMessage"));
+    $("content_form").parentNode.insertBefore(newDiv, addCommentMessage);
+    $("content_form").parentNode.insertBefore(helpGenDiv, addCommentMessage);
     $("content_form").style.marginTop = "0";
-    $("content_form").style.marginBottom = "3px";
+    $("content_form").style.width = "calc(100% - 6px)";
+    $("content_form").style.resize = "vertical";
     $("content_form").parentNode.style.fontSize = "small";
   } else {
     var br1 = document.createElement("br");
@@ -786,8 +818,8 @@ if($("content_form")) {
   }
   newDiv = document.createElement("div");
   newDiv.id = "dynamic_smilies_pouet";
-  newDiv.setAttribute("style", "text-align:center;padding-left:5px;");
-  if(document.getElementById("addCommentMessage")) {
+  newDiv.setAttribute("style", "text-align:center;");
+  if(addCommentMessage) {
     newDiv.setAttribute("class", "reponse");
   }
   $("content_form").parentNode.appendChild(newDiv);
@@ -795,7 +827,7 @@ if($("content_form")) {
   function putSmiley(code, textAreaId) {
     insertBBCode(textAreaId, cmScript.templateSmileyLeft + code + cmScript.templateSmileyRight, "");
   }
-  var insertBBCode = function(textAreaId, left, right) {
+  var insertBBCode = function(textAreaId, left, right, offset = 0) {
     var content = $(textAreaId);
     if(content.selectionStart || content.selectionStart == 0) {
       if(content.selectionEnd > content.value.length) {
@@ -808,83 +840,111 @@ if($("content_form")) {
       content.value = content.value.slice(0, secondPos) + right + content.value.slice(secondPos);
       content.selectionStart = firstPos + left.length;
       content.selectionEnd = secondPos;
+      if(offset !== 0) {
+        content.selectionStart = content.selectionStart + offset;
+        content.selectionEnd = content.selectionStart;
+      }
       content.focus();
       content.scrollTop = contenuScrollTop;
     }
   }
   var proceedShortcut = function(event, textAreaId) {
     var key = event.keyCode ? event.keyCode : event.which;
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_spoiler")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_spoiler")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[spoiler]", "[/spoiler]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_b")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_b")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[b]", "[/b]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_i")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_i")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[i]", "[/i]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_u")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_u")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[u]", "[/u]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_img")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_img")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[img]", "[/img]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_img_rehost")) {
-      insertBBCode(textAreaId, "[img]http://reho.st/", "[/img]");
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_img_rehost")) {
+      event.preventDefault();
+      insertBBCode(textAreaId, "[img]https://reho.st/", "[/img]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_quote")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_quote")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[quote]", "[/quote]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_url")) {
-      insertBBCode(textAreaId, "[url=]", "[/url]");
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_url")) {
+      event.preventDefault();
+      insertBBCode(textAreaId, "[url=]", "[/url]", -1);
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_code")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_code")) {
+      event.preventDefault();
       var language = window.prompt("Entrez le nom du langage :");
       insertBBCode(textAreaId, language == null || language == "" ? "[code]" : "[code=" + language + "]", "[/code]")
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_fixed")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_fixed")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[fixed]", "[/fixed]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_strike")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_strike")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[strike]", "[/strike]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_puce")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_puce")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[*]", "");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_smiley")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_smiley")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[:", "]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_color_red")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_color_red")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[#ff0000]", "[/#ff0000]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_color_blue")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_color_blue")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[#0000ff]", "[/#0000ff]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_color_yellow")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_color_yellow")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[#ffff00]", "[/#ffff00]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_color_green")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_color_green")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[#00ff00]", "[/#00ff00]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_color_orange")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_color_orange")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[#ff7f00]", "[/#ff7f00]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_color_purple")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_color_purple")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[#bf00ff]", "[/#bf00ff]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_alerte")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_alerte")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/alerte/?smiley&t=", "[/img]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_nazi")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_nazi")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/nazi/?t=", "[/img]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_fb")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_fb")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/fb/?t=", "[/img]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_seagal")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_seagal")) {
+      event.preventDefault();
       insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/StevenSeagal/?t=", "[/img]");
     }
-    if(event.altKey && event.ctrlKey && key == cmScript.getShortcutKey("ws_bulle")) {
+    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_bulle")) {
+      event.preventDefault();
       var url = "http://hfr.toyonos.info/generateurs/bulle/?t=";
       var text = window.prompt("Entrez le contenu de la bulle :");
       url += text;
@@ -909,7 +969,7 @@ if($("content_form")) {
     var searchkeyword = $(inputId).value;
     var divsmilies = $(targetId);
     if(searchkeyword.length > 2 && (searchkeyword !== findSmiliesBuffer || inputId !== lastSearchId)) {
-      divsmilies.innerHTML = "<img style=\"margin-top:5px;\" " +
+      divsmilies.innerHTML = "<img style=\"padding-top:4px;\" class=\"ws_toyo_smilies\" " +
         "src=\"https://forum-images.hardware.fr/icones/mm/wait.gif\" alt=\"\" />";
       document.documentElement.scrollTop += divsmilies.clientHeight;
       lastSearchId = inputId;
@@ -918,9 +978,7 @@ if($("content_form")) {
         "config=hfr.inc&findsmilies=" + encodeURIComponent(searchkeyword),
         function(reponse) {
           if(reponse.indexOf("<") === -1) {
-            divsmilies.innerHTML = "<div style=\"margin-top:5px;\">" + reponse + "</div>";
-          } else if((targetId !== "dynamic_smilies_pouet") || (document.getElementById("addCommentMessage") !== null)) {
-            divsmilies.innerHTML = reponse + "<div style=\"height:1px;\"></div>";
+            divsmilies.innerHTML = "<div style=\"margin-top:4px;\">" + reponse + "</div>";
           } else {
             divsmilies.innerHTML = reponse;
           }
@@ -928,7 +986,7 @@ if($("content_form")) {
           getElementByXpath(".//img", divsmilies).forEach(function(img) {
             var smileyCode = img.title;
             img.removeAttribute("onclick");
-            img.style.margin = "5px 5px 0 0";
+            img.style.padding = "4px 2px 0 2px";
             img.style.verticalAlign = "middle";
             img.setAttribute("class", "ws_toyo_smilies");
             img.addEventListener("mouseover", function() {
@@ -1292,7 +1350,7 @@ if($("content_form")) {
           if($("rep_editin_" + numreponse)) {
             clearInterval(timer);
             $("rep_editin_" + numreponse).style.marginTop = "0";
-            $("rep_editin_" + numreponse).style.marginBottom = "3px";
+            $("rep_editin_" + numreponse).style.marginBottom = "2px";
             var newDiv = document.createElement("div");
             newDiv.setAttribute("style", "display:inline;");
             newDiv.innerHTML = " <input id=\"search_smilies_edit_" + numreponse +
@@ -1307,7 +1365,6 @@ if($("content_form")) {
             newDiv = document.createElement("div");
             newDiv.id = "dynamic_smilies_edit_" + numreponse;
             newDiv.style.textAlign = "center";
-            newDiv.style.paddingLeft = "5px";
             $("rep_editin_" + numreponse).parentNode.appendChild(newDiv);
             $("search_smilies_edit_" + numreponse).addEventListener("keyup", function() {
               clearTimeout(inputSearchTimeout);
@@ -1341,10 +1398,10 @@ if($("content_form")) {
     helpImg.alt = "help";
     helpImg.style.cursor = "help";
     helpImg.style.verticalAlign = "text-bottom";
-    helpImg.style.marginRight = "5px";
+    helpImg.style.marginRight = "4px";
     helpImg.setAttribute("class", "ws_toyo_help_icon");
     helpImg.setAttribute("title", "double-cliquez pour ouvrir\nla fenêtre de configuration");
-    if(document.getElementById("addCommentMessage")) {
+    if(addCommentMessage) {
       helpImg.style.verticalAlign = "-3px";
       helpGenDiv.appendChild(helpImg);
     } else if(num) {
@@ -1412,7 +1469,7 @@ if($("content_form")) {
     newA.target = "_blank";
     newA.className = "s1Ext";
     newA.innerHTML = "Générateurs";
-    if(document.getElementById("addCommentMessage")) {
+    if(addCommentMessage) {
       helpGenDiv.appendChild(newA);
     } else if(num) {
       $("helpGenDivRapide_" + num).appendChild(newA);
@@ -1422,7 +1479,7 @@ if($("content_form")) {
     }
   }
   helpGen(null);
-  if(document.getElementById("addCommentMessage") === null) {
+  if(addCommentMessage === null) {
     var zone = $("content_form").parentNode;
     var baseClassName = zone.className;
     if(document.getElementById("navtablelaureka")) {
@@ -1439,49 +1496,11 @@ if($("content_form")) {
     dummyDiv.style.opacity = "0";
     dummyDiv.style.display = "none";
     zone.parentNode.insertBefore(dummyDiv, zone);
-    document.getElementById("submitreprap").style.marginTop = "2px";
-    var stickersClosed = null;
     var observer = new MutationObserver(function(mutations, observer) {
       if(document.getElementById("navtablelaureka")) {
         dummyDiv.style.height = zone.offsetHeight + "px";
       } else {
         dummyDiv.style.height = zone.offsetHeight + 12 + "px";
-      }
-      if((stickersClosed !== null) ||
-        (document.getElementById("fstk_container") && document.getElementById("fstk_container").getAttribute("class") &&
-          document.getElementById("submitreprap") && document.getElementById("submitreprap").previousElementSibling &&
-          (document.getElementById("submitreprap").previousElementSibling.nodeName.toUpperCase() === "BR") &&
-          (document.getElementById("fstk_container").getAttribute("class").indexOf("f-closable") !== -1))) {
-        var newStickersClosed = document.getElementById("fstk_container").getAttribute("class").indexOf("f-close") !== -1;
-        if(stickersClosed !== null) {
-          if(stickersClosed && !newStickersClosed && (zone.className.indexOf("zoneRepFlot") === -1)) {
-            window.setTimeout(function() {
-              window.scrollBy(0, 135);
-            }, 250);
-          }
-        }
-        stickersClosed = newStickersClosed;
-        if(stickersClosed) {
-          if(document.getElementById("submitreprap").previousElementSibling.style.lineHeight !== "0") {
-            document.getElementById("submitreprap").previousElementSibling.style.lineHeight = "0";
-          }
-          if(document.getElementById("submitreprap").style.marginTop !== "2px") {
-            document.getElementById("submitreprap").style.marginTop = "2px";
-          }
-        } else {
-          if(document.getElementById("submitreprap").previousElementSibling.style.lineHeight !== "0") {
-            document.getElementById("submitreprap").previousElementSibling.style.lineHeight = "0";
-          }
-          if(document.getElementById("submitreprap").offsetHeight === 24) {
-            if(document.getElementById("submitreprap").style.marginTop !== "5px") {
-              document.getElementById("submitreprap").style.marginTop = "5px";
-            }
-          } else {
-            if(document.getElementById("submitreprap").style.marginTop !== "6px") {
-              document.getElementById("submitreprap").style.marginTop = "6px";
-            }
-          }
-        }
       }
     });
     observer.observe(zone, {
@@ -1600,14 +1619,14 @@ var toyoAjaxLib = (function() {
             }
           } else {}
         }
-      } catch(e) {}
+      } catch (e) {}
     }
   }
   return {
     "loadDoc": function(url, method, arguments, responseHandler) {
       try {
         loadPage(url, method, arguments, responseHandler);
-      } catch(e) {
+      } catch (e) {
         var msg = (typeof e == "string") ? e : ((e.message) ? e.message : "Unknown Error");
         alert("Unable to get data:\n" + msg);
         return;

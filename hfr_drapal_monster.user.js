@@ -1,19 +1,49 @@
 // ==UserScript==
-// @name          [HFR] drapal monster
-// @version       1.2.0
+// @name          [HFR] Drapal Monster
+// @version       1.3.3
 // @namespace     roger21.free.fr
-// @description   permet de faire disparaitre un drapal sans avoir à l'ouvrir
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Permet de faire disparaitre un drapal sans avoir à l'ouvrir.
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/forum1f.php*&owntopic=*
 // @include       https://forum.hardware.fr/forum1.php*&owntopic=*
+// @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// $Rev: 181 $
+/*
+
+Copyright © 2012-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1153 $
 
 // historique :
+// 1.3.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - retour des requêtes fetch en mode "same-origin" au lieu de "cors"
+// 1.3.2 (23/09/2019) :
+// - passage des requêtes fetch en mode "cors" pour éviter un plantage sous ch+vm en mode "same-origin"
+// 1.3.1 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 1.3.0 (29/11/2018) :
+// - nouveau nom : [HFR] drapal monster -> [HFR] Drapal Monster
+// - ajout de l'avis de licence AGPL v3+
+// - ajout de la metadata @author (roger21)
+// - réécriture de la metadata @description
 // 1.2.0 (13/05/2018) :
 // - amélioration du code et check du code dans tm
 // - recodage en fetch (pour ne pas dépendre de GM_xmlhttpRequest)
@@ -49,7 +79,7 @@
 // - ajout d'une confirmation
 
 var refresh = false; // passer à true pour activer le rafraichessiment de la page après avoir mangé un drapal
-var scriptname = "[HFR] drapal monster";
+var scriptname = "[HFR] Drapal Monster";
 var parcat = /^https:\/\/forum\.hardware\.fr\/forum1f\.php.+$/.exec(window.location.href) === null;
 var owntopic = /^.+&owntopic\=([123]).+$/.exec(window.location.href);
 // vérification de la présence et de la valeur de owntopic dans l'url de la page

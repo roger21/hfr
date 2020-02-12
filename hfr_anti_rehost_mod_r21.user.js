@@ -1,21 +1,52 @@
 // ==UserScript==
-// @name          [HFR] anti rehost mod_r21
-// @version       2.3.0
-// @namespace     http://mycrub.info
-// @description   supprime le réhostage des images quand c'est possible (utile quand reho.st est en rade)
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @name          [HFR] Anti Rehost mod_r21
+// @version       2.4.3
+// @namespace     roger21.free.fr
+// @description   Supprime le réhostage des images quand c'est possible (utile quand reho.st est innaccessible).
+// @icon          http://roger21.free.fr/sav/roger21_hfr.png
 // @include       https://forum.hardware.fr/*
-// @author        mycrub
-// @modifications ajout du support pour reho.st et traitement des liens en plus des images
-// @modtype       évolution de fonctionnalités
+// @author        roger21
+// @authororig    mycrub
+// @modifications Gestion du passage à reho.st et au https, gestion de toutes les adresses possibles et traitement des liens en plus des images.
+// @modtype       réécriture et évolutions
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// modifications roger21 $Rev: 240 $
+/*
+
+Copyright © 2012-2015, 2017-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1578 $
 
 // historique :
+// 2.4.3 (11/02/2020) :
+// - correction des regexp pour exclure les urls brutes (i.e. sans contenu)
+// 2.4.2 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 2.4.1 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 2.4.0 (29/11/2018) :
+// - nouveau nom : [HFR] anti rehost mod_r21 -> [HFR] Anti Rehost mod_r21
+// - ajout de l'avis de licence AGPL v3+ *si mycrub est d'accord*
+// - ajout de la metadata @author (roger21)
+// - appropriation des metadata @namespace et @author (passage en roger21)
+// - ajout de la metadata @authororig (mycrub)
+// - réécriture des metadata @description, @modifications et @modtype
 // 2.3.0 (26/05/2018) :
 // - simplification et restylage du code et check du code dans tm
 // - suppression du code de replacement qui n'a jamais servi
@@ -99,7 +130,7 @@ var imgs = document.querySelectorAll("td.messCase2 > div[id^='para'] img");
 for(let img of imgs) {
   let src = img.src;
   for(let j = 0; j < rehost.length; ++j) {
-    if(src && src.match("^" + rehost[j] + ".*")) {
+    if(src && src.match("^" + rehost[j] + ".+")) {
       //console.log(rehost[j] + " matches old img.src " + src);
       if(j < rehost_not_rehost_limit) {
         break;
@@ -121,7 +152,7 @@ var links = document.querySelectorAll("td.messCase2 > div[id^='para'] a");
 for(let link of links) {
   let href = link.href;
   for(let j = 0; j < rehost.length; ++j) {
-    if(href && href.match("^" + rehost[j] + ".*")) {
+    if(href && href.match("^" + rehost[j] + ".+")) {
       //console.log(rehost[j] + " matches old link.href " + href);
       if(j < rehost_not_rehost_limit) {
         break;
@@ -131,7 +162,7 @@ for(let link of links) {
         new_href = "http://" + new_href;
       }
       link.setAttribute("href", new_href);
-      if(link.textContent && link.textContent.match("^" + rehost[j] + ".*")) {
+      if(link.textContent && link.textContent.match("^" + rehost[j] + ".+")) {
         link.textContent = link.textContent.substring(rehost[j].length);
       }
       //console.log(rehost[j] + " new link.href " + new_href);

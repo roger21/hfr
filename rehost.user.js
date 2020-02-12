@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          Rehost
-// @version       0.9.2
+// @version       1.1.6
 // @namespace     roger21.free.fr
 // @description   Version en script Greasemonkey de l'extension reho.st pour Firefox qui permet de générer, dans le presse-papier, le BBCode de réhébergement d'une image sur reho.st à partir du menu contextuel de l'image.
-// @icon          http://reho.st/self/f87acf6712efa617e6edcd330fdc1f6c0d34a086.png
+// @icon          https://reho.st/self/f87acf6712efa617e6edcd330fdc1f6c0d34a086.png
 // @include       *
 // @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
@@ -18,9 +18,47 @@
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
-// $Rev: 474 $
+/*
+
+Copyright © 2018-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1473 $
 
 // historique :
+// 1.1.6 (11/01/2020) :
+// - mise à jour des images des boutons de la fenêtre de configuration
+// 1.1.5 (10/11/2019) :
+// - réduction des temps des transitions de 0.7s à 0.3s
+// 1.1.4 (25/10/2019) :
+// - correction d'une fôte [:vizera]
+// 1.1.3 (12/10/2019) :
+// - ajout d'une info "sans rechargement" dans la fenêtre de configuration
+// - correction de la gestion du sous-menu pour les gifs
+// 1.1.2 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
+// 1.1.1 (18/09/2019) :
+// - ajout de la directive @inject-into content pour isoler les scripts sous violentmonkey
+// 1.1.0 (05/09/2019) :
+// - petite sécurisation du css et petit nettoyage du code
+// - bordure solide pour la fenêtre de configuration
+// 1.0.0 (28/11/2018) :
+// - ajout de l'avis de licence AGPL v3+
+// 0.9.3 (13/11/2018) :
+// - augmentation du z-index de la fenêtre de conf pour permettre son affichage sur certains sites
 // 0.9.2 (26/08/2018) :
 // - utilisation de la visibility plutot que le display pour gérer la fenêtre de conf
 // 0.9.1 (11/08/2018) :
@@ -53,7 +91,7 @@ var iconRehost = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABz
 /* ---------------------------- */
 
 if(typeof GM === "undefined") {
-  GM = {};
+  this.GM = {};
 }
 if(typeof GM_getValue !== "undefined" && typeof GM.getValue === "undefined") {
   GM.getValue = function(...args) {
@@ -146,7 +184,13 @@ var messagePressePapier = "a été copié dans le presse-papiers.";
 var timeOut = 6666;
 
 function doRst(e, type) {
-  let messageType = type === "sans" ? (lastIsGif ? "du gif sans reho.st " : "de l'image sans reho.st ") : lastIsGif ? "du gif " : type === "full" ? "de l'image " : type === "medium" ? "du médium " : type === "preview" ? "de l'aperçu " : "de la vignette ";
+  let messageType = (type === "sans") ?
+    (lastIsGif ? "du gif sans reho.st " : "de l'image sans reho.st ") :
+    (lastIsGif ? "du gif " :
+      ((type === "full") ? "de l'image " :
+        ((type === "medium") ? "du médium " :
+          ((type === "preview") ? "de l'aperçu " :
+            "de la vignette "))));
   let messageSansLien = type === "sans" ? "" : "sans lien ";
   let rstRehostLink = type === "sans" ? "" : currentRstLink === "image" ? REHOST_URL : REHOST_URL + "view/";
   let rstRehostUrl = type === "sans" ? "" : (type === "full" || lastIsGif) ? REHOST_URL : REHOST_URL + type + "/";
@@ -169,7 +213,8 @@ function doRst(e, type) {
     GM.setClipboard("[img]" + rstRehostUrl + currentUrl + "[/img]" + rstReturn);
     if(gmNotif && currentRstNotifs) {
       if(gm4) {
-        GM.notification(messageBBCode + messageSansLien + messageType + messagePressePapier, messageTitle, iconRehost);
+        GM.notification(messageBBCode + messageSansLien + messageType + messagePressePapier,
+          messageTitle, iconRehost);
       } else {
         GM.notification({
           title: messageTitle,
@@ -180,7 +225,8 @@ function doRst(e, type) {
       }
     }
   } else {
-    GM.setClipboard("[url=" + rstRehostLink + currentUrl + "][img]" + rstRehostUrl + currentUrl + "[/img][/url]" + rstReturn);
+    GM.setClipboard("[url=" + rstRehostLink + currentUrl + "][img]" +
+      rstRehostUrl + currentUrl + "[/img][/url]" + rstReturn);
     if(gmNotif && currentRstNotifs) {
       if(gm4) {
         GM.notification(messageBBCode + messageType + messagePressePapier, messageTitle, iconRehost);
@@ -355,7 +401,12 @@ function createRehostMenu() {
       }
     }
     // hr 1
-    if((rstSans === "2" || rstFull === "2" || rstMedium === "2" || rstPreview === "2" || rstThumb === "2") && (rstConf === "2")) {
+    if((rstSans === "2" ||
+        rstFull === "2" ||
+        (rstMedium === "2" && !lastIsGif) ||
+        (rstPreview === "2" && !lastIsGif) ||
+        (rstThumb === "2" && !lastIsGif)) &&
+      (rstConf === "2")) {
       rehostSubMenu.appendChild(document.createElement("hr"));
     }
     // configuration
@@ -372,7 +423,13 @@ function createRehostMenu() {
       }
     }
     // hr 2
-    if((rstSans === "2" || rstFull === "2" || rstMedium === "2" || rstPreview === "2" || rstThumb === "2" || rstConf === "2") && rstOptions) {
+    if((rstSans === "2" ||
+        rstFull === "2" ||
+        (rstMedium === "2" && !lastIsGif) ||
+        (rstPreview === "2" && !lastIsGif) ||
+        (rstThumb === "2" && !lastIsGif) ||
+        rstConf === "2") &&
+      rstOptions) {
       rehostSubMenu.appendChild(document.createElement("hr"));
     }
     // options
@@ -429,7 +486,13 @@ function createRehostMenu() {
       rehostSubMenu.appendChild(rehostMenuItemReturn);
     }
     // ajout du sous-menu
-    if(rstSans === "2" || rstFull === "2" || rstMedium === "2" || rstPreview === "2" || rstThumb === "2" || rstConf === "2" || rstOptions) {
+    if(rstSans === "2" ||
+      rstFull === "2" ||
+      (rstMedium === "2" && !lastIsGif) ||
+      (rstPreview === "2" && !lastIsGif) ||
+      (rstThumb === "2" && !lastIsGif) ||
+      rstConf === "2" ||
+      rstOptions) {
       rehostMenu.appendChild(rehostSubMenu);
     }
     // ajout du menu
@@ -473,105 +536,146 @@ o.observe(document, {
 /* création de la fenêtre de configuration */
 /* --------------------------------------- */
 
-// styles css pour le fenêtre de configuration
+// styles css pour la fenêtre de configuration
 var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
-  "#rst_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
-  "display:block;visibility:hidden;opacity:0;transition:opacity 0.7s ease 0s;}" +
-  "#rst_config_window{position:fixed;width:480px;height:auto;background:white;z-index:1002;display:block;visibility:hidden;" +
-  "opacity:0;transition:opacity 0.7s ease 0s;border:1px dotted black;padding:16px;box-sizing:content-box;" +
-"color:black;font-variant:normal;}" +
-  "#rst_config_window *{box-sizing:content-box;text-align:left;font-family:Verdana,Arial,Sans-serif,Helvetica;" +
-"background:white;color:black;margin:0;padding:0;border:0;font-size:12px;line-height:1.2;}" +
-  "#rst_config_window div{display:block;}" +
-  "#rst_config_window img{position:static;display:inline;width:auto;height:auto;}" +
-  "#rst_config_window input{display:inline;width:auto;height:auto;}" +
-  "#rst_config_window label{font-weight:normal;display:inline;}" +
-  "#rst_config_window label:before{content:none;}" +
-  "#rst_config_window div.rst_main_title{font-size:16px;text-align:center;font-weight:bold;margin:0 0 16px;}" +
-  "#rst_config_window div.rst_title{font-size:14px;margin:16px 0 12px;}" +
-  "#rst_config_window div.rst_row{font-size:12px;margin:8px 0 0;display:flex;padding:0 4px;flex-direction:row;}" +
-  "#rst_config_window div.rst_row divµ.rst_cell{;}" +
-  "#rst_config_window div.rst_row div.rst_cell:first-of-type{width:45%;}" +
-  "#rst_config_window div.rst_row div.rst_cell img{vertical-align:bottom;margin:0 8px 0 0;}" +
-  "#rst_config_window div.rst_row div.rst_cell input[type=\"radio\"]{vertical-align:text-bottom;margin:0 4px 1px 32px;}" +
-  "#rst_config_window div.rst_row div.rst_cell input[type=\"radio\"]:first-of-type{margin-left:0;}" +
-  "#rst_config_window p.rst_p{font-size:12px;margin:8px 0 0;padding:0 4px;}" +
-  "#rst_config_window p.rst_p input[type=\"checkbox\"]{vertical-align:text-bottom;margin:0 8px 1px 0;}" +
-  "#rst_config_window p.rst_p input[type=\"radio\"]{vertical-align:text-bottom;margin:0 4px 1px;}" +
-  "#rst_config_window label.rst_disabled{color:grey;}" +
-  "#rst_config_window div#rst_save_close_div{text-align:right;margin:16px 0 0;}" +
-  "#rst_config_window div#rst_save_close_div img{margin-left:8px;cursor:pointer;}";
+  "#gm_rst_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;z-index:10003;" +
+  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
+  "text-align:justify;}" +
+  "#gm_rst_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:10001;" +
+  "display:block;visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
+  "#gm_rst_r21_config_window{position:fixed;width:480px;height:auto;background:#ffffff;z-index:10002;opacity:0;" +
+  "visibility:hidden;transition:opacity 0.3s ease 0s;border:1px solid black;padding:16px;display:block;" +
+  "box-sizing:content-box;color:#000000;font-variant:normal;}" +
+  "#gm_rst_r21_config_window *{box-sizing:content-box;text-align:left;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;" +
+  "background:#ffffff;color:#000000;margin:0;padding:0;border:0;font-size:12px;line-height:1.2;}" +
+  "#gm_rst_r21_config_window div{display:block;}" +
+  "#gm_rst_r21_config_window img{position:static;display:inline;width:auto;height:auto;}" +
+  "#gm_rst_r21_config_window input{display:inline;width:auto;height:auto;}" +
+  "#gm_rst_r21_config_window label{font-weight:normal;display:inline;}" +
+  "#gm_rst_r21_config_window label:before{content:none;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_main_title{font-size:16px;text-align:center;font-weight:bold;" +
+  "margin:0 0 16px;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_title{font-size:14px;margin:16px 0 12px;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_row{font-size:12px;margin:8px 0 0;display:flex;padding:0 4px;" +
+  "flex-direction:row;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_row div.gm_rst_r21_cell{}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_row div.gm_rst_r21_cell:first-of-type{width:45%;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_row div.gm_rst_r21_cell img{vertical-align:bottom;" +
+  "margin:0 8px 0 0;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_row div.gm_rst_r21_cell input[type=\"radio\"]{" +
+  "vertical-align:text-bottom;margin:0 4px 1px 32px;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_row div.gm_rst_r21_cell input[type=\"radio\"]:first-of-type{" +
+  "margin-left:0;}" +
+  "#gm_rst_r21_config_window p.gm_rst_r21_p{font-size:12px;margin:8px 0 0;padding:0 4px;}" +
+  "#gm_rst_r21_config_window p.gm_rst_r21_p input[type=\"checkbox\"]{vertical-align:text-bottom;" +
+  "margin:0 8px 1px 0;}" +
+  "#gm_rst_r21_config_window p.gm_rst_r21_p input[type=\"radio\"]{vertical-align:text-bottom;margin:0 4px 1px;}" +
+  "#gm_rst_r21_config_window label.gm_rst_r21_disabled{color:#808080;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_save_close_div{text-align:right;margin:16px 0 0;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_save_close_div div.gm_rst_r21_info_reload_div{float:left;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_save_close_div div.gm_rst_r21_info_reload_div img" +
+  "{vertical-align:text-bottom;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_save_close_div > img{margin-left:8px;cursor:pointer;}" +
+  "#gm_rst_r21_config_window img.gm_rst_r21_help_button{margin-right:1px;cursor:help;}";
 document.getElementsByTagName("head")[0].appendChild(style);
 
 // images des boutons de validation et de fermeture
-var saveImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACl0lEQVR42q2T60uTYRiH%2FTv2bnttAwlkRCGChFD7FCQSm2ZDMQ%2FL0nRnj7TNGDbTooychzFSSssstdqc8zB1anNrSpm47FVCzH3pQLVhdLBfzztoJlifvOEHz4fnuu7nGBe311XgOyLMnTmsz%2FakMBljB8OSEVFY4kpkJM5Efbp9v%2FC%2FcJ43VSrzJId0HhluBy3oW%2BmKpnOpGSWuExD30iFxDy3dFSZdpZkTSZHr80Y41%2Fphe3UDpvnKaNixY60PjbNVOGTjRZJtvJ2SHE%2BKINOdtMHC7MSaQBkq%2FCXQzJ6DjqScpNp3HvY3D3B5ugIiC3dDdJMriAlk7iSDajwr2pmFWVDlPQPFTCEU0wVQTxfCvT4Ig1cJB5Hk9hxDwjWuISbIGBExncFmWINNqPAVQ%2FlUTsB8KKdIPPmYeOsCW6HIOtpeNMI234j4ei4TExy3J2w%2BWr2L2oAGWm8RWckAlj4uQDVZiPH1oSj8c%2BsH2p5fgWGyGH3BTvCN1GZMIH5Ib%2FavdMPoV6HWr8Xnb5%2Bi0Iev72KwZa4ealc29O6z6A92gF%2Fzt6CHZm4tNKF98Sp0U3KYfdWIfP8Shbd%2BbcHy7BLKnFnQEEFLoA7tXjPoKmp7C6l3%2BAb5QBrsq%2FdRPSmH2n0adTPlWH6%2FiLa5BpQOnoTCcQo6Zw7sr7uRbj0KupLaPsRkK09wgFyN2aPBY%2BYeKkfzoB3OgWpIBqWDDQtn48lyF4xDxeCrORu0mhLseAuJTVxpfAMVMbnL4CCS1oAZ%2BtEiXBiWo5VswU5gvbMIvFJOhMC7v8Z9DVwpbaJCkg4x2v1m9L60onfBCovXhLSWVPAVnBCt%2Bgf8p%2BiLXCFtoPR0DcXwtZwwX8UJk44MiZ4upYR7%2Fnt%2FA%2Bw9sdKFchsrAAAAAElFTkSuQmCC";
-var closeImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACEklEQVR42q1S%2FU9SYRhlbW13%2FQ0V5Woub05zfZkCXhUhpmmb8v3h5ZKoCQjcwVBi1Q%2B19Zf0d2lWxpeR3AuX93J8qGVjgK2tZ3u3d3t2znmecx6D4R%2BrsS5dGdiEnDXS4weCQ2Fe9QUSdafH3B%2Bc3UM7k4OeSPWQNIIi3xAjaG5u48fz1Y%2B1peU7PWAU3qBNT0%2FKaG3tnJOogXWe1NGKJYB8AZ3%2Fic2RqMxaL%2F0iSGe4dlLW23uvgPcfoOfyHQI0RYlX%2FSGe1KHtxAHqqyERJwtPWUWYv9w1oh5PcuxlnOlyFnj7DiydQSMcAalD244Buf2f%2F6rVTuA5rq9JregW15Q2WCu2S%2Bu8BvYLBMwD2RxUfxDVeRurzMxyF8cUFDnFG9CRo3V8QcDtA%2BQMqnMLetkicH%2FNWfH4O1EBlAacHmDVBeymaG87ipPT%2FMVgt49XvH5okSiQkgmYBuK0DhmorrlQMVnwdXyiP0nd5eUVjw%2BatAFQjIrbCzKLlabN%2BunSChDdRP3ZCor3H%2BJoeKSbhC6LJ3Vo4RekmoRCo5NZrDRl5oqPJrnjiQesZrUBYQmndgeOR8dweGPoDwldllB3uqGJEpQ1N8gsVnpiOjfsy%2Bg493nkLvtuEaA4FvFt7B4OrhmFrinosoTa4jLK5hmdzOpx%2B%2Bj2MPdp6BbrC%2F5dZZNFKD6eGhjVofEmd3D1umD4n3UGltFKFDkd60gAAAAASUVORK5CYII%3D";
+var saveImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
+var closeImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
+var helpImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
+var infoImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg%3D%3D";
 
-// création du voil de fond pour le fenêtre de configuration
+// création de la fenêtre d'aide
+var helpWindow = document.createElement("div");
+helpWindow.setAttribute("id", "gm_rst_r21_help_window");
+document.body.appendChild(helpWindow);
+helpWindow.style.visibility = "hidden";
+
+// fonction de création du bouton d'aide
+function createHelpButton(width, text) {
+  let helpButton = document.createElement("img");
+  helpButton.setAttribute("src", helpImg);
+  helpButton.setAttribute("class", "gm_rst_r21_help_button");
+  helpButton.addEventListener("mouseover", function(e) {
+    helpWindow.style.width = width + "px";
+    helpWindow.textContent = text;
+    helpWindow.style.left = (e.clientX + 32) + "px";
+    helpWindow.style.top = (e.clientY - 16) + "px";
+    helpWindow.style.visibility = "visible";
+  }, false);
+  helpButton.addEventListener("mouseout", function(e) {
+    helpWindow.style.visibility = "hidden";
+  }, false);
+  return helpButton;
+}
+
+// création du voile de fond pour la fenêtre de configuration
 var configBackground = document.createElement("div");
-configBackground.id = "rst_config_background";
+configBackground.id = "gm_rst_r21_config_background";
 configBackground.addEventListener("click", hideConfigWindow, false);
 configBackground.addEventListener("transitionend", backgroundTransitionend, false);
 document.body.appendChild(configBackground);
-configBackground.style.visibility="hidden";
+configBackground.style.visibility = "hidden";
 
 // création de la fenêtre de configuration
 var configWindow = document.createElement("div");
-configWindow.id = "rst_config_window";
+configWindow.id = "gm_rst_r21_config_window";
 document.body.appendChild(configWindow);
-configWindow.style.visibility="hidden";
+configWindow.style.visibility = "hidden";
 
 // titre de la fenêtre de configuration
 var mainTitle = document.createElement("div");
-mainTitle.className = "rst_main_title";
+mainTitle.className = "gm_rst_r21_main_title";
 mainTitle.textContent = "Configuration du script Rehost";
 configWindow.appendChild(mainTitle);
 
 // titre de la configuration des menus
 var menuTitle = document.createElement("div");
-menuTitle.className = "rst_title";
+menuTitle.className = "gm_rst_r21_title";
 menuTitle.textContent = "Organisation des menus";
 configWindow.appendChild(menuTitle);
 
 // sans
 var sansRow = document.createElement("div");
-sansRow.className = "rst_row";
+sansRow.className = "gm_rst_r21_row";
 var sansTitle = document.createElement("div");
-sansTitle.className = "rst_cell";
+sansTitle.className = "gm_rst_r21_cell";
 var sansIcon = document.createElement("img");
 sansIcon.src = iconSans;
 sansTitle.appendChild(sansIcon);
 sansTitle.appendChild(document.createTextNode("Rehost sans reho.st :"));
 sansRow.appendChild(sansTitle);
 var sansRadios = document.createElement("div");
-sansRadios.className = "rst_cell";
+sansRadios.className = "gm_rst_r21_cell";
 var sansRadio1 = document.createElement("input");
 sansRadio1.type = "radio";
-sansRadio1.id = "rst_sans_radio_1";
-sansRadio1.name = "rst_sans_radio";
+sansRadio1.id = "gm_rst_r21_sans_radio_1";
+sansRadio1.name = "gm_rst_r21_sans_radio";
 sansRadios.appendChild(sansRadio1);
 var sansRadio1Label = document.createElement("label");
-sansRadio1Label.htmlFor = "rst_sans_radio_1";
+sansRadio1Label.htmlFor = "gm_rst_r21_sans_radio_1";
 sansRadio1Label.textContent = "menu";
 sansRadios.appendChild(sansRadio1Label);
 var sansRadio2 = document.createElement("input");
 sansRadio2.type = "radio";
-sansRadio2.id = "rst_sans_radio_2";
-sansRadio2.name = "rst_sans_radio";
+sansRadio2.id = "gm_rst_r21_sans_radio_2";
+sansRadio2.name = "gm_rst_r21_sans_radio";
 sansRadios.appendChild(sansRadio2);
 var sansRadio2Label = document.createElement("label");
-sansRadio2Label.htmlFor = "rst_sans_radio_2";
+sansRadio2Label.htmlFor = "gm_rst_r21_sans_radio_2";
 sansRadio2Label.textContent = "sous-menu";
 sansRadios.appendChild(sansRadio2Label);
 var sansRadio0 = document.createElement("input");
 sansRadio0.type = "radio";
-sansRadio0.id = "rst_sans_radio_0";
-sansRadio0.name = "rst_sans_radio";
+sansRadio0.id = "gm_rst_r21_sans_radio_0";
+sansRadio0.name = "gm_rst_r21_sans_radio";
 sansRadios.appendChild(sansRadio0);
 var sansRadio0Label = document.createElement("label");
-sansRadio0Label.htmlFor = "rst_sans_radio_0";
+sansRadio0Label.htmlFor = "gm_rst_r21_sans_radio_0";
 sansRadio0Label.textContent = "aucun";
 sansRadios.appendChild(sansRadio0Label);
 sansRow.appendChild(sansRadios);
@@ -579,32 +683,32 @@ configWindow.appendChild(sansRow);
 
 // full
 var fullRow = document.createElement("div");
-fullRow.className = "rst_row";
+fullRow.className = "gm_rst_r21_row";
 var fullTitle = document.createElement("div");
-fullTitle.className = "rst_cell";
+fullTitle.className = "gm_rst_r21_cell";
 var fullIcon = document.createElement("img");
 fullIcon.src = iconFull;
 fullTitle.appendChild(fullIcon);
 fullTitle.appendChild(document.createTextNode("Rehost taille originale :"));
 fullRow.appendChild(fullTitle);
 var fullRadios = document.createElement("div");
-fullRadios.className = "rst_cell";
+fullRadios.className = "gm_rst_r21_cell";
 var fullRadio1 = document.createElement("input");
 fullRadio1.type = "radio";
-fullRadio1.id = "rst_full_radio_1";
-fullRadio1.name = "rst_full_radio";
+fullRadio1.id = "gm_rst_r21_full_radio_1";
+fullRadio1.name = "gm_rst_r21_full_radio";
 fullRadios.appendChild(fullRadio1);
 var fullRadio1Label = document.createElement("label");
-fullRadio1Label.htmlFor = "rst_full_radio_1";
+fullRadio1Label.htmlFor = "gm_rst_r21_full_radio_1";
 fullRadio1Label.textContent = "menu";
 fullRadios.appendChild(fullRadio1Label);
 var fullRadio2 = document.createElement("input");
 fullRadio2.type = "radio";
-fullRadio2.id = "rst_full_radio_2";
-fullRadio2.name = "rst_full_radio";
+fullRadio2.id = "gm_rst_r21_full_radio_2";
+fullRadio2.name = "gm_rst_r21_full_radio";
 fullRadios.appendChild(fullRadio2);
 var fullRadio2Label = document.createElement("label");
-fullRadio2Label.htmlFor = "rst_full_radio_2";
+fullRadio2Label.htmlFor = "gm_rst_r21_full_radio_2";
 fullRadio2Label.textContent = "sous-menu";
 fullRadios.appendChild(fullRadio2Label);
 fullRow.appendChild(fullRadios);
@@ -612,41 +716,41 @@ configWindow.appendChild(fullRow);
 
 // medium
 var mediumRow = document.createElement("div");
-mediumRow.className = "rst_row";
+mediumRow.className = "gm_rst_r21_row";
 var mediumTitle = document.createElement("div");
-mediumTitle.className = "rst_cell";
+mediumTitle.className = "gm_rst_r21_cell";
 var mediumIcon = document.createElement("img");
 mediumIcon.src = iconMedPrev;
 mediumTitle.appendChild(mediumIcon);
 mediumTitle.appendChild(document.createTextNode("Rehost médium (800px) :"));
 mediumRow.appendChild(mediumTitle);
 var mediumRadios = document.createElement("div");
-mediumRadios.className = "rst_cell";
+mediumRadios.className = "gm_rst_r21_cell";
 var mediumRadio1 = document.createElement("input");
 mediumRadio1.type = "radio";
-mediumRadio1.id = "rst_medium_radio_1";
-mediumRadio1.name = "rst_medium_radio";
+mediumRadio1.id = "gm_rst_r21_medium_radio_1";
+mediumRadio1.name = "gm_rst_r21_medium_radio";
 mediumRadios.appendChild(mediumRadio1);
 var mediumRadio1Label = document.createElement("label");
-mediumRadio1Label.htmlFor = "rst_medium_radio_1";
+mediumRadio1Label.htmlFor = "gm_rst_r21_medium_radio_1";
 mediumRadio1Label.textContent = "menu";
 mediumRadios.appendChild(mediumRadio1Label);
 var mediumRadio2 = document.createElement("input");
 mediumRadio2.type = "radio";
-mediumRadio2.id = "rst_medium_radio_2";
-mediumRadio2.name = "rst_medium_radio";
+mediumRadio2.id = "gm_rst_r21_medium_radio_2";
+mediumRadio2.name = "gm_rst_r21_medium_radio";
 mediumRadios.appendChild(mediumRadio2);
 var mediumRadio2Label = document.createElement("label");
-mediumRadio2Label.htmlFor = "rst_medium_radio_2";
+mediumRadio2Label.htmlFor = "gm_rst_r21_medium_radio_2";
 mediumRadio2Label.textContent = "sous-menu";
 mediumRadios.appendChild(mediumRadio2Label);
 var mediumRadio0 = document.createElement("input");
 mediumRadio0.type = "radio";
-mediumRadio0.id = "rst_medium_radio_0";
-mediumRadio0.name = "rst_medium_radio";
+mediumRadio0.id = "gm_rst_r21_medium_radio_0";
+mediumRadio0.name = "gm_rst_r21_medium_radio";
 mediumRadios.appendChild(mediumRadio0);
 var mediumRadio0Label = document.createElement("label");
-mediumRadio0Label.htmlFor = "rst_medium_radio_0";
+mediumRadio0Label.htmlFor = "gm_rst_r21_medium_radio_0";
 mediumRadio0Label.textContent = "aucun";
 mediumRadios.appendChild(mediumRadio0Label);
 mediumRow.appendChild(mediumRadios);
@@ -654,41 +758,41 @@ configWindow.appendChild(mediumRow);
 
 // preview
 var previewRow = document.createElement("div");
-previewRow.className = "rst_row";
+previewRow.className = "gm_rst_r21_row";
 var previewTitle = document.createElement("div");
-previewTitle.className = "rst_cell";
+previewTitle.className = "gm_rst_r21_cell";
 var previewIcon = document.createElement("img");
 previewIcon.src = iconMedPrev;
 previewTitle.appendChild(previewIcon);
 previewTitle.appendChild(document.createTextNode("Rehost aperçu (600px) :"));
 previewRow.appendChild(previewTitle);
 var previewRadios = document.createElement("div");
-previewRadios.className = "rst_cell";
+previewRadios.className = "gm_rst_r21_cell";
 var previewRadio1 = document.createElement("input");
 previewRadio1.type = "radio";
-previewRadio1.id = "rst_preview_radio_1";
-previewRadio1.name = "rst_preview_radio";
+previewRadio1.id = "gm_rst_r21_preview_radio_1";
+previewRadio1.name = "gm_rst_r21_preview_radio";
 previewRadios.appendChild(previewRadio1);
 var previewRadio1Label = document.createElement("label");
-previewRadio1Label.htmlFor = "rst_preview_radio_1";
+previewRadio1Label.htmlFor = "gm_rst_r21_preview_radio_1";
 previewRadio1Label.textContent = "menu";
 previewRadios.appendChild(previewRadio1Label);
 var previewRadio2 = document.createElement("input");
 previewRadio2.type = "radio";
-previewRadio2.id = "rst_preview_radio_2";
-previewRadio2.name = "rst_preview_radio";
+previewRadio2.id = "gm_rst_r21_preview_radio_2";
+previewRadio2.name = "gm_rst_r21_preview_radio";
 previewRadios.appendChild(previewRadio2);
 var previewRadio2Label = document.createElement("label");
-previewRadio2Label.htmlFor = "rst_preview_radio_2";
+previewRadio2Label.htmlFor = "gm_rst_r21_preview_radio_2";
 previewRadio2Label.textContent = "sous-menu";
 previewRadios.appendChild(previewRadio2Label);
 var previewRadio0 = document.createElement("input");
 previewRadio0.type = "radio";
-previewRadio0.id = "rst_preview_radio_0";
-previewRadio0.name = "rst_preview_radio";
+previewRadio0.id = "gm_rst_r21_preview_radio_0";
+previewRadio0.name = "gm_rst_r21_preview_radio";
 previewRadios.appendChild(previewRadio0);
 var previewRadio0Label = document.createElement("label");
-previewRadio0Label.htmlFor = "rst_preview_radio_0";
+previewRadio0Label.htmlFor = "gm_rst_r21_preview_radio_0";
 previewRadio0Label.textContent = "aucun";
 previewRadios.appendChild(previewRadio0Label);
 previewRow.appendChild(previewRadios);
@@ -696,41 +800,41 @@ configWindow.appendChild(previewRow);
 
 // thumb
 var thumbRow = document.createElement("div");
-thumbRow.className = "rst_row";
+thumbRow.className = "gm_rst_r21_row";
 var thumbTitle = document.createElement("div");
-thumbTitle.className = "rst_cell";
+thumbTitle.className = "gm_rst_r21_cell";
 var thumbIcon = document.createElement("img");
 thumbIcon.src = iconThumb;
 thumbTitle.appendChild(thumbIcon);
 thumbTitle.appendChild(document.createTextNode("Rehost vignette (230px) :"));
 thumbRow.appendChild(thumbTitle);
 var thumbRadios = document.createElement("div");
-thumbRadios.className = "rst_cell";
+thumbRadios.className = "gm_rst_r21_cell";
 var thumbRadio1 = document.createElement("input");
 thumbRadio1.type = "radio";
-thumbRadio1.id = "rst_thumb_radio_1";
-thumbRadio1.name = "rst_thumb_radio";
+thumbRadio1.id = "gm_rst_r21_thumb_radio_1";
+thumbRadio1.name = "gm_rst_r21_thumb_radio";
 thumbRadios.appendChild(thumbRadio1);
 var thumbRadio1Label = document.createElement("label");
-thumbRadio1Label.htmlFor = "rst_thumb_radio_1";
+thumbRadio1Label.htmlFor = "gm_rst_r21_thumb_radio_1";
 thumbRadio1Label.textContent = "menu";
 thumbRadios.appendChild(thumbRadio1Label);
 var thumbRadio2 = document.createElement("input");
 thumbRadio2.type = "radio";
-thumbRadio2.id = "rst_thumb_radio_2";
-thumbRadio2.name = "rst_thumb_radio";
+thumbRadio2.id = "gm_rst_r21_thumb_radio_2";
+thumbRadio2.name = "gm_rst_r21_thumb_radio";
 thumbRadios.appendChild(thumbRadio2);
 var thumbRadio2Label = document.createElement("label");
-thumbRadio2Label.htmlFor = "rst_thumb_radio_2";
+thumbRadio2Label.htmlFor = "gm_rst_r21_thumb_radio_2";
 thumbRadio2Label.textContent = "sous-menu";
 thumbRadios.appendChild(thumbRadio2Label);
 var thumbRadio0 = document.createElement("input");
 thumbRadio0.type = "radio";
-thumbRadio0.id = "rst_thumb_radio_0";
-thumbRadio0.name = "rst_thumb_radio";
+thumbRadio0.id = "gm_rst_r21_thumb_radio_0";
+thumbRadio0.name = "gm_rst_r21_thumb_radio";
 thumbRadios.appendChild(thumbRadio0);
 var thumbRadio0Label = document.createElement("label");
-thumbRadio0Label.htmlFor = "rst_thumb_radio_0";
+thumbRadio0Label.htmlFor = "gm_rst_r21_thumb_radio_0";
 thumbRadio0Label.textContent = "aucun";
 thumbRadios.appendChild(thumbRadio0Label);
 thumbRow.appendChild(thumbRadios);
@@ -738,41 +842,41 @@ configWindow.appendChild(thumbRow);
 
 // conf
 var confRow = document.createElement("div");
-confRow.className = "rst_row";
+confRow.className = "gm_rst_r21_row";
 var confTitle = document.createElement("div");
-confTitle.className = "rst_cell";
+confTitle.className = "gm_rst_r21_cell";
 var confIcon = document.createElement("img");
 confIcon.src = iconConf;
 confTitle.appendChild(confIcon);
 confTitle.appendChild(document.createTextNode("Configuration de Rehost :"));
 confRow.appendChild(confTitle);
 var confRadios = document.createElement("div");
-confRadios.className = "rst_cell";
+confRadios.className = "gm_rst_r21_cell";
 var confRadio1 = document.createElement("input");
 confRadio1.type = "radio";
-confRadio1.id = "rst_conf_radio_1";
-confRadio1.name = "rst_conf_radio";
+confRadio1.id = "gm_rst_r21_conf_radio_1";
+confRadio1.name = "gm_rst_r21_conf_radio";
 confRadios.appendChild(confRadio1);
 var confRadio1Label = document.createElement("label");
-confRadio1Label.htmlFor = "rst_conf_radio_1";
+confRadio1Label.htmlFor = "gm_rst_r21_conf_radio_1";
 confRadio1Label.textContent = "menu";
 confRadios.appendChild(confRadio1Label);
 var confRadio2 = document.createElement("input");
 confRadio2.type = "radio";
-confRadio2.id = "rst_conf_radio_2";
-confRadio2.name = "rst_conf_radio";
+confRadio2.id = "gm_rst_r21_conf_radio_2";
+confRadio2.name = "gm_rst_r21_conf_radio";
 confRadios.appendChild(confRadio2);
 var confRadio2Label = document.createElement("label");
-confRadio2Label.htmlFor = "rst_conf_radio_2";
+confRadio2Label.htmlFor = "gm_rst_r21_conf_radio_2";
 confRadio2Label.textContent = "sous-menu";
 confRadios.appendChild(confRadio2Label);
 var confRadio0 = document.createElement("input");
 confRadio0.type = "radio";
-confRadio0.id = "rst_conf_radio_0";
-confRadio0.name = "rst_conf_radio";
+confRadio0.id = "gm_rst_r21_conf_radio_0";
+confRadio0.name = "gm_rst_r21_conf_radio";
 confRadios.appendChild(confRadio0);
 var confRadio0Label = document.createElement("label");
-confRadio0Label.htmlFor = "rst_conf_radio_0";
+confRadio0Label.htmlFor = "gm_rst_r21_conf_radio_0";
 confRadio0Label.textContent = "aucun";
 confRadios.appendChild(confRadio0Label);
 confRow.appendChild(confRadios);
@@ -780,93 +884,99 @@ configWindow.appendChild(confRow);
 
 // titre des options
 var optionsTitle = document.createElement("div");
-optionsTitle.className = "rst_title";
+optionsTitle.className = "gm_rst_r21_title";
 optionsTitle.textContent = "Options";
 configWindow.appendChild(optionsTitle);
 
 // options
 var optionsP = document.createElement("p");
-optionsP.className = "rst_p";
+optionsP.className = "gm_rst_r21_p";
 var optionsCheckbox = document.createElement("input");
 optionsCheckbox.type = "checkbox";
-optionsCheckbox.id = "rst_options_checkbox";
-optionsCheckbox.name = "rst_options_checkbox";
+optionsCheckbox.id = "gm_rst_r21_options_checkbox";
 optionsP.appendChild(optionsCheckbox);
 var optionsCheckboxLabel = document.createElement("label");
-optionsCheckboxLabel.htmlFor = "rst_options_checkbox";
-optionsCheckboxLabel.textContent = "Afficher les option dans le sous-menu";
+optionsCheckboxLabel.htmlFor = "gm_rst_r21_options_checkbox";
+optionsCheckboxLabel.textContent = "Afficher les options dans le sous-menu";
 optionsP.appendChild(optionsCheckboxLabel);
 configWindow.appendChild(optionsP);
 
 // icons
 var iconsP = document.createElement("p");
-iconsP.className = "rst_p";
+iconsP.className = "gm_rst_r21_p";
 var iconsCheckbox = document.createElement("input");
 iconsCheckbox.type = "checkbox";
-iconsCheckbox.id = "rst_icons_checkbox";
-iconsCheckbox.name = "rst_icons_checkbox";
+iconsCheckbox.id = "gm_rst_r21_icons_checkbox";
 iconsP.appendChild(iconsCheckbox);
 var iconsCheckboxLabel = document.createElement("label");
-iconsCheckboxLabel.htmlFor = "rst_icons_checkbox";
+iconsCheckboxLabel.htmlFor = "gm_rst_r21_icons_checkbox";
 iconsCheckboxLabel.textContent = "Afficher les icônes dans les menus";
 iconsP.appendChild(iconsCheckboxLabel);
 configWindow.appendChild(iconsP);
 
 // notifs
 var notifsP = document.createElement("p");
-notifsP.className = "rst_p";
+notifsP.className = "gm_rst_r21_p";
 var notifsCheckbox = document.createElement("input");
 notifsCheckbox.type = "checkbox";
-notifsCheckbox.id = "rst_notifs_checkbox";
-notifsCheckbox.name = "rst_notifs_checkbox";
+notifsCheckbox.id = "gm_rst_r21_notifs_checkbox";
 notifsP.appendChild(notifsCheckbox);
 var notifsCheckboxLabel = document.createElement("label");
-notifsCheckboxLabel.htmlFor = "rst_notifs_checkbox";
+notifsCheckboxLabel.htmlFor = "gm_rst_r21_notifs_checkbox";
 notifsCheckboxLabel.textContent = "Afficher les notifications";
 notifsP.appendChild(notifsCheckboxLabel);
 configWindow.appendChild(notifsP);
 
 // link
 var linkP = document.createElement("p");
-linkP.className = "rst_p";
+linkP.className = "gm_rst_r21_p";
 linkP.appendChild(document.createTextNode("Lien sur l'image : "));
 var linkImageRadioLabel = document.createElement("label");
-linkImageRadioLabel.htmlFor = "rst_link_image_radio";
+linkImageRadioLabel.htmlFor = "gm_rst_r21_link_image_radio";
 linkImageRadioLabel.textContent = "vers la taille originale";
 linkP.appendChild(linkImageRadioLabel);
 var linkImageRadio = document.createElement("input");
 linkImageRadio.type = "radio";
-linkImageRadio.id = "rst_link_image_radio";
-linkImageRadio.name = "rst_link_radio";
+linkImageRadio.id = "gm_rst_r21_link_image_radio";
+linkImageRadio.name = "gm_rst_r21_link_radio";
 linkP.appendChild(linkImageRadio);
 var linkPageRadio = document.createElement("input");
 linkPageRadio.type = "radio";
-linkPageRadio.id = "rst_link_page_radio";
-linkPageRadio.name = "rst_link_radio";
+linkPageRadio.id = "gm_rst_r21_link_page_radio";
+linkPageRadio.name = "gm_rst_r21_link_radio";
 linkP.appendChild(linkPageRadio);
 var linkPageRadioLabel = document.createElement("label");
-linkPageRadioLabel.htmlFor = "rst_link_page_radio";
+linkPageRadioLabel.htmlFor = "gm_rst_r21_link_page_radio";
 linkPageRadioLabel.textContent = "vers la page de partage";
 linkP.appendChild(linkPageRadioLabel);
 configWindow.appendChild(linkP);
 
 // return
 var returnP = document.createElement("p");
-returnP.className = "rst_p";
+returnP.className = "gm_rst_r21_p";
 var returnCheckbox = document.createElement("input");
 returnCheckbox.type = "checkbox";
-returnCheckbox.id = "rst_return_checkbox";
-returnCheckbox.name = "rst_return_checkbox";
+returnCheckbox.id = "gm_rst_r21_return_checkbox";
 returnP.appendChild(returnCheckbox);
 var returnCheckboxLabel = document.createElement("label");
-returnCheckboxLabel.htmlFor = "rst_return_checkbox";
+returnCheckboxLabel.htmlFor = "gm_rst_r21_return_checkbox";
 returnCheckboxLabel.textContent = "Ajouter un retour à la ligne après l'image";
 returnP.appendChild(returnCheckboxLabel);
 configWindow.appendChild(returnP);
 
-// boutons de validation et de fermeture
+// info "sans rechargement" et boutons de validation et de fermeture
 var saveCloseDiv = document.createElement("div");
-saveCloseDiv.id = "rst_save_close_div";
+saveCloseDiv.className = "gm_rst_r21_save_close_div";
+var infoReloadDiv = document.createElement("div");
+infoReloadDiv.className = "gm_rst_r21_info_reload_div";
+var infoReloadImg = document.createElement("img");
+infoReloadImg.setAttribute("src", infoImg);
+infoReloadDiv.appendChild(infoReloadImg);
+infoReloadDiv.appendChild(document.createTextNode(" sans rechargement "));
+infoReloadDiv.appendChild(createHelpButton(255,
+  "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement à la validation, " +
+  "il n'est pas nécessaire de recharger la page."));
+saveCloseDiv.appendChild(infoReloadDiv);
 var saveButton = document.createElement("img");
 saveButton.src = saveImg;
 saveButton.setAttribute("title", "Valider");
@@ -974,7 +1084,7 @@ function showConfigWindow() {
   ]) {
     if(!gmMenu) {
       confRadio0.disabled = true;
-      confRadio0Label.className = "rst_disabled";
+      confRadio0Label.className = "gm_rst_r21_disabled";
       if(rstConf === "0") {
         rstConf = "2";
       }
@@ -1009,13 +1119,14 @@ function showConfigWindow() {
     if(!gmNotif) {
       notifsCheckbox.checked = false;
       notifsCheckbox.disabled = true;
-      notifsCheckboxLabel.className = "rst_disabled";
+      notifsCheckboxLabel.className = "gm_rst_r21_disabled";
       notifsCheckbox.dataset.value = rstNotifs;
     }
     // affichage de la fenêtre de configuration
     configWindow.style.visibility = "visible";
     configBackground.style.visibility = "visible";
-    configWindow.style.left = parseInt((document.documentElement.clientWidth - configWindow.offsetWidth) / 2, 10) + "px";
+    configWindow.style.left =
+      parseInt((document.documentElement.clientWidth - configWindow.offsetWidth) / 2, 10) + "px";
     configWindow.style.top = document.documentElement.clientHeight ?
       parseInt((document.documentElement.clientHeight - configWindow.offsetHeight) / 2, 10) + "px" :
       "calc((100vh - " + configWindow.offsetHeight + "px) / 2)";

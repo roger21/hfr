@@ -1,22 +1,55 @@
 // ==UserScript==
-// @name          [HFR] liens explicites mod_r21
-// @version       2.5.0
+// @name          [HFR] Liens explicites mod_r21
+// @version       2.6.4
 // @namespace     roger21.free.fr
-// @description   Insère un texte explicite dans les liens à la place de celui créé automatiquement par le forum
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Remplace le texte des liens internes du forum dans les posts par une description précise du lien.
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
 // @exclude       https://forum.hardware.fr/message.php*
-// @author        turlogh
-// @modifications recodage en fetch pour ne pas niquer les drapoils, uniformisation et simplification des liens et du fonctionnement, mise à jour des cats et sous-cats, amélioration des fonctionnalités et amélioration du code
-// @modtype       évolution de fonctionnalités
+// @author        roger21
+// @authororig    turlogh
+// @modifications Recodage en fetch pour ne pas niquer les drapoils, uniformisation et simplification des liens et du fonctionnement, mise à jour des cats et sous-cats, amélioration des fonctionnalités et amélioration du code.
+// @modtype       réécriture et évolutions
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// modifications roger21 $Rev: 240 $
+/*
+
+Copyright © 2011-2012, 2014-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1416 $
 
 // historique :
+// 2.6.4 (01/01/2020) :
+// - mise à jour des cats et sous-cats
+// 2.6.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - retour des requêtes fetch en mode "same-origin" au lieu de "cors"
+// 2.6.2 (23/09/2019) :
+// - passage des requêtes fetch en mode "cors" pour éviter un plantage sous ch+vm en mode "same-origin"
+// 2.6.1 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 2.6.0 (29/11/2018) :
+// - nouveau nom : [HFR] liens explicites mod_r21 -> [HFR] Liens explicites mod_r21
+// - ajout de l'avis de licence AGPL v3+ *si turlogh est d'accord*
+// - appropriation de la metadata @author (passage en roger21)
+// - ajout de la metadata @authororig (turlogh)
+// - réécriture des metadata @description, @modifications et @modtype
 // 2.5.0 (26/05/2018) :
 // - ajout du support pour la cat shop
 // - correction de la deteton de la cat pour la cat shop (qui a des tirets !)
@@ -127,7 +160,7 @@ var id2cat = {
   6: "AchatsVentes",
   8: "EmploiEtudes",
   9: "Setietprojetsdistribues",
-  13: "Discussions"
+  13: "Discussions",
 };
 
 var id2nomcat = {
@@ -151,7 +184,7 @@ var id2nomcat = {
   6: "Achats & Ventes",
   8: "Emploi & Etudes",
   9: "Seti et projets distribués",
-  13: "Discussions"
+  13: "Discussions",
 };
 
 var id2subcat = {
@@ -170,6 +203,7 @@ var id2subcat = {
   253: "Materiels-problemes-divers",
   481: "conseilsachats",
   546: "hfr",
+  578: "actualites",
   // Hardware - Périphériques
   451: "Ecran",
   452: "Imprimante",
@@ -245,6 +279,7 @@ var id2subcat = {
   251: "Achat-Ventes",
   412: "Teams-LAN",
   413: "Tips-Depannage",
+  579: "VR-Realite-Virtuelle",
   569: "mobiles",
   // Windows & Software
   570: "windows-10",
@@ -362,7 +397,7 @@ var id2subcat = {
   433: "Cuisine",
   434: "Loisirs",
   557: "voyages",
-  432: "Viepratique"
+  432: "Viepratique",
 };
 
 var id2nomsubcat = {
@@ -381,6 +416,7 @@ var id2nomsubcat = {
   253: "Matériels & problèmes divers",
   481: "Conseil d'achat",
   546: "HFR",
+  578: "Actus",
   // Hardware - Périphériques
   451: "Ecran",
   452: "Imprimante",
@@ -456,6 +492,7 @@ var id2nomsubcat = {
   251: "Achat & Ventes",
   412: "Teams & LAN",
   413: "Tips & Dépannage",
+  579: "Réalité virtuelle",
   569: "Mobiles",
   // Windows & Software
   570: "Win 10",
@@ -573,7 +610,7 @@ var id2nomsubcat = {
   433: "Cuisine",
   434: "Loisirs",
   557: "Voyages",
-  432: "Vie pratique"
+  432: "Vie pratique",
 };
 
 /* ================================= Main ================================== */
@@ -618,7 +655,7 @@ boucleliens: for(let lien of liens) {
   }
   // Gestion des liens extratopics
   else {
-    switch(linkURL.type) {
+    switch (linkURL.type) {
       case "rewrite":
         lien.textContent = "Topic \"" + linkURL.nomtopic + "\", page " + linkURL.page;
         lien.setAttribute("hlexp_page", linkURL.page);
@@ -727,7 +764,7 @@ function parseHFR(str) {
         parsed.page = 1;
       }
       parsed.type = parsed.topic === "1" ? "liste" : "rewrite";
-    } catch(e) {
+    } catch (e) {
       parsed.type = "!topic";
     }
   }
@@ -741,7 +778,7 @@ function testText(lien) {
     if(bouts.length === 2 && link.indexOf(bouts[0]) === 0 && link.indexOf(bouts[1]) + bouts[1].length === link.length) {
       return true;
     }
-  } catch(e) {}
+  } catch (e) {}
   return false;
 }
 

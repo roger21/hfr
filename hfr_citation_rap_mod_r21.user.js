@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          [HFR] citation rapide mod_r21
-// @version       2.0.2
+// @version       2.0.4
 // @namespace     http://toyonos.info
 // @description   Rajoute le systeme de citation dans la zone de réponse rapide via un double clic sur les icônes correspondantes
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
 // @exclude       https://forum.hardware.fr/message.php*
 // @author        toyonos
@@ -26,9 +26,13 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 36 $
+// modifications roger21 $Rev: 1153 $
 
 // historique :
+// 2.0.4 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 2.0.3 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
 // 2.0.2 (20/01/2018) :
 // - correction d'un bug ch/tm et nettoyage des alertes de syntaxe de tm
 // 2.0.1 (28/11/2017) :

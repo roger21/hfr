@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          [HFR] Drapal Easy Click
-// @version       1.8.0
+// @version       1.8.3
 // @namespace     roger21.free.fr
-// @description   permet de cliquer sur la case du drapal au lieu d'avoir à viser le drapal
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Permet de cliquer sur la case du drapal au lieu d'avoir à viser le drapal.
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/forum1.php*
 // @include       https://forum.hardware.fr/forum1f.php*
 // @include       https://forum.hardware.fr/*/liste_sujet-*.htm
@@ -14,9 +14,35 @@
 // @grant         GM_openInTab
 // ==/UserScript==
 
-// $Rev: 413 $
+/*
+
+Copyright © 2012, 2014-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1153 $
 
 // historique :
+// 1.8.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
+// - découpage de certaines lignes longues
+// 1.8.2 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 1.8.1 (29/11/2018) :
+// - ajout de l'avis de licence AGPL v3+
+// - réécriture de la metadata @description
 // 1.8.0 (11/08/2018) :
 // - nouveau nom : [HFR] drapal easy click -> [HFR] Drapal Easy Click
 // - ajout de la metadata @author (roger21)
@@ -26,7 +52,8 @@
 // - maj de la metadata @homepageURL
 // - suppression des @grant inutiles
 // 1.6.2 (06/04/2018) :
-// - remplacement des window.location par des window.location.href pour fonctionner avec vm (problème rapporté par Heeks)
+// - remplacement des window.location par des window.location.href pour fonctionner avec vm ->
+// (problème rapporté par Heeks)
 // 1.6.1 (25/12/2017) :
 // - remise à false par défaut de drapals_refresh
 // 1.6.0 (17/12/2017) :
@@ -49,7 +76,8 @@
 // - ajout d'un preventDefault sur le ctrl+click (mousedown) pour ne pas avoir ->
 // l'effet de selection d'element de firefox (problème rapporté par BrisChri)
 // 1.3.0 (11/12/2016) :
-// - gestion du background color en image transparante pour compatibilité avec le dégradé de new page number 2.0.0
+// - gestion du background color en image transparante pour compatibilité avec le dégradé ->
+// de new page number 2.0.0
 // 1.2.1 (03/11/2016) :
 // - ajout de l'open_in_background en dur
 // 1.2.0 (03/11/2016) :
@@ -75,19 +103,19 @@
 
 /* options en dur */
 var open_in_background = true;
-var drapals_refresh = false;
+var drapals_refresh = true;
 var refresh_delay = 5000; // 5 secondes
 
 // compatibilité gm4
 if(typeof GM === "undefined") {
-  GM = {};
+  this.GM = {};
 }
 if(typeof GM_openInTab !== "undefined" && typeof GM.openInTab === "undefined") {
   GM.openInTab = function(...args) {
     return new Promise((resolve, reject) => {
       try {
         resolve(GM_openInTab.apply(null, args));
-      } catch(e) {
+      } catch (e) {
         reject(e);
       }
     });
@@ -119,7 +147,8 @@ for(let cell of cells) {
     }, false);
     cell.addEventListener("mouseup", function(e) {
       if(e.target === this) {
-        if(((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) || ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
+        if(((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) ||
+           ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
           if(this.firstElementChild.hasAttribute("href")) {
             GM.openInTab(this.firstElementChild.href, open_in_background);
           } else if(this.firstElementChild.dataset.href) {

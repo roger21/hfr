@@ -1,14 +1,13 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.5.1
+// @version       2.6.8
 // @namespace     roger21.free.fr
-// @description   affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options)
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/forum1.php*
 // @include       https://forum.hardware.fr/forum1f.php*
 // @include       https://forum.hardware.fr/*/liste_sujet-*.htm
 // @author        roger21
-// @authororig    Fred82
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         GM.getValue
@@ -20,14 +19,62 @@
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
-// $Rev: 490 $
+/*
+
+Copyright © 2012, 2014-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1473 $
 
 // historique :
+// 2.6.8 (11/01/2020) :
+// - mise à jour des images des boutons de la fenêtre de configuration
+// 2.6.7 (30/11/2019) :
+// - ajout de majuscules sur les titres des sections de la fenêtre de configuration
+// 2.6.6 (24/11/2019) :
+// - minuscule amélioration du style de certaines images sur la fenêtre de configuration
+// 2.6.5 (10/11/2019) :
+// - ouverture de la fenêtre de configuration sur tout type de clic sur le bouton
+// - réduction des temps des transitions de 0.7s à 0.3s et de 0.5s à 0.3s
+// 2.6.4 (12/10/2019) :
+// - ajout d'une info "sans rechargement" dans la fenêtre de configuration
+// - contrainte de l'icône du bouton à 16px x 16px max
+// 2.6.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
+// 2.6.2 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 2.6.1 (12/09/2019) :
+// - priorité à la couleur de fin sur la couleur de début pour le dégradé en limite auto avec amplitude 0
+// 2.6.0 (09/09/2019) :
+// - nouvelle gestion de l'affichage de la fenêtre de configuration
+// - restylage de la fenêtre de configuration (plus compacte)
+// - bordure solide pour la fenêtre de configuration
+// - petites mises en forme et corrections du code
+// 2.5.4 (17/12/2018) :
+// - ajout d'une protection contre le réaffichage du nombre de pages en retard ->
+// en cas de retour sur la page des drapals, signalé par fugacef :jap:
+// 2.5.3 (29/11/2018) :
+// - ajout de l'avis de licence AGPL v3+
+// 2.5.2 (09/09/2018) :
+// - Nouveau format pour la metadata @description (avec majuscule et ponctuation).
 // 2.5.1 (05/09/2018) :
 // - correction d'une fôte oryble, signalée par demars :jap:
 // 2.5.0 (11/08/2018) :
-// - ajout de la configuration du délai de rafraichissement de la page après un click
-// - ajout d'un paramètre de rafraichissement général de la page
+// - ajout de la configuration du délai de rafraîchissement de la page après un click
+// - ajout d'un paramètre de rafraîchissement général de la page
 // 2.4.0 (06/08/2018) :
 // - nouveau nom : [HFR] new page number -> [HFR] New Page Number
 // - gestion de la compatibilité gm4
@@ -50,11 +97,14 @@
 // - homogénéisation de la gestion des clics et des preventDefault avec [HFR] drapal esay click
 // 2.3.0 (02/09/2017) :
 // - restauration du lien l'orsque l'ouverture en masse est désactivée (ou limitée à 1 onglet) pour gsi spirit
-// - correction de l'affichage du nombre total de pages en retard (mal géré quand on applique la conf plusieurs fois)
+// - correction de l'affichage du nombre total de pages en retard ->
+// mal géré quand on applique la conf plusieurs fois)
 // 2.2.3 (29/07/2017) :
-// - ajout d'un preventDefault sur le mousedown du clic-milieu sur le drapal pour éviter l'apparition du défilement automatique
+// - ajout d'un preventDefault sur le mousedown du clic-milieu sur le drapal pour éviter ->
+// l'apparition du défilement automatique
 // 2.2.2 (29/07/2017) :
-// - correction de la gestion du clic-milieu quand pas d'ouverture en masse (problème signalé par jakwarrior et gsi spirit)
+// - correction de la gestion du clic-milieu quand pas d'ouverture en masse ->
+// (problème signalé par jakwarrior et gsi spirit)
 // 2.2.1 (28/07/2017) :
 // - n'affiche pas les totaux si c'est 0 (pasque bon :o )
 // 2.2.0 (28/07/2017) :
@@ -110,7 +160,7 @@
 
 /* gestion de la compatibilité gm4 */
 if(typeof GM === "undefined") {
-  GM = {};
+  this.GM = {};
 }
 if(typeof GM_getValue !== "undefined" && typeof GM.getValue === "undefined") {
   GM.getValue = function(...args) {
@@ -158,10 +208,11 @@ var open_in_background = true;
 
 /* les images */
 var default_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAACjUlEQVR42mWSXUhTcRjGz3B2E22ii5XgNvbhF%2BlwykzODDRZgh%2FMwDWmNyGpmDGTRGyixOZk7uDeMRtmJBIl3VgXGdJNJzMqvRAqsCLnpXlhXrSoSOfT%2F6SF1Au%2Fu%2F%2FD%2F3mf5%2BW4AwPi5IwMhgmUagapzT8oz%2FSJ%2BIzX1CDn%2Fh32UMY4wrAxfKAUEVF1fJty4htUJr6P1vsWYy22h5FuxU1hUHZQKIkaGSJIlkBIlVzwZGJ12Ip3VJucGXAkQl2N8zdGvM7oWExx0B6%2FJ0rZxpgaLy9noVR7CM%2BH7HgSakJztRWOGjuEcHR%2BMHLX1kmzcm5%2FJ8neF1xXA1OF6Kk6ig67AW9vteLecDtKLQXwXLmKa7H7iXaa87loUcXtBcF2YvbIoUR9wWGUGRQo1qeBP6GBtTAHWq0OGr0JDV2RpCu6LJ6hj9lMKGfpqVZ%2FUg42iMdEawks%2BnRMBzowHuxHZWUVSirqcDHyGM7wK1RRPF5Cn82cFLmU3nr4JFYidXCfMsBRUYRY0At%2FIAi1xoTqCz64aImJVmGhrTUDwcxJPW1GefHOJWtSf0wJjVqJPJMBemMuMo7rkJZpRLqxDJqaXhSNrCd1EYhphGxOKneFan3L4y0JwXMW%2BUYt%2BymE4OQj5PO10PLn0HA7AWvsO3SEhJLg5wgq7g055AuR87YZofNZZWkBiixWeHzjaO6fBMelorBlAsXhTejC2GEikYnKGXtX9IC6FcNeT5PT1bTobOv75h6Y2rX3TMPgDCK3b2k3K7D1VTmKp0zgZCj%2BXs6ov1fmHwoovcJUeZsw628UXoinRz%2BsWcJbazphR1QIzF74908Khuy%2Fm%2B2KzsndrFypJylyKb10KQhppz%2F29ucXz0Rq1fnX2JcAAAAASUVORK5CYII%3D";
-var help_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACnElEQVR42q2T3U%2BSYRjG%2FVvgT2it5mrVap3V1jjooAOn5ifQ1HK1DJazdJjTLCk1M50KauqcigJvAiKIJsqXIPBiIl%2FKx0B44VWz7eqNNZyb88hn%2B50912%2B77t13Xt5FPx15xNa6DwUa5wGp2qSpH%2FY0pbBR5JwlKZgx7bPPDaudNGfekQl5wkfY2qPhDlJZPLsZOAIZjC1HQyNLYc6ZYWIjzZFbU%2BntyAHMv%2BKQLvghmnCicWwTPcQWDI4oXCEK31T%2BdA%2Bxc1oiMydZ0%2BuJ4FaYxpIzhnom1E144I%2FR8MUymFgOoE5qhXI9BLsvifZpMtg66WLlBOMrUeGGP401TwLCYTue95mROTxm%2BPOfY9QPW1A3aMKiPQLtRgQNUqswJxhYCJEupmsvsY3aPhNqetfgj2YwsxqA2rYLmhGobUFwO3Von3HA6o3jRa%2BRzAm6FF7aHUxBKLGg%2BqsRvG4D81mPWaMPceoQe3Ea%2FfMulHdoUf1FD4dvHzyxns4J2iZdtCuQwsshC7hdelR%2B1qHikw4p%2Bjd2IhT4Yi1K2lR4zMAXa2D3J1DYoj4RvJHaSNtOAmKZC7xOAyrEiyj7uIDS9%2Bosxe8IFDcrUNQsR6N0FUZPBA8b5CcVmD5ChTEAvSOC6i5DLhhLHiCyT6NANJelWCQDse6DhKlzr27qZIh88RKr8sNicMUZgXLND26HBkUtSnRMmrL8Cxc2TWFU44bGEsDd2ong7afjrFO7UCCa5zxqItI6%2By7U1iDeSlZQ1ipHSfMsXvfroTR6oTL7cbPqe%2Fr6k5Gzt%2FGBUMa5%2F2o6NEBs4qc7DIs3lmXZuYcemQ35PGnoaqWEc%2B493Hk2zr5VMya4UTVKXuMPU%2FlcKXWlYoi8XD4ouFQ6wL7w6%2F0LXCsKj6bCqcQAAAAASUVORK5CYII%3D";
-var save_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACl0lEQVR42q2T60uTYRiH%2FTv2bnttAwlkRCGChFD7FCQSm2ZDMQ%2FL0nRnj7TNGDbTooychzFSSssstdqc8zB1anNrSpm47FVCzH3pQLVhdLBfzztoJlifvOEHz4fnuu7nGBe311XgOyLMnTmsz%2FakMBljB8OSEVFY4kpkJM5Efbp9v%2FC%2FcJ43VSrzJId0HhluBy3oW%2BmKpnOpGSWuExD30iFxDy3dFSZdpZkTSZHr80Y41%2Fphe3UDpvnKaNixY60PjbNVOGTjRZJtvJ2SHE%2BKINOdtMHC7MSaQBkq%2FCXQzJ6DjqScpNp3HvY3D3B5ugIiC3dDdJMriAlk7iSDajwr2pmFWVDlPQPFTCEU0wVQTxfCvT4Ig1cJB5Hk9hxDwjWuISbIGBExncFmWINNqPAVQ%2FlUTsB8KKdIPPmYeOsCW6HIOtpeNMI234j4ei4TExy3J2w%2BWr2L2oAGWm8RWckAlj4uQDVZiPH1oSj8c%2BsH2p5fgWGyGH3BTvCN1GZMIH5Ib%2FavdMPoV6HWr8Xnb5%2Bi0Iev72KwZa4ealc29O6z6A92gF%2Fzt6CHZm4tNKF98Sp0U3KYfdWIfP8Shbd%2BbcHy7BLKnFnQEEFLoA7tXjPoKmp7C6l3%2BAb5QBrsq%2FdRPSmH2n0adTPlWH6%2FiLa5BpQOnoTCcQo6Zw7sr7uRbj0KupLaPsRkK09wgFyN2aPBY%2BYeKkfzoB3OgWpIBqWDDQtn48lyF4xDxeCrORu0mhLseAuJTVxpfAMVMbnL4CCS1oAZ%2BtEiXBiWo5VswU5gvbMIvFJOhMC7v8Z9DVwpbaJCkg4x2v1m9L60onfBCovXhLSWVPAVnBCt%2Bgf8p%2BiLXCFtoPR0DcXwtZwwX8UJk44MiZ4upYR7%2Fnt%2FA%2Bw9sdKFchsrAAAAAElFTkSuQmCC";
-var close_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACEklEQVR42q1S%2FU9SYRhlbW13%2FQ0V5Woub05zfZkCXhUhpmmb8v3h5ZKoCQjcwVBi1Q%2B19Zf0d2lWxpeR3AuX93J8qGVjgK2tZ3u3d3t2znmecx6D4R%2BrsS5dGdiEnDXS4weCQ2Fe9QUSdafH3B%2Bc3UM7k4OeSPWQNIIi3xAjaG5u48fz1Y%2B1peU7PWAU3qBNT0%2FKaG3tnJOogXWe1NGKJYB8AZ3%2Fic2RqMxaL%2F0iSGe4dlLW23uvgPcfoOfyHQI0RYlX%2FSGe1KHtxAHqqyERJwtPWUWYv9w1oh5PcuxlnOlyFnj7DiydQSMcAalD244Buf2f%2F6rVTuA5rq9JregW15Q2WCu2S%2Bu8BvYLBMwD2RxUfxDVeRurzMxyF8cUFDnFG9CRo3V8QcDtA%2BQMqnMLetkicH%2FNWfH4O1EBlAacHmDVBeymaG87ipPT%2FMVgt49XvH5okSiQkgmYBuK0DhmorrlQMVnwdXyiP0nd5eUVjw%2BatAFQjIrbCzKLlabN%2BunSChDdRP3ZCor3H%2BJoeKSbhC6LJ3Vo4RekmoRCo5NZrDRl5oqPJrnjiQesZrUBYQmndgeOR8dweGPoDwldllB3uqGJEpQ1N8gsVnpiOjfsy%2Bg493nkLvtuEaA4FvFt7B4OrhmFrinosoTa4jLK5hmdzOpx%2B%2Bj2MPdp6BbrC%2F5dZZNFKD6eGhjVofEmd3D1umD4n3UGltFKFDkd60gAAAAASUVORK5CYII%3D";
+var help_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
+var save_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
+var close_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
 var reset_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs%2B9AAABhklEQVQY0wXBT0iTcRjA8e%2Fz%2FN537%2FvamjVa7lSUhUbsEiQRQf%2BoQ3gL6hSskA5Bt%2FQSXTz0%2F2xBl7okZR6EqEgiAvFgCAW1SPLPlGluilubZsv29PmQe37SAUw2u75Swv%2F%2BeXt7R2ve3I27K8GTzoObf8RTF78kU8e4NtTrAGa9qL9GaFVhfrDzdOvibt23rMGrCtiMyABX3g7JARt3b1KZPX%2FAKoLVnI6VHTMVxJZ8ffb4fHYb514Umi58uxMArBOzNYdVBVsiqFd8yY2dOpra%2Fy6nPBg%2F67%2B%2FetkBTGzhUx3sl9Cogk3HwiMA2Q8PHY8u%2FfQApoOwpwYbNaGxBraAtwrQvbwjlh0eUd04cV8Wo3TX1r%2F12%2F8UJyAIjYiwafYmLQPJUYt3jChTiebjZbAavq2KFuckdq%2BM%2FK56NArivmLmBruGPQoufLkuWMkxlffjhwAWktGZkmq96HS072l3lJlfUT6md%2B3Ma9A%2Fp24vQC6f8TFzk4lN6ddtbS2HbUKvF2%2Fpf4cUlw8oMuVkAAAAAElFTkSuQmCC";
+var info_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg%3D%3D";
 
 /* options par défaut */
 var default_max_tab = 9;
@@ -200,7 +251,8 @@ var refresh_page_timer = null;
 var scheduled_for_refresh = false;
 
 /* couleurs auto */
-var the_style = document.querySelector("head link[href^=\"/include/the_style1.php?color_key=\"]").getAttribute("href").split("/");
+var the_style = document.querySelector("head link[href^=\"/include/the_style1.php?color_key=\"]")
+  .getAttribute("href").split("/");
 var color_start_auto = "#" + the_style[13].toLowerCase();
 var color_end_auto = "#" + the_style[6].toLowerCase();
 var color_text = "#" + the_style[12].toLowerCase();
@@ -236,22 +288,27 @@ function pad(s) {
 }
 
 function mj(r, g, b) {
-  return (((0.299 * r) + (0.587 * g) + (0.114 * b)) / 255) > 0.5 ? "black" : "white";
+  return (((0.299 * r) + (0.587 * g) + (0.114 * b)) / 255) > 0.5 ? "#000000" : "#ffffff";
 }
 
 function white_or_black(bgcolor) {
   if(typeof bgcolor === "string") {
     // couleur au format hexa #rrggbb
-    return mj(parseInt(bgcolor.substr(1, 2), 16), parseInt(bgcolor.substr(3, 2), 16), parseInt(bgcolor.substr(5, 2), 16));
+    return mj(parseInt(bgcolor.substr(1, 2), 16),
+      parseInt(bgcolor.substr(3, 2), 16),
+      parseInt(bgcolor.substr(5, 2), 16));
   } else {
     if(typeof bgcolor.alpha === "undefined") {
       // un objet avec les 3 valeurs r g b en décimal
       return mj(bgcolor.r, bgcolor.g, bgcolor.b);
     } else {
       // un objet avec les 4 valeurs r g b + alpha en décimal
-      let r = Math.round((parseInt(color_start_auto.substr(1, 2), 16) * (1 - bgcolor.alpha)) + (bgcolor.r * bgcolor.alpha));
-      let g = Math.round((parseInt(color_start_auto.substr(3, 2), 16) * (1 - bgcolor.alpha)) + (bgcolor.g * bgcolor.alpha));
-      let b = Math.round((parseInt(color_start_auto.substr(5, 2), 16) * (1 - bgcolor.alpha)) + (bgcolor.b * bgcolor.alpha));
+      let r = Math.round((parseInt(color_start_auto.substr(1, 2), 16) * (1 - bgcolor.alpha)) +
+        (bgcolor.r * bgcolor.alpha));
+      let g = Math.round((parseInt(color_start_auto.substr(3, 2), 16) * (1 - bgcolor.alpha)) +
+        (bgcolor.g * bgcolor.alpha));
+      let b = Math.round((parseInt(color_start_auto.substr(5, 2), 16) * (1 - bgcolor.alpha)) +
+        (bgcolor.b * bgcolor.alpha));
       return mj(r, g, b);
     }
   }
@@ -302,12 +359,12 @@ function compute_colors(npn) {
       }
     } else if(color_start_type === "trans") { // transparent -> color_end
       let color_end = color_end_type === "auto" ? color_end_auto : color_end_perso;
-      if(npn === 0) {
-        text = white_or_black(color_start_auto);
-        background = "transparent";
-      } else if(npn === actual_bigest_page_number) {
+      if(npn === actual_bigest_page_number) {
         text = white_or_black(color_end);
         background = color_end;
+      } else if(npn === 0) {
+        text = white_or_black(color_start_auto);
+        background = "transparent";
       } else {
         let end_r = parseInt(color_end.substr(1, 2), 16);
         let end_g = parseInt(color_end.substr(3, 2), 16);
@@ -329,12 +386,12 @@ function compute_colors(npn) {
       }
     } else { // color_start -> transparent
       let color_start = color_start_type === "auto" ? color_start_auto : color_start_perso;
-      if(npn === 0) {
-        text = white_or_black(color_start);
-        background = color_start;
-      } else if(npn === actual_bigest_page_number) {
+      if(npn === actual_bigest_page_number) {
         text = white_or_black(color_start_auto);
         background = "transparent";
+      } else if(npn === 0) {
+        text = white_or_black(color_start);
+        background = color_start;
       } else {
         let start_r = parseInt(color_start.substr(1, 2), 16);
         let start_g = parseInt(color_start.substr(3, 2), 16);
@@ -367,37 +424,40 @@ function compute_colors(npn) {
 var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
-  "#npn_help{position:fixed;width:200px;height:auto;background-color:#E3EBF5;z-index:1003;" +
-  "display:none;border:2px solid #6995C3;border-radius:8px;padding:4px 7px 5px;" +
+  "#npn_help{position:fixed;width:200px;height:auto;background-color:#e3ebf5;z-index:1003;" +
+  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
   "text-align:justify;}" +
   "#npn_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
-  "display:none;opacity:0;transition:opacity 0.7s ease 0s;}" +
-  "#npn_config{position:fixed;width:525px;height:auto;background:white;z-index:1002;" +
-  "display:none;opacity:0;transition:opacity 0.7s ease 0s;" +
-  "border:1px dotted black;padding:16px 16px 12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
-  "#npn_config fieldset{margin:8px 0 0;border:1px solid #888;padding:4px 10px 10px;" +
-  "background:linear-gradient(to bottom, white 20px, transparent);" +
-  "transition:background-color 0.5s ease 0s;}" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
+  "#npn_config{position:fixed;width:465px;height:auto;background:#ffffff;z-index:1002;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;" +
+  "border:1px solid black;padding:16px 16px 12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+  "#npn_config fieldset{margin:8px 0 0;border:1px solid #888888;padding:4px 10px 10px;" +
+  "background:linear-gradient(to bottom, #ffffff 20px, transparent);transition:background-color 0.3s ease 0s;}" +
   "#npn_config fieldset.npn_red{background-color:#ffc0b0;}" +
   "#npn_config fieldset.npn_green{background-color:#c0ffb0;}" +
-  "#npn_config legend,#npn_config p,#npn_config input[type=text]{font-size:14px;font-weight:normal;}" +
-  "#npn_config legend{background-color:white;}" +
+  "#npn_config legend{font-size:14px;font-weight:normal;}" +
+  "#npn_config p{font-size:12px;font-weight:normal;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+  "#npn_config legend{background-color:#ffffff;}" +
   "#npn_config legend.npn_alone{padding:0 3px 2px;}" +
   "#npn_config p{margin:4px 0 0;line-height:1.4;}" +
   "#npn_config input[type=checkbox]{margin:0 0 1px;vertical-align:text-bottom;}" +
   "#npn_config legend input[type=checkbox]{margin-left:2px;}" +
-  "#npn_config input[type=text]{padding:1px 2px;}" +
-  "#npn_config input[type=color]{padding:0;width:35px;height:22px}" +
+  "#npn_config input[type=text]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;font-weight:normal;}" +
+  "#npn_config input[type=color]{padding:0;width:30px;height:15px;border:1px solid #c0c0c0;}" +
   "#npn_config input[type=radio]{margin:0 0 2px;vertical-align:text-bottom;}" +
   "#npn_config img{vertical-align:text-bottom;}" +
-  "#npn_config img.npn_help{margin-right:1px;cursor:help}" +
-  "#npn_config img.npn_test{margin:0 2px 2px 0;vertical-align:middle;}" +
-  "#npn_config img.npn_reset{cursor:pointer;margin:0 0 2px 2px;vertical-align:middle;}" +
+  "#npn_config img.npn_help{margin-right:1px;cursor:help;}" +
+  "#npn_config img.npn_test{margin:0 3px 1px 0;max-width:16px;max-height:16px;}" +
+  "#npn_config img.npn_reset{cursor:pointer;margin:0 0 0 3px;vertical-align:baseline;}" +
   "#npn_config table{border-collapse:collapse;}" +
-  "#npn_config div.npn_titre{margin-bottom:16px;text-align:center;font-weight:bold}" +
-  "#npn_config div#npn_di_saveclose{margin-top:16px;text-align:right;}" +
-  "#npn_config div#npn_di_saveclose img{margin-left:8px;cursor:pointer;}";
+  "#npn_config div.npn_titre{margin-bottom:16px;text-align:center;font-weight:bold;font-size:16px;}" +
+  "#npn_config div.npn_di_saveclose{margin-top:16px;text-align:right;}" +
+  "#npn_config div.npn_di_saveclose div.npn_di_inforeload{float:left;}" +
+  "#npn_config div.npn_di_saveclose > img{margin-left:8px;cursor:pointer;}" +
+  "img.npn_button{max-width:16px;max-height:16px;}";
 document.getElementsByTagName("head")[0].appendChild(style);
 
 /* popup d'aide */
@@ -415,12 +475,17 @@ function create_help_button(taille, help_text) {
     npn_help.textContent = help_text;
     npn_help.style.left = (e.clientX + 32) + "px";
     npn_help.style.top = (e.clientY - 16) + "px";
-    npn_help.style.display = "block";
+    npn_help.style.visibility = "visible";
   }, false);
   help_button.addEventListener("mouseout", function(e) {
-    npn_help.style.display = "none";
+    npn_help.style.visibility = "hidden";
   }, false);
   return help_button;
+}
+
+/* fonction de désactivation de l'action par défaut */
+function prevent_default(e) {
+  e.preventDefault();
 }
 
 /* background pour la fenêtre de configuration */
@@ -428,11 +493,13 @@ var npn_background = document.createElement("div");
 npn_background.setAttribute("id", "npn_background");
 npn_background.addEventListener("click", hideconfig, false);
 npn_background.addEventListener("transitionend", backgroundtransitionend, false);
+npn_background.addEventListener("contextmenu", prevent_default, false);
 document.body.appendChild(npn_background);
 
 /* fenêtre de configuration */
 var npn_config = document.createElement("div");
 npn_config.setAttribute("id", "npn_config");
+npn_config.addEventListener("contextmenu", prevent_default, false);
 document.body.appendChild(npn_config);
 
 /* titre de la fenêtre de configuration */
@@ -458,11 +525,13 @@ function change_button() {
 npn_cb_button.addEventListener("change", change_button, false);
 npn_lg_button.appendChild(npn_cb_button);
 var npn_lb_button = document.createElement("label");
-npn_lb_button.appendChild(document.createTextNode(" afficher le bouton du script sur la page des drapals "));
+npn_lb_button.appendChild(document.createTextNode(" Afficher le bouton du script sur la page des drapals "));
 npn_lb_button.setAttribute("for", "npn_cb_button");
 npn_lg_button.appendChild(npn_lb_button);
-npn_lg_button.appendChild(create_help_button(250, "Le bouton du script permet d'ouvrir cette fenêtre de configuration " +
-  "mais cette dernière reste accessible via le menu Greasemokey si celui-ci existe."));
+npn_lg_button.appendChild(create_help_button(250,
+  "Le bouton du script permet d'ouvrir cette fenêtre de " +
+  "configuration mais cette dernière reste accessible " +
+  "via le menu Greasemokey si celui-ci existe."));
 npn_fs_button.appendChild(npn_lg_button);
 npn_config.appendChild(npn_fs_button);
 
@@ -474,7 +543,7 @@ npn_img_button.setAttribute("class", "npn_test");
 npn_p_button.appendChild(npn_img_button);
 var npn_in_button = document.createElement("input");
 npn_in_button.setAttribute("type", "text");
-npn_in_button.setAttribute("size", "35");
+npn_in_button.setAttribute("size", "39");
 npn_in_button.setAttribute("title", "url de l'icône (http ou data)");
 npn_in_button.addEventListener("click", function() {
   npn_in_button.select();
@@ -517,10 +586,11 @@ function change_mass() {
 npn_cb_mass.addEventListener("change", change_mass, false);
 npn_lg_mass.appendChild(npn_cb_mass);
 var npn_lb_mass = document.createElement("label");
-npn_lb_mass.appendChild(document.createTextNode(" activer l'ouverture en masse des pages en retard "));
+npn_lb_mass.appendChild(document.createTextNode(" Activer l'ouverture en masse des pages en retard "));
 npn_lb_mass.setAttribute("for", "npn_cb_mass");
 npn_lg_mass.appendChild(npn_lb_mass);
-npn_lg_mass.appendChild(create_help_button(225, "Permet d'ouvrir un nombre paramétrable " +
+npn_lg_mass.appendChild(create_help_button(225,
+  "Permet d'ouvrir un nombre paramétrable " +
   "de pages en retard avec un clic-milieu sur le drapal."));
 npn_fs_mass.appendChild(npn_lg_mass);
 npn_config.appendChild(npn_fs_mass);
@@ -549,8 +619,9 @@ npn_lb_reverseorder.appendChild(document.createTextNode(" inverser l'ordre des o
 npn_lb_reverseorder.setAttribute("for", "npn_cb_reverseorder");
 npn_p_reverseorder.appendChild(npn_cb_reverseorder);
 npn_p_reverseorder.appendChild(npn_lb_reverseorder);
-npn_p_reverseorder.appendChild(create_help_button(250, "Certaines configurations ont l'ordre des onglets inversé, " +
-  "cette option permet de les remettre à l'endroit."));
+npn_p_reverseorder.appendChild(create_help_button(250,
+  "Certaines configurations ont l'ordre des onglets " +
+  "inversé, cette option permet de les remettre à l'endroit."));
 npn_fs_mass.appendChild(npn_p_reverseorder);
 
 /* dégradé */
@@ -570,10 +641,11 @@ function change_gradient() {
 npn_cb_gradient.addEventListener("change", change_gradient, false);
 npn_lg_gradient.appendChild(npn_cb_gradient);
 var npn_lb_gradient = document.createElement("label");
-npn_lb_gradient.appendChild(document.createTextNode(" activer le dégradé sur la case du drapal "));
+npn_lb_gradient.appendChild(document.createTextNode(" Activer le dégradé sur la case du drapal "));
 npn_lb_gradient.setAttribute("for", "npn_cb_gradient");
 npn_lg_gradient.appendChild(npn_lb_gradient);
-npn_lg_gradient.appendChild(create_help_button(225, "Permet de visualiser en couleur les topics les plus en retard."));
+npn_lg_gradient.appendChild(create_help_button(225,
+  "Permet de visualiser en couleur les topics les plus en retard."));
 npn_fs_gradient.appendChild(npn_lg_gradient);
 npn_config.appendChild(npn_fs_gradient);
 
@@ -713,7 +785,7 @@ npn_p_limit.appendChild(npn_lb_limit_fixed);
 var npn_in_limit_fixed = document.createElement("input");
 npn_in_limit_fixed.setAttribute("id", "npn_in_limit_fixed");
 npn_in_limit_fixed.setAttribute("type", "text");
-npn_in_limit_fixed.setAttribute("size", "2");
+npn_in_limit_fixed.setAttribute("size", "3");
 npn_in_limit_fixed.setAttribute("maxLength", "5");
 npn_in_limit_fixed.setAttribute("pattern", "[1-9]([0-9])*");
 npn_in_limit_fixed.setAttribute("title", "nombre de pages nécéssaires pour atteindre la couleur de fin");
@@ -732,7 +804,8 @@ var npn_lb_limit_auto = document.createElement("label");
 npn_lb_limit_auto.appendChild(document.createTextNode(" automatique "));
 npn_lb_limit_auto.setAttribute("for", "npn_rb_limit_auto");
 npn_p_limit.appendChild(npn_lb_limit_auto);
-npn_p_limit.appendChild(create_help_button(225, "En mode automatique la limite est déterminé en " +
+npn_p_limit.appendChild(create_help_button(225,
+  "En mode automatique la limite est déterminé en " +
   "fonction du topic ayant le plus de pages en retard."));
 npn_fs_gradient.appendChild(npn_p_limit);
 
@@ -759,14 +832,15 @@ var npn_lb_progress_log = document.createElement("label");
 npn_lb_progress_log.appendChild(document.createTextNode(" logarithmique "));
 npn_lb_progress_log.setAttribute("for", "npn_rb_progress_log");
 npn_p_progress.appendChild(npn_lb_progress_log);
-npn_p_progress.appendChild(create_help_button(200, "La progression logarithmique est plus adaptée lorsqu'il y a " +
+npn_p_progress.appendChild(create_help_button(200,
+  "La progression logarithmique est plus adaptée lorsqu'il y a " +
   "une forte disparité dans les nombres des pages en retard."));
 npn_fs_gradient.appendChild(npn_p_progress);
 
 /* option_diverses : smaller_text, go_top, refresh_click, display_totals et refresh_page */
 var npn_fs_misc = document.createElement("fieldset");
 var npn_lg_misc = document.createElement("legend");
-npn_lg_misc.appendChild(document.createTextNode("options diverses"));
+npn_lg_misc.appendChild(document.createTextNode("Options diverses"));
 npn_lg_misc.setAttribute("class", "npn_alone");
 npn_fs_misc.appendChild(npn_lg_misc);
 npn_config.appendChild(npn_fs_misc);
@@ -779,8 +853,9 @@ npn_lb_smallertext.appendChild(document.createTextNode(" réduire la taille du t
 npn_lb_smallertext.setAttribute("for", "npn_cb_smallertext");
 npn_p_smallertext.appendChild(npn_cb_smallertext);
 npn_p_smallertext.appendChild(npn_lb_smallertext);
-npn_p_smallertext.appendChild(create_help_button(225, "Cette option permet de réduire légèrement la taille de la police " +
-  "utilisée pour afficher le nombre des pages en retard."));
+npn_p_smallertext.appendChild(create_help_button(225,
+  "Cette option permet de réduire légèrement la taille de la " +
+  "police utilisée pour afficher le nombre des pages en retard."));
 npn_fs_misc.appendChild(npn_p_smallertext);
 var npn_p_gotop = document.createElement("p");
 var npn_cb_gotop = document.createElement("input");
@@ -791,7 +866,8 @@ npn_lb_gotop.appendChild(document.createTextNode(" ouvrir les nouvelles pages en
 npn_lb_gotop.setAttribute("for", "npn_cb_gotop");
 npn_p_gotop.appendChild(npn_cb_gotop);
 npn_p_gotop.appendChild(npn_lb_gotop);
-npn_p_gotop.appendChild(create_help_button(250, "Cette option permet de charger les nouvelles pages directement en " +
+npn_p_gotop.appendChild(create_help_button(250,
+  "Cette option permet de charger les nouvelles pages directement en " +
   "haut du tableau des messages au lieu de les charger en haut de la page."));
 npn_fs_misc.appendChild(npn_p_gotop);
 var npn_p_refreshclick = document.createElement("p");
@@ -819,8 +895,9 @@ npn_p_refreshclick.appendChild(npn_cb_refreshclick);
 npn_p_refreshclick.appendChild(npn_lb_refreshclick);
 npn_p_refreshclick.appendChild(npn_in_refreshclick);
 npn_p_refreshclick.appendChild(npn_lb_in_refreshclick);
-npn_p_refreshclick.appendChild(create_help_button(250, "Cette option permet de recharger automatiquement la page des drapals après " +
-  "l'ouverture d'un drapal vers un nouvel onglet."));
+npn_p_refreshclick.appendChild(create_help_button(250,
+  "Cette option permet de recharger automatiquement la page " +
+  "des drapals après l'ouverture d'un drapal vers un nouvel onglet."));
 npn_fs_misc.appendChild(npn_p_refreshclick);
 var npn_p_displaytotals = document.createElement("p");
 var npn_cb_displaytotals = document.createElement("input");
@@ -831,7 +908,8 @@ npn_lb_displaytotals.appendChild(document.createTextNode(" afficher le nombre to
 npn_lb_displaytotals.setAttribute("for", "npn_cb_displaytotals");
 npn_p_displaytotals.appendChild(npn_cb_displaytotals);
 npn_p_displaytotals.appendChild(npn_lb_displaytotals);
-npn_p_displaytotals.appendChild(create_help_button(250, "Cette option permet d'afficher le nombre total de pages en retard " +
+npn_p_displaytotals.appendChild(create_help_button(250,
+  "Cette option permet d'afficher le nombre total de pages en retard " +
   "et le nombre total de topics dans la case \"Sujet\" du tableau des topics."));
 npn_fs_misc.appendChild(npn_p_displaytotals);
 var npn_p_refreshpage = document.createElement("p");
@@ -859,12 +937,23 @@ npn_p_refreshpage.appendChild(npn_cb_refreshpage);
 npn_p_refreshpage.appendChild(npn_lb_refreshpage);
 npn_p_refreshpage.appendChild(npn_in_refreshpage);
 npn_p_refreshpage.appendChild(npn_lb_in_refreshpage);
-npn_p_refreshpage.appendChild(create_help_button(250, "Cette option permet de recharger régulièrement et automatiquement la page des drapals."));
+npn_p_refreshpage.appendChild(create_help_button(250,
+  "Cette option permet de recharger régulièrement et automatiquement la page des drapals."));
 npn_fs_misc.appendChild(npn_p_refreshpage);
 
-/* les boutons valider / annuler */
+/* l'info "sans rechargement" et les boutons valider / annuler */
 var npn_di_saveclose = document.createElement("div");
-npn_di_saveclose.setAttribute("id", "npn_di_saveclose");
+npn_di_saveclose.setAttribute("class", "npn_di_saveclose");
+var npn_di_inforeload = document.createElement("div");
+npn_di_inforeload.setAttribute("class", "npn_di_inforeload");
+var npn_im_inforeload = document.createElement("img");
+npn_im_inforeload.setAttribute("src", info_img);
+npn_di_inforeload.appendChild(npn_im_inforeload);
+npn_di_inforeload.appendChild(document.createTextNode(" sans rechargement "));
+npn_di_inforeload.appendChild(create_help_button(255,
+  "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement à la validation, " +
+  "il n'est pas nécessaire de recharger la page."));
+npn_di_saveclose.appendChild(npn_di_inforeload);
 var npn_img_save = document.createElement("img");
 npn_img_save.setAttribute("src", save_icon);
 npn_img_save.setAttribute("title", "Valider");
@@ -963,8 +1052,8 @@ function escconfig(e) {
 
 function backgroundtransitionend() {
   if(npn_background.style.opacity === "0") {
-    npn_config.style.display = "none";
-    npn_background.style.display = "none";
+    npn_config.style.visibility = "hidden";
+    npn_background.style.visibility = "hidden";
     document.removeEventListener("keypress", escconfig, false);
   }
   if(npn_background.style.opacity === "0.8") {
@@ -1017,10 +1106,12 @@ function showconfig() {
   npn_cb_refreshpage.checked = refresh_page;
   npn_in_refreshpage.value = delay_page;
   // affichage de la fenêtre de configuration
-  npn_config.style.display = "block";
-  npn_background.style.display = "block";
-  npn_config.style.left = parseInt((document.documentElement.clientWidth - npn_config.offsetWidth) / 2, 10) + "px";
-  npn_config.style.top = parseInt((document.documentElement.clientHeight - npn_config.offsetHeight) / 2, 10) + "px";
+  npn_config.style.visibility = "visible";
+  npn_background.style.visibility = "visible";
+  npn_config.style.left =
+    parseInt((document.documentElement.clientWidth - npn_config.offsetWidth) / 2, 10) + "px";
+  npn_config.style.top =
+    parseInt((document.documentElement.clientHeight - npn_config.offsetHeight) / 2, 10) + "px";
   npn_background.style.width = document.documentElement.scrollWidth + "px";
   npn_background.style.height = document.documentElement.scrollHeight + "px";
   npn_config.style.opacity = "1";
@@ -1035,9 +1126,11 @@ var nb_pages = 0;
 var nb_topics = 0;
 var rows = document.querySelectorAll("tr[class^=\"sujet ligne_booleen\"]");
 for(let row of rows) {
-  let case4 = row.querySelector("td.sujetCase4");
-  let case5 = row.querySelector("td.sujetCase5");
+  let case4 = row.querySelector("td.sujetCase4:not(.npn_drapal)");
+  let case5 = row.querySelector("td.sujetCase5:not(.npn_drapal)");
   if((case4.firstElementChild !== null) && (case5.firstElementChild !== null)) {
+    case4.classList.add("npn_drapal");
+    case5.classList.add("npn_drapal");
     let last_page_number = parseInt(case4.firstElementChild.firstChild.nodeValue.trim(), 10);
     let href = case5.firstElementChild.href;
     let current_page_number;
@@ -1134,7 +1227,8 @@ function drapal_mouseup(e) {
     xhr.send();
   } else if((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
     window.location.href = this.dataset.href;
-  } else if(((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) || ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
+  } else if(((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) ||
+    ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
     GM.openInTab(this.dataset.href, open_in_background);
   }
 }
@@ -1161,10 +1255,13 @@ function apply_config() {
           let onglet = document.createElement("a");
           onglet.setAttribute("id", "ongletNPN");
           onglet.setAttribute("class", "onglet");
-          onglet.setAttribute("href", "javascript:void(0)");
           onglet.setAttribute("title", script_name + " -> Configuration");
-          onglet.addEventListener("click", showconfig, false);
+          onglet.addEventListener("click", prevent_default, false);
+          onglet.addEventListener("contextmenu", prevent_default, false);
+          onglet.addEventListener("mousedown", prevent_default, false);
+          onglet.addEventListener("mouseup", showconfig, false);
           let boutton = document.createElement("img");
+          boutton.setAttribute("class", "npn_button");
           boutton.setAttribute("src", button_icon);
           boutton.setAttribute("alt", "NPN");
           onglet.appendChild(boutton);
@@ -1182,7 +1279,8 @@ function apply_config() {
     }
   }
   /* affichage du nombre total de pages en retard et du nombre total de topics */
-  let case_sujet = document.querySelector("div#mesdiscussions.mesdiscussions table.main tbody tr.cBackHeader.fondForum1Description th:nth-child(3)");
+  let case_sujet = document.querySelector("div#mesdiscussions.mesdiscussions table.main tbody " +
+    "tr.cBackHeader.fondForum1Description th:nth-child(3)");
   if(case_sujet && nb_topics > 0) {
     if(display_totals) {
       let text_page = " page";
@@ -1208,7 +1306,8 @@ function apply_config() {
   for(let drapal1 of drapals1) {
     if(color_gradient && (color_start_type !== "trans" || color_end_type !== "trans")) {
       let colors = !drapal1.hasAttribute("npn_multi_page_nb") ? compute_colors(0) :
-        compute_colors(Math.min(actual_bigest_page_number, parseInt(drapal1.getAttribute("npn_multi_page_nb"), 10)));
+        compute_colors(Math.min(actual_bigest_page_number,
+          parseInt(drapal1.getAttribute("npn_multi_page_nb"), 10)));
       drapal1.setAttribute("npn_saved_color", colors.text);
       drapal1.style.color = colors.text;
       drapal1.parentElement.style.backgroundColor = colors.background;
@@ -1222,7 +1321,7 @@ function apply_config() {
   for(let drapal2 of drapals2) {
     // taille du texte
     if(smaller_text) {
-      drapal2.style.fontSize = "smaller";
+      drapal2.style.fontSize = "9px";
       if(drapal2.firstElementChild.src.includes("/themes_static/images/CrystalXP/")) {
         drapal2.style.padding = "7px 7px 3px";
       } else if(drapal2.firstElementChild.src.includes("/themes_static/images/silk/")) {

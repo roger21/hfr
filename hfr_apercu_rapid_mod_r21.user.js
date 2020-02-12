@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          [HFR] Aperçu rapide mod_r21
-// @version       2.2.0
+// @version       2.2.3
 // @namespace     roger21.free.fr
 // @description   Rajoute l'aperçu du message en cours d'édition dans la réponse rapide et dans l'édition rapide.
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/forum2.php*
 // @include       https://forum.hardware.fr/hfr/*/*-sujet_*_*.htm*
 // @exclude       https://forum.hardware.fr/message.php*
@@ -16,9 +16,32 @@
 // @grant         none
 // ==/UserScript==
 
-// modifications roger21 $Rev: 421 $
+/*
+
+Copyright © 2012, 2014-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1153 $
 
 // historique :
+// 2.2.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 2.2.2 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 2.2.1 (29/11/2018) :
+// - ajout de l'avis de licence AGPL v3+ *si toyonos est d'accord*
 // 2.2.0 (12/08/2018) :
 // - nouveau nom : [HFR] aperçu rapide mod_r21 -> [HFR] Aperçu rapide mod_r21
 // - amélioration des @include

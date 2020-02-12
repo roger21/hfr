@@ -1,18 +1,45 @@
 // ==UserScript==
-// @name          [HFR] postal recall
-// @version       1.3.2
+// @name          [HFR] Postal Recall
+// @version       1.4.2
 // @namespace     roger21.free.fr
-// @description   rajoute le nom du posteur en bas sur la partie gauche des posts, permet de savoir qui est l'auteur du post sur les posts longs sans avoir à revenir en haut du post
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Rajoute le nom du posteur en bas sur la partie gauche des posts, permet de savoir qui est l'auteur du post sur les posts longs sans avoir à revenir en haut du post.
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
+// @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// $Rev: 206 $
+/*
+
+Copyright © 2015-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1153 $
 
 // historique :
+// 1.4.2 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 1.4.1 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 1.4.0 (29/11/2018) :
+// - nouveau nom : [HFR] postal recall -> [HFR] Postal Recall
+// - ajout de l'avis de licence AGPL v3+
+// - ajout de la metadata @author (roger21)
+// - réécriture de la metadata @description
 // 1.3.2 (17/05/2018) :
 // - suppression des @grant inutiles (tous)
 // - maj de la metadata @homepageURL

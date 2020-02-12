@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Liens explicites
-// @version 0.0.3.2
+// @version 0.0.3.3
 // @namespace http://blabla.info
 // @description Insère un texte explicite dans les liens à la place de celui créé automatiquement par le forum
 // @include https://forum.hardware.fr/*
@@ -24,6 +24,8 @@
 
 
 // historique modifs r21 :
+// 0.0.3.3 (02/10/2019) :
+// - correction pour fonctionner sur les posts de modération (en rose)
 // 0.0.3.2 (09/02/2018) :
 // - correction du passage au https
 // 0.0.3.1 (03/12/2017) :
@@ -469,7 +471,7 @@ var tmp= new Date();
 var currentURL = parseHFR(document.URL);
 var root = document.getElementById('mesdiscussions');
 var liens = 
- getElementByXpath('.//table//td[@class="messCase2"]//a[@class="cLink"][not(ancestor::span[@class="signature"])][not(parent::div[@class="edited"])]', root); 
+ getElementByXpath('.//table//td[starts-with(@class, "messCase2")]//a[@class="cLink"][not(ancestor::span[@class="signature"])][not(parent::div[@class="edited"])]', root); 
 
 
 boucleliens: for ( var i=0 ; i<liens.length; i++) {

@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name          [HFR] Anti HS mod_r21
-// @version       3.1.2
+// @version       3.2.8
 // @namespace     roger21.free.fr
 // @description   Permet de filtrer les messages sans intérêts d'un topic via un ensemble de règles configurables.
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/forum2.php*
 // @include       https://forum.hardware.fr/hfr/*/*-sujet_*_*.htm*
+// @exclude       https://forum.hardware.fr/forum2.php*&quote_only=1*
 // @author        roger21
 // @authororig    mycrub
 // @modifications Ajout d'un mode OU, ajout d'un filtre sur les vidéos, le nombre de fois cité, les spoilers, les liens internes, les mots obligatoires, les gifs, les tags et les messages récents et refonte de l'interface et du code.
@@ -19,9 +20,64 @@
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
-// modifications roger21 $Rev: 394 $
+/*
+
+Copyright © 2012, 2014-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1473 $
 
 // historique :
+// 3.2.8 (11/01/2020) :
+// - mise à jour des images des boutons de la fenêtre de configuration
+// 3.2.7 (05/11/2019) :
+// - ajout d'une espace après les liens de page dans les tableaux des topics
+// - réduction des temps des transitions de 0.7s à 0.3s
+// 3.2.6 (25/10/2019) :
+// - compactage de la fenêtre de configuration
+// - simplification d'un label
+// 3.2.5 (13/10/2019) :
+// - nouvelle (la dernière !) correction de la gestion de la compatibilité gm4 pour vm
+// 3.2.4 (12/10/2019) :
+// - correction du nom de deux paramètres d'une fonction (pour homogénéité du code)
+// 3.2.3 (12/10/2019) :
+// - ajout d'une info "sans rechargement" dans la fenêtre de configuration
+// - passage du double-clic au clic-droit pour ouvrir la fenêtre de configuration
+// - simplification des titles sur les boutons
+// - désactivation du redimensionnement sur les textarea
+// - correction de la gestion du curseur sur les ET / OU
+// 3.2.2 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
+// 3.2.1 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 3.2.0 (09/09/2019) :
+// - nouvelle gestion de l'affichage de la fenêtre de configuration
+// - bordure solide pour la fenêtre de configuration
+// - petites mises en forme et corrections et nettoyage du code
+// 3.1.7 (01/06/2019) :
+// - amélioration de la gestion de l'affichage du nombre de messages filtrés
+// 3.1.6 (16/04/2019) :
+// - exclusion des pages de résultats de recherche par quote
+// 3.1.5 (23/12/2018) :
+// - petite homogénéisation des espaces dans la fenêtre de configuration
+// 3.1.4 (01/12/2018) :
+// - petites améliorations des espaces entre les titres de la fenêtre de configuration
+// 3.1.3 (29/11/2018) :
+// - ajout de l'avis de licence AGPL v3+ *si mycrub est d'accord*
+// - check du code dans tm et corrections diverses
 // 3.1.2 (05/08/2018) :
 // - ajout d'une majuscule dans la commande du menu GM
 // 3.1.1 (30/07/2018) :
@@ -134,37 +190,37 @@
 // - ajout d'un .1 sur le numero de version
 // - désactivation de l'auto-update pour conserver les modifs
 
+/* ---------------------------- */
+/* gestion de compatibilité gm4 */
+/* ---------------------------- */
+
+if(typeof GM === "undefined") {
+  this.GM = {};
+}
+if(typeof GM_getValue !== "undefined" && typeof GM.getValue === "undefined") {
+  GM.getValue = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_getValue.apply(null, args));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+}
+if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
+  GM.setValue = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_setValue.apply(null, args));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+}
+
 (function() {
-
-  /* ---------------------------- */
-  /* gestion de compatibilité gm4 */
-  /* ---------------------------- */
-
-  if(typeof GM === "undefined") {
-    GM = {};
-  }
-  if(typeof GM_getValue !== "undefined" && typeof GM.getValue === "undefined") {
-    GM.getValue = function(...args) {
-      return new Promise((resolve, reject) => {
-        try {
-          resolve(GM_getValue.apply(null, args));
-        } catch (e) {
-          reject(e);
-        }
-      });
-    };
-  }
-  if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
-    GM.setValue = function(...args) {
-      return new Promise((resolve, reject) => {
-        try {
-          resolve(GM_setValue.apply(null, args));
-        } catch (e) {
-          reject(e);
-        }
-      });
-    };
-  }
 
   /* ---------------------------------------------------- */
   /* construction des variables globales et vérifications */
@@ -221,12 +277,35 @@
 
   // construction de la div
   var info_div = null;
-  topic_bar = root.querySelector("table.main tbody tr.cBackHeader td.padding div.pagepresuiv:last-of-type");
+  var topic_bar = root.querySelector("table.main tbody tr.cBackHeader td.padding div.pagepresuiv:last-of-type");
+  var topic_bar_simple = root.querySelector("table.main tbody tr.cBackHeader th.padding > a.cHeader");
   if(topic_bar && topic_bar.parentElement) {
     info_div = document.createElement("div");
     info_div.style.fontWeight = "bold";
     info_div.style.color = "crimson";
     topic_bar.parentElement.appendChild(info_div);
+  } else if(topic_bar_simple && topic_bar_simple.parentElement) {
+    info_div = document.createElement("div");
+    info_div.style.fontWeight = "bold";
+    info_div.style.color = "crimson";
+    let pagepresuiv_div = document.createElement("div");
+    pagepresuiv_div.className = "pagepresuiv";
+    topic_bar_simple.parentElement.appendChild(pagepresuiv_div);
+    topic_bar_simple.parentElement.appendChild(info_div);
+    pagepresuiv_div.appendChild(topic_bar_simple);
+  }
+
+  // amélioration de l'affichage du forum ajout d'une espace après les liens de page
+  var first_pagepresuivs = root.querySelectorAll("table tbody tr.cBackHeader .padding " +
+    "div:not(.pagepresuiv) + div.pagepresuiv, table tbody tr.cBackHeader .padding div.pagepresuiv:first-of-type");
+  for(let first_pagepresuiv of first_pagepresuivs) {
+    if(first_pagepresuiv && first_pagepresuiv.parentElement) {
+      let space_div = document.createElement("div");
+      space_div.className = "pagepresuiv";
+      space_div.style.margin = "0";
+      space_div.textContent = "\u00a0";
+      first_pagepresuiv.parentElement.insertBefore(space_div, first_pagepresuiv);
+    }
   }
 
   // function d'affichage du message
@@ -261,37 +340,45 @@
   var enabled_button;
   var disabled_button;
 
-  // gestion du double click sur les boutons de filtrage
-  var double_click_interval = 333; // ms
-  var last_click_time = 0;
-  var click_time;
+
+  // désactivation de l'action par défaut sur les évenements
+  function prevent_default(event) {
+    event.preventDefault();
+  }
 
   // action du clic sur le bouton en mode non filtré
-  function disabled_button_click_action() {
-    if(last_click_time === click_time) {
-      topic_has_filters(function(has_filters) {
-        if(has_filters) { // si le topic a des filtres
-          // passe en mode filtré
-          set_topic_filtered_status(true).then(function() {
-            // filtre la page
-            process_page();
-          });
-        } else { // sinon
-          // affiche le fenêtre de configuration
-          show_config_window();
-        }
-      });
-    }
+  function disabled_button_click_action(event) {
+    event.preventDefault();
+    topic_has_filters(function(has_filters) {
+      if(has_filters) { // si le topic a des filtres
+        // passe en mode filtré
+        set_topic_filtered_status(true).then(function() {
+          // filtre la page
+          process_page();
+        });
+      } else { // sinon
+        // affiche la fenêtre de configuration
+        show_config_window();
+      }
+    });
   }
 
   // action du clic sur le bouton en mode filtré
-  function enabled_button_click_action() {
-    if(last_click_time === click_time) {
-      // passe en mode non filtré
-      set_topic_filtered_status(false).then(function() {
-        // dé-filtre la page
-        process_page();
-      });
+  function enabled_button_click_action(event) {
+    event.preventDefault();
+    // passe en mode non filtré
+    set_topic_filtered_status(false).then(function() {
+      // dé-filtre la page
+      process_page();
+    });
+  }
+
+  // action du clic droit sur les boutons
+  function button_mouseup_action(event) {
+    event.preventDefault();
+    if(event.button === 2) {
+      // affiche la fenêtre de configuration
+      show_config_window();
     }
   }
 
@@ -302,36 +389,16 @@
   disabled_button.src = disabled_img;
   disabled_button.style.cursor = "pointer";
   disabled_button.style.marginRight = "5px";
-  disabled_button.addEventListener("click", function(event) {
-    click_time = new Date().getTime();
-    if(click_time - last_click_time > double_click_interval) {
-      // action sur simple clic
-      last_click_time = click_time;
-      setTimeout(disabled_button_click_action, double_click_interval);
-    } else {
-      // action sur double clic
-      last_click_time = 0;
-      // affiche la fenêtre de configuration
-      show_config_window();
-    }
-  }, false);
+  disabled_button.addEventListener("contextmenu", prevent_default, false);
+  disabled_button.addEventListener("click", disabled_button_click_action, false);
+  disabled_button.addEventListener("mouseup", button_mouseup_action, false);
   enabled_button = document.createElement("img");
   enabled_button.src = enabled_img;
   enabled_button.style.cursor = "pointer";
   enabled_button.style.marginRight = "5px";
-  enabled_button.addEventListener("click", function(event) {
-    click_time = new Date().getTime();
-    if(click_time - last_click_time > double_click_interval) {
-      // action sur simple clic
-      last_click_time = click_time;
-      setTimeout(enabled_button_click_action, double_click_interval);
-    } else {
-      // action sur double clic
-      last_click_time = 0;
-      // affiche la fenêtre de configuration
-      show_config_window();
-    }
-  }, false);
+  enabled_button.addEventListener("contextmenu", prevent_default, false);
+  enabled_button.addEventListener("click", enabled_button_click_action, false);
+  enabled_button.addEventListener("mouseup", button_mouseup_action, false);
   buttons_div.appendChild(enabled_button);
   buttons_div.appendChild(disabled_button);
   root.querySelector("table.main tbody tr th div.right").appendChild(buttons_div);
@@ -344,7 +411,8 @@
         disabled_button.style.display = "none";
         enabled_button.style.display = "inline";
         filter_messages(messages);
-        enabled_button.title = "Le topic est en mode filtré\ncliquez pour désactiver le filtrage\ndouble-cliquez pour configurer";
+        enabled_button.title =
+          "Désactiver le filtrage du topic\n(clic droit pour configurer)";
       } else {
         disabled_button.style.display = "inline";
         enabled_button.style.display = "none";
@@ -353,9 +421,10 @@
         }
         topic_has_filters(function(has_filters) {
           if(has_filters) {
-            disabled_button.title = "Le topic est en mode non filtré\ncliquez pour activer le filtrage\ndouble-cliquez pour configurer";
+            disabled_button.title =
+              "Activer le filtrage du topic\n(clic droit pour configurer)";
           } else {
-            disabled_button.title = "Le topic est en mode non filtré\ncliquez pour configurer le filtrage";
+            disabled_button.title = "Configurer le filtrage du topic";
           }
         });
         hide_count();
@@ -557,26 +626,44 @@
   // test si le message a des images
   function message_has_images(message) {
     let images = message.querySelectorAll(
-      "div[id^=\"para\"] img:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+      "div[id^=\"para\"] img:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
     let quoted_images = message.querySelectorAll(
-      "div[id^=\"para\"] table.citation img:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] table.oldcitation img:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+      "div[id^=\"para\"] table.citation img:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
     return images.length - quoted_images.length > 0;
   }
 
   // test si le message a des gifs
   function message_has_gifs(message) {
     let gifs = message.querySelectorAll(
-      "div[id^=\"para\"] img[src$=\".gif\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] img[src*=\".gif?\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+      "div[id^=\"para\"] img[src$=\".gif\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] img[src*=\".gif?\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
     let quoted_gifs = message.querySelectorAll(
-      "div[id^=\"para\"] table.citation img[src$=\".gif\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] table.citation img[src*=\".gif?\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] table.citation img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] table.oldcitation img[src$=\".gif\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] table.oldcitation img[src*=\".gif?\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
-      "div[id^=\"para\"] table.oldcitation img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"]):not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
+      "div[id^=\"para\"] table.citation img[src$=\".gif\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.citation img[src*=\".gif?\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.citation img[src*=\".gif&\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src$=\".gif\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src*=\".gif?\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src*=\".gif&\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
     return gifs.length - quoted_gifs.length > 0;
   }
 
@@ -639,10 +726,13 @@
   // test si le message a des liens externes
   function message_has_external_links(message) {
     let links = message.querySelectorAll(
-      "div[id^=\"para\"] p a:not([href^=\"http://forum.hardware.fr\"]):not([href^=\"https://forum.hardware.fr\"])");
+      "div[id^=\"para\"] p a:not([href^=\"http://forum.hardware.fr\"])" +
+      ":not([href^=\"https://forum.hardware.fr\"])");
     let quoted_links = message.querySelectorAll(
-      "div[id^=\"para\"] table.citation p a:not([href^=\"http://forum.hardware.fr\"]):not([href^=\"https://forum.hardware.fr\"])," +
-      "div[id^=\"para\"] table.oldcitation p a:not([href^=\"http://forum.hardware.fr\"]):not([href^=\"https://forum.hardware.fr\"])");
+      "div[id^=\"para\"] table.citation p a:not([href^=\"http://forum.hardware.fr\"])" +
+      ":not([href^=\"https://forum.hardware.fr\"])," +
+      "div[id^=\"para\"] table.oldcitation p a:not([href^=\"http://forum.hardware.fr\"])" +
+      ":not([href^=\"https://forum.hardware.fr\"])");
     return links.length - quoted_links.length > 0;
   }
 
@@ -723,10 +813,8 @@
       if(result !== null) {
         let date = new Date(result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
         timestamp = date.getTime();
-        //console.log("pouet post 1 " + result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
       }
     }
-    //console.log("pouet post 2 " + timestamp);
     return timestamp;
   }
 
@@ -735,15 +823,12 @@
     let timestamp = 0;
     let edit = message.querySelector("tr.message td.messCase2 div[id^=\"para\"] div.edited");
     if(edit) {
-      //console.log("pouet EDIT EDIT 0 " + edit.textContent);
       let result = edit_regexp.exec(edit.textContent);
       if(result !== null) {
         let date = new Date(result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
         timestamp = date.getTime();
-        //console.log("pouet EDIT EDIT 1 " + result[3] + "-" + result[2] + "-" + result[1] + "T" + result[4]);
       }
     }
-    //console.log("pouet EDIT EDIT 2 " + timestamp);
     return timestamp;
   }
 
@@ -813,18 +898,21 @@
       forbidden_words,
       mandatory_words
     ]) {
-      now = new Date().getTime();
-      cpt = 0;
+      let now = new Date().getTime();
+      let cpt = 0;
       for(let message of messages) {
         let is_ok = false;
         if(on_and) {
-          is_ok = (!on_images || (on_images && !on_gifs && message_has_images(message)) || (on_images && on_gifs && message_has_gifs(message))) &&
+          is_ok = (!on_images || (on_images && !on_gifs && message_has_images(message)) ||
+              (on_images && on_gifs && message_has_gifs(message))) &&
             (!on_quotes || (on_quotes && message_has_quotes(message))) &&
             (!on_extra_page_quotes || (on_extra_page_quotes && message_has_extra_page_quotes(message))) &&
-            (!on_min_message_length || (on_min_message_length && get_message_text(message).length >= min_message_length)) &&
+            (!on_min_message_length ||
+              (on_min_message_length && get_message_text(message).length >= min_message_length)) &&
             (!on_internal_links || (on_internal_links && message_has_internal_links(message))) &&
             (!on_external_links || (on_external_links && message_has_external_links(message))) &&
-            (!on_min_quoted_number || (on_min_quoted_number && get_message_quoted_number(message) >= min_quoted_number)) &&
+            (!on_min_quoted_number ||
+              (on_min_quoted_number && get_message_quoted_number(message) >= min_quoted_number)) &&
             (!on_videos || (on_videos && message_has_videos(message))) &&
             (!on_spoilers || (on_spoilers && message_has_spoilers(message))) &&
             (!on_tags || (on_tags && message_has_tags(message))) &&
@@ -848,7 +936,8 @@
             (on_videos && message_has_videos(message)) ||
             (on_spoilers && message_has_spoilers(message)) ||
             (on_tags && message_has_tags(message)) ||
-            (on_recent_messages && !on_recent_messages_with_edit && get_message_timestamp(message) < (now - (recent_messages_seconds * 1000))) ||
+            (on_recent_messages && !on_recent_messages_with_edit &&
+              get_message_timestamp(message) < (now - (recent_messages_seconds * 1000))) ||
             (on_recent_messages && on_recent_messages_with_edit &&
               get_message_timestamp(message) < (now - (recent_messages_seconds * 1000)) &&
               get_message_edit_timestamp(message) < (now - (recent_messages_seconds * 1000))) ||
@@ -870,45 +959,79 @@
   /* création de la fenêtre de configuration */
   /* --------------------------------------- */
 
-  // styles css pour le fenêtre de configuration
-  var style = document.createElement("style");
+  // styles css pour la fenêtre de configuration
+  style = document.createElement("style");
   style.setAttribute("type", "text/css");
   style.textContent =
+    "#ah_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;z-index:1003;" +
+    "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
+    "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
+    "text-align:justify;}" +
     "#ah_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
-    "display:none;opacity:0;transition:opacity 0.7s ease 0s;}" +
-    "#ah_config_window{position:fixed;width:480px;height:auto;background:white;z-index:1002;display:none;" +
-    "opacity:0;transition:opacity 0.7s ease 0s;border:1px dotted black;padding:16px 16px 12px;" +
-    "font-size:14px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+    "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
+    "#ah_config_window{position:fixed;width:420px;height:auto;background:#ffffff;z-index:1002;" +
+    "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;border:1px solid #000000;padding:16px;" +
+    "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
     "#ah_config_window div.ah_main_title{font-size:16px;text-align:center;font-weight:bold;}" +
-    "#ah_config_window .ah_title{margin:12px 0;}" +
-    "#ah_config_window p.ah_input{margin:4px 0;}" +
-    "#ah_config_window p.ah_input_first{margin:-4px 0 4px;}" +
-    "#ah_config_window p.ah_input_last{margin:4px 0 0;}" +
-    "#ah_config_window input[type=text]{padding:0 1px;border:1px solid silver;height:14px;" +
+    "#ah_config_window .ah_title{margin:10px 0 8px;font-size:14px;}" +
+    "#ah_config_window p.ah_input{margin:0 0 4px 2px;}" +
+    "#ah_config_window input[type=\"radio\"]{margin:0 0 2px;vertical-align:text-bottom;}" +
+    "#ah_config_window input[type=\"checkbox\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
+    "#ah_config_window input[type=text]{padding:0 1px;border:1px solid #c0c0c0;height:12px;" +
     "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;}" +
-    "#ah_config_window label.ah_words_title{display:block;float:left;width:50%;}" +
+    "#ah_config_window label.ah_words_title{margin:4px 0;display:block;float:left;width:50%;font-size:14px;}" +
     "#ah_config_window div.ah_clear{clear:both;}" +
-    "#ah_config_window div.ah_clear textarea{padding:1px;border:1px solid silver;width:236px;height:80px;" +
-    "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;margin:0 0 12px;float:left;}" +
-    "#ah_config_window div#ah_save_close_div{text-align:right;}" +
-    "#ah_config_window div#ah_save_close_div img{margin-left:8px;cursor:pointer;}" +
-    "#ah_config_window .ah_help{text-decoration:underline dotted;cursor:pointer;}";
+    "#ah_config_window div.ah_clear textarea{padding:1px;border:1px solid #c0c0c0;width:206px;height:80px;" +
+    "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;margin:0 0 12px;float:left;resize:none;}" +
+    "#ah_config_window div.ah_save_close_div{text-align:right;}" +
+    "#ah_config_window div.ah_save_close_div div.ah_info_reload_div{float:left;}" +
+    "#ah_config_window div.ah_save_close_div div.ah_info_reload_div img{vertical-align:text-bottom;}" +
+    "#ah_config_window div.ah_save_close_div > img{margin-left:8px;cursor:pointer;}" +
+    "#ah_config_window .ah_help{text-decoration:underline dotted;cursor:help;}" +
+    "#ah_config_window img.ah_help_button{margin-right:1px;cursor:help;}";
   document.getElementsByTagName("head")[0].appendChild(style);
 
   // images des boutons de validation et de fermeture
-  var save_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACl0lEQVR42q2T60uTYRiH%2FTv2bnttAwlkRCGChFD7FCQSm2ZDMQ%2FL0nRnj7TNGDbTooychzFSSssstdqc8zB1anNrSpm47FVCzH3pQLVhdLBfzztoJlifvOEHz4fnuu7nGBe311XgOyLMnTmsz%2FakMBljB8OSEVFY4kpkJM5Efbp9v%2FC%2FcJ43VSrzJId0HhluBy3oW%2BmKpnOpGSWuExD30iFxDy3dFSZdpZkTSZHr80Y41%2Fphe3UDpvnKaNixY60PjbNVOGTjRZJtvJ2SHE%2BKINOdtMHC7MSaQBkq%2FCXQzJ6DjqScpNp3HvY3D3B5ugIiC3dDdJMriAlk7iSDajwr2pmFWVDlPQPFTCEU0wVQTxfCvT4Ig1cJB5Hk9hxDwjWuISbIGBExncFmWINNqPAVQ%2FlUTsB8KKdIPPmYeOsCW6HIOtpeNMI234j4ei4TExy3J2w%2BWr2L2oAGWm8RWckAlj4uQDVZiPH1oSj8c%2BsH2p5fgWGyGH3BTvCN1GZMIH5Ib%2FavdMPoV6HWr8Xnb5%2Bi0Iev72KwZa4ealc29O6z6A92gF%2Fzt6CHZm4tNKF98Sp0U3KYfdWIfP8Shbd%2BbcHy7BLKnFnQEEFLoA7tXjPoKmp7C6l3%2BAb5QBrsq%2FdRPSmH2n0adTPlWH6%2FiLa5BpQOnoTCcQo6Zw7sr7uRbj0KupLaPsRkK09wgFyN2aPBY%2BYeKkfzoB3OgWpIBqWDDQtn48lyF4xDxeCrORu0mhLseAuJTVxpfAMVMbnL4CCS1oAZ%2BtEiXBiWo5VswU5gvbMIvFJOhMC7v8Z9DVwpbaJCkg4x2v1m9L60onfBCovXhLSWVPAVnBCt%2Bgf8p%2BiLXCFtoPR0DcXwtZwwX8UJk44MiZ4upYR7%2Fnt%2FA%2Bw9sdKFchsrAAAAAElFTkSuQmCC";
-  var close_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACEklEQVR42q1S%2FU9SYRhlbW13%2FQ0V5Woub05zfZkCXhUhpmmb8v3h5ZKoCQjcwVBi1Q%2B19Zf0d2lWxpeR3AuX93J8qGVjgK2tZ3u3d3t2znmecx6D4R%2BrsS5dGdiEnDXS4weCQ2Fe9QUSdafH3B%2Bc3UM7k4OeSPWQNIIi3xAjaG5u48fz1Y%2B1peU7PWAU3qBNT0%2FKaG3tnJOogXWe1NGKJYB8AZ3%2Fic2RqMxaL%2F0iSGe4dlLW23uvgPcfoOfyHQI0RYlX%2FSGe1KHtxAHqqyERJwtPWUWYv9w1oh5PcuxlnOlyFnj7DiydQSMcAalD244Buf2f%2F6rVTuA5rq9JregW15Q2WCu2S%2Bu8BvYLBMwD2RxUfxDVeRurzMxyF8cUFDnFG9CRo3V8QcDtA%2BQMqnMLetkicH%2FNWfH4O1EBlAacHmDVBeymaG87ipPT%2FMVgt49XvH5okSiQkgmYBuK0DhmorrlQMVnwdXyiP0nd5eUVjw%2BatAFQjIrbCzKLlabN%2BunSChDdRP3ZCor3H%2BJoeKSbhC6LJ3Vo4RekmoRCo5NZrDRl5oqPJrnjiQesZrUBYQmndgeOR8dweGPoDwldllB3uqGJEpQ1N8gsVnpiOjfsy%2Bg493nkLvtuEaA4FvFt7B4OrhmFrinosoTa4jLK5hmdzOpx%2B%2Bj2MPdp6BbrC%2F5dZZNFKD6eGhjVofEmd3D1umD4n3UGltFKFDkd60gAAAAASUVORK5CYII%3D";
+  var save_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
+  var close_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
+  var img_info = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg%3D%3D";
+  var img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
 
-  // création du voil de fond pour le fenêtre de configuration
+  // création de la fenêtre d'aide
+  var help_window = document.createElement("div");
+  help_window.setAttribute("id", "ah_help_window");
+  document.body.appendChild(help_window);
+
+  // fonction de création du bouton d'aide
+  function create_help_button(width, text) {
+    let help_button = document.createElement("img");
+    help_button.setAttribute("src", img_help);
+    help_button.setAttribute("class", "ah_help_button");
+    help_button.addEventListener("mouseover", function(e) {
+      help_window.style.width = width + "px";
+      help_window.textContent = text;
+      help_window.style.left = (e.clientX + 32) + "px";
+      help_window.style.top = (e.clientY - 16) + "px";
+      help_window.style.visibility = "visible";
+    }, false);
+    help_button.addEventListener("mouseout", function(e) {
+      help_window.style.visibility = "hidden";
+    }, false);
+    return help_button;
+  }
+
+  // création du voile de fond pour la fenêtre de configuration
   var config_background = document.createElement("div");
   config_background.id = "ah_config_background";
   config_background.addEventListener("click", hide_config_window, false);
   config_background.addEventListener("transitionend", background_transitionend, false);
+  config_background.addEventListener("contextmenu", prevent_default, false);
   document.body.appendChild(config_background);
 
   // création de la fenêtre de configuration
   var config_window = document.createElement("div");
   config_window.id = "ah_config_window";
+  config_window.addEventListener("contextmenu", prevent_default, false);
   document.body.appendChild(config_window);
 
   // titre de la fenêtre de configuration
@@ -926,7 +1049,6 @@
   and_label.htmlFor = "ah_and_radio";
   and_label.className = "ah_help";
   and_label.textContent = "ET";
-  and_label.style.cursor = "help";
   and_label.setAttribute("title", "Le message doit respecter toutes les règles cochées");
   criteria_title.appendChild(and_label);
   criteria_title.appendChild(document.createTextNode(" "));
@@ -935,6 +1057,7 @@
   and_radio.id = "ah_and_radio";
   and_radio.name = "ah_and_or_radio";
   criteria_title.appendChild(and_radio);
+  criteria_title.appendChild(document.createTextNode(" "));
   // OU
   var or_radio = document.createElement("input");
   or_radio.type = "radio";
@@ -946,14 +1069,13 @@
   or_label.htmlFor = "ah_or_radio";
   or_label.className = "ah_help";
   or_label.textContent = "OU";
-  or_label.style.cursor = "help";
   or_label.setAttribute("title", "Le message doit respecter au moins une règle cochée");
   criteria_title.appendChild(or_label);
   config_window.appendChild(criteria_title);
 
   // images
   var images_p = document.createElement("p");
-  images_p.className = "ah_input_first";
+  images_p.className = "ah_input";
   var images_checkbox = document.createElement("input");
   images_checkbox.type = "checkbox";
   images_checkbox.id = "ah_images_checkbox";
@@ -1118,22 +1240,18 @@
   recent_messages_checkbox.type = "checkbox";
   recent_messages_checkbox.id = "ah_recent_messages_checkbox";
   recent_messages_p.appendChild(recent_messages_checkbox);
-  var recent_messages_label_1 = document.createElement("label");
-  recent_messages_label_1.htmlFor = "ah_recent_messages_checkbox";
-  recent_messages_label_1.textContent = " Le message ";
-  recent_messages_p.appendChild(recent_messages_label_1);
+  var recent_messages_label = document.createElement("label");
+  recent_messages_label.htmlFor = "ah_recent_messages_checkbox";
+  recent_messages_label.textContent = " Le message ";
+  recent_messages_p.appendChild(recent_messages_label);
   var recent_messages_with_edit_checkbox = document.createElement("input");
   recent_messages_with_edit_checkbox.type = "checkbox";
   recent_messages_with_edit_checkbox.id = "ah_recent_messages_with_edit_checkbox";
   recent_messages_p.appendChild(recent_messages_with_edit_checkbox);
   var recent_messages_with_edit_label = document.createElement("label");
   recent_messages_with_edit_label.htmlFor = "ah_recent_messages_with_edit_checkbox";
-  recent_messages_with_edit_label.textContent = " ou son edit";
+  recent_messages_with_edit_label.textContent = " ou son edit doit avoir plus de ";
   recent_messages_p.appendChild(recent_messages_with_edit_label);
-  var recent_messages_label_2 = document.createElement("label");
-  recent_messages_label_2.htmlFor = "ah_recent_messages_checkbox";
-  recent_messages_label_2.textContent = " doit avoir plus de ";
-  recent_messages_p.appendChild(recent_messages_label_2);
   var recent_messages_input = document.createElement("input");
   recent_messages_input.type = "text";
   recent_messages_input.id = "ah_recent_messages_input";
@@ -1162,7 +1280,7 @@
 
   // mots obligatoires
   var mandatory_words_p = document.createElement("p");
-  mandatory_words_p.className = "ah_input_last";
+  mandatory_words_p.className = "ah_input";
   var mandatory_words_checkbox = document.createElement("input");
   mandatory_words_checkbox.type = "checkbox";
   mandatory_words_checkbox.id = "ah_mandatory_words_checkbox";
@@ -1178,12 +1296,12 @@
   words_title_div.setAttribute("title", "Un mot ou phrase par ligne");
   var forbidden_words_title = document.createElement("label");
   forbidden_words_title.htmlFor = "ah_forbidden_words_textarea";
-  forbidden_words_title.className = "ah_title ah_words_title";
+  forbidden_words_title.className = "ah_words_title";
   forbidden_words_title.textContent = "Mots interdits :";
   words_title_div.appendChild(forbidden_words_title);
   var mandatory_words_title = document.createElement("label");
   mandatory_words_title.htmlFor = "ah_mandatory_words_textarea";
-  mandatory_words_title.className = "ah_title ah_words_title";
+  mandatory_words_title.className = "ah_words_title";
   mandatory_words_title.textContent = "Mots obligatoires :";
   words_title_div.appendChild(mandatory_words_title);
   config_window.appendChild(words_title_div);
@@ -1202,10 +1320,19 @@
   words_textarea_div.appendChild(mandatory_words_textarea);
   config_window.appendChild(words_textarea_div);
 
-  // boutons de validation et de fermeture
+  // info "sans rechargement" et boutons de validation et de fermeture
   var save_close_div = document.createElement("div");
-  save_close_div.id = "ah_save_close_div";
-  save_close_div.className = "ah_clear";
+  save_close_div.className = "ah_save_close_div ah_clear";
+  var info_reload_div = document.createElement("div");
+  info_reload_div.className = "ah_info_reload_div";
+  var info_reload_img = document.createElement("img");
+  info_reload_img.setAttribute("src", img_info);
+  info_reload_div.appendChild(info_reload_img);
+  info_reload_div.appendChild(document.createTextNode(" sans rechargement "));
+  info_reload_div.appendChild(create_help_button(255,
+    "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement à la validation, " +
+    "il n'est pas nécessaire de recharger la page."));
+  save_close_div.appendChild(info_reload_div);
   var save_button = document.createElement("img");
   save_button.src = save_img;
   save_button.setAttribute("title", "Valider");
@@ -1283,8 +1410,8 @@
   // fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
   function background_transitionend() {
     if(config_background.style.opacity === "0") {
-      config_window.style.display = "none";
-      config_background.style.display = "none";
+      config_window.style.visibility = "hidden";
+      config_background.style.visibility = "hidden";
       document.removeEventListener("keydown", esc_config_window, false);
     }
     if(config_background.style.opacity === "0.8") {
@@ -1295,10 +1422,12 @@
   // fonction d'affichage de la fenêtre de configuration
   function show_config_window() {
     // affichage de la fenêtre de configuration
-    config_window.style.display = "block";
-    config_background.style.display = "block";
-    config_window.style.left = parseInt((document.documentElement.clientWidth - config_window.offsetWidth) / 2, 10) + "px";
-    config_window.style.top = parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) + "px";
+    config_window.style.visibility = "visible";
+    config_background.style.visibility = "visible";
+    config_window.style.left =
+      parseInt((document.documentElement.clientWidth - config_window.offsetWidth) / 2, 10) + "px";
+    config_window.style.top =
+      parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) + "px";
     config_background.style.width = document.documentElement.scrollWidth + "px";
     config_background.style.height = document.documentElement.scrollHeight + "px";
     config_window.style.opacity = "1";
@@ -1374,7 +1503,7 @@
     });
   }
 
-  // ajout d'une entrée de configuration dand le menu greasemonkey si c'est possible (pas gm4 yet)
+  // ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
   if(typeof GM_registerMenuCommand !== "undefined") {
     GM_registerMenuCommand("[HFR] Anti HS -> Configuration", show_config_window);
   }

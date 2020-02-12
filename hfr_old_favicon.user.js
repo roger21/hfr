@@ -1,23 +1,52 @@
 // ==UserScript==
-// @name          [HFR] old favicon
-// @version       1.2.0
+// @name          [HFR] Old Favicon
+// @version       1.3.3
 // @namespace     roger21.free.fr
-// @description   remplace l'icone du forum et de hardware.fr par le precedent en noir et blanc
-// @icon          http://reho.st/self/31635c0818281a71f4412f0a9b63118f8658bfd4.png
+// @description   Remplace l'icône du forum et du site par le précédent en noir et blanc.
+// @icon          https://reho.st/self/31635c0818281a71f4412f0a9b63118f8658bfd4.png
 // @include       http://forum.hardware.fr/*
 // @include       https://forum.hardware.fr/*
 // @include       http://www.hardware.fr/*
 // @include       https://www.hardware.fr/*
 // @exclude       http://shop.hardware.fr/*
 // @exclude       https://shop.hardware.fr/*
+// @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// $Rev: 240 $
+/*
+
+Copyright © 2012, 2014-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1473 $
 
 // historique :
+// 1.3.3 (11/01/2020) :
+// - retour à une image en data:image
+// 1.3.2 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 1.3.1 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 1.3.0 (29/11/2018) :
+// - nouveau nom : [HFR] old favicon -> [HFR] Old Favicon
+// - ajout de l'avis de licence AGPL v3+
+// - ajout de la metadata @author (roger21)
+// - réécriture de la metadata @description
 // 1.2.0 (26/05/2018) :
 // - améliorations et nettoyage du code et check du code dans tm
 // - retour à reho.st en https au lieu du data:image
@@ -61,6 +90,6 @@ if(head) {
   var link = document.createElement("link");
   link.setAttribute("rel", "icon");
   link.setAttribute("type", "image/png");
-  link.setAttribute("href", "https://reho.st/self/5c2bc8d0fd9b7b5f2437e2cf84e89cb33c4e9c10.png");
+  link.setAttribute("href", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAAAAAA6mKC9AAAAT0lEQVR42nWOiw3AQAhC2X8qNrN%2BwKZ3qYkmTxFFHIFMYoLFECZ0asQWM5lSLod3i9lLsfNUxzbKR9bivYwX9IhtfQ1jqPLTwKXwI9%2BG4wEGx6xs3T841gAAAABJRU5ErkJggg%3D%3D");
   head.appendChild(link);
 }

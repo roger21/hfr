@@ -1,18 +1,45 @@
 // ==UserScript==
-// @name          [HFR] navigation
-// @version       0.9.3
+// @name          [HFR] Navigation
+// @version       0.9.6
 // @namespace     roger21.free.fr
-// @description   permet de naviger sur le forum avec des raccourcis clavier (alt + d b n v t u)
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Permet de naviger sur le forum avec des raccourcis clavier (Alt + d b n v t u).
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
+// @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// $Rev: 206 $
+/*
+
+Copyright © 2015, 2017-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1153 $
 
 // historique :
+// 0.9.6 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 0.9.5 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 0.9.4 (29/11/2018) :
+// - nouveau nom : [HFR] navigation -> [HFR] Navigation
+// - ajout de l'avis de licence AGPL v3+
+// - ajout de la metadata @author (roger21)
+// - réécriture de la metadata @description
 // 0.9.3 (17/05/2018) :
 // - amélioration et check du code dans tm
 // - utilisation d'une balise style pour ne pas dépendre de GM_addStyle

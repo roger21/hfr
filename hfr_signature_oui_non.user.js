@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          [HFR] Signature oui non
-// @version       1.1.0
+// @version       1.1.4
 // @namespace     roger21.free.fr
 // @description   Permet de forcer ou de désactiver la signature en fonction du topic.
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/forum2.php*
 // @include       https://forum.hardware.fr/hfr/*/*-sujet_*_*.htm*
 // @include       https://forum.hardware.fr/message.php*
@@ -18,9 +18,35 @@
 // @grant         GM_setValue
 // ==/UserScript==
 
-// $Rev: 421 $
+/*
+
+Copyright © 2012, 2014-2015, 2017-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1473 $
 
 // historique :
+// 1.1.4 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
+// 1.1.3 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 1.1.2 (29/11/2018) :
+// - ajout de l'avis de licence AGPL v3+
+// 1.1.1 (09/09/2018) :
+// - correction de l'utilisation de GM.getValue (inutilement complexe ici)
 // 1.1.0 (12/08/2018) :
 // - nouveau nom : [HFR] signature oui non -> [HFR] Signature oui non
 // - gestion de la compatibilité gm4
@@ -47,7 +73,7 @@
 // - ajout des metadata @grant
 
 if(typeof GM === "undefined") {
-  GM = {};
+  this.GM = {};
 }
 if(typeof GM_deleteValue !== "undefined" && typeof GM.deleteValue === "undefined") {
   GM.deleteValue = function(...args) {
@@ -94,7 +120,7 @@ if(document.forms.namedItem("hop") &&
   var cat = document.forms.namedItem("hop").elements.namedItem("cat").value;
   var topic = document.forms.namedItem("hop").elements.namedItem("post").value;
 
-  Promise.all([GM.getValue(cat + "." + topic, null)]).then(function([ouinon]) {
+  GM.getValue(cat + "." + topic, null).then(function(ouinon) {
 
     if(window.location.pathname !== "/message.php") {
       let profil = document.forms.namedItem("hop").elements.namedItem("signature").value;
@@ -153,14 +179,16 @@ if(document.forms.namedItem("hop") &&
           let labelo = document.createElement("span");
           labelo.appendChild(document.createTextNode(" (désactivé par le script [HFR] Signature oui non)"));
           document.getElementById("signature").
-          parentNode.insertBefore(labelo, document.getElementById("signature").nextElementSibling.nextElementSibling);
+          parentNode.insertBefore(labelo, document.getElementById("signature")
+                                  .nextElementSibling.nextElementSibling);
         }
         if(ouinon === "oui") {
           document.getElementById("signature").checked = true;
           let labelo = document.createElement("span");
           labelo.appendChild(document.createTextNode(" (forcé par le script [HFR] Signature oui non)"));
           document.getElementById("signature").
-          parentNode.insertBefore(labelo, document.getElementById("signature").nextElementSibling.nextElementSibling);
+          parentNode.insertBefore(labelo, document.getElementById("signature")
+                                  .nextElementSibling.nextElementSibling);
         }
       } else {
         if(ouinon === "non") {

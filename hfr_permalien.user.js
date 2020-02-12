@@ -1,18 +1,47 @@
 // ==UserScript==
-// @name          [HFR] permalien
-// @version       2.0.2
+// @name          [HFR] Permalien
+// @version       2.1.4
 // @namespace     roger21.free.fr
-// @description   ajoute un lien permanent pour les messages (dans la barre du message à droite)
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Ajoute un lien permanent pour les messages (dans la barre du message à droite).
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
+// @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// $Rev: 240 $
+/*
+
+Copyright © 2017-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1430 $
 
 // historique :
+// 2.1.4 (04/01/2020) :
+// - ajout d'un title sur le lien
+// 2.1.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 2.1.2 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 2.1.1 (29/11/2018) :
+// - ajout de l'avis de licence AGPL v3+
+// 2.1.0 (15/08/2018) :
+// - nouveau nom : [HFR] permalien -> [HFR] Permalien
+// - ajout de la metadata @author (roger21)
 // 2.0.2 (26/05/2018) :
 // - ajout du support pour la cat shop
 // 2.0.1 (13/05/2018) :
@@ -76,7 +105,8 @@ var topic = null;
 
 function permalink(cat, topic) {
   // récupération des posts
-  let posts = document.querySelectorAll("table.messagetable > tbody > tr.message > td.messCase1 > div.right > a[href^=\"#t\"]");
+  let posts = document.querySelectorAll("table.messagetable > tbody > tr.message > td.messCase1 > div.right > " +
+    "a[href^=\"#t\"]");
   for(let post of posts) {
     // noméro du post
     let num = /^.*#t([0-9]+)$/.exec(post.href);
@@ -86,7 +116,9 @@ function permalink(cat, topic) {
       let newdiv = document.createElement("div");
       newdiv.setAttribute("class", "right");
       let newlink = document.createElement("a");
-      newlink.href = "https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=" + cat + "&post=" + topic + "&numreponse=" + num;
+      newlink.href = "https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=" + cat + "&post=" + topic +
+        "&numreponse=" + num;;
+      newlink.setAttribute("title", "Lien permanent vers ce post");
       let newimg = document.createElement("img");
       newimg.src = img;
       newlink.appendChild(newimg);
@@ -105,7 +137,8 @@ if(resultp !== null) { // url à paramètres
   cat = resultp[1];
   topic = resultp[2];
 } else {
-  var resultv = /^https:\/\/forum.hardware.fr\/hfr\/([^\/]+)\/.*sujet_([0-9]+)_[0-9]+\.htm.*$/.exec(window.location.href);
+  var resultv =
+    /^https:\/\/forum.hardware.fr\/hfr\/([^\/]+)\/.*sujet_([0-9]+)_[0-9]+\.htm.*$/.exec(window.location.href);
   if(resultv !== null) { // url verbeuse
     cat = indexObj(id2cat, resultv[1]);
     topic = resultv[2];

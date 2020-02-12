@@ -1,25 +1,64 @@
 // ==UserScript==
-// @name          [HFR] image preview mod_r21
-// @version       2.6.2
+// @name          [HFR] Image Preview mod_r21
+// @version       2.7.5
 // @namespace     roger21.free.fr
-// @description   Adds a preview on image quoted in mes discussions
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Permet d'afficher un aperçu d'une image en passant la souris sur un lien vers cette image.
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
-// @author        shinuza
-// @modifications gestion de tous les liens images dans les posts, pas seulement ceux dans les quotes ni seulement ceux se terminant par .gif, .jpe?g ou .png et ajoute la dragon ball 4 à coté des liens image previewable
-// @modtype       évolution de fonctionnalités
+// @modifications Gestion de tous les liens images, pas seulement ceux dans les quotes ni seulement ceux se terminant par .gif, .jpe?g ou .png et ajout d'une icône à coté des liens previewables.
+// @modtype       réécriture et évolutions
+// @author        roger21
+// @authororig    shinuza
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @connect       *
-// @grant         GM_getValue
-// @grant         GM_setValue
-// @grant         GM_registerMenuCommand
+// @grant         GM.xmlHttpRequest
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 281 $
+/*
+
+Copyright © 2011-2012, 2014-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1394 $
 
 // historique :
+// 2.7.5 (24/12/2019) :
+// - gestion des svg sans taille définie
+// 2.7.4 (05/11/2019) :
+// - gestion des svg
+// 2.7.3 (02/11/2019) :
+// - gestion des webp
+// 2.7.2 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
+// 2.7.1 (20/09/2019) :
+// - ajout du support pour [HFR] Taille des images mod_r21
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 2.7.0 (03/11/2018) :
+// - nouveau nom : [HFR] image preview mod_r21 -> [HFR] Image Preview mod_r21
+// - ajout de l'avis de licence AGPL v3+ *si shinuza est d'accord*
+// - gestion de la compatibilité gm4
+// - appropriation des metadata @namespace et @author (passage en roger21)
+// - ajout de la metadata @authororig (shinuza)
+// - réécriture des metadata @description, @modifications et @modtype
+// - suppression de la gestion du changement d'icône pour simplifier la compatibilité gm4 ->
+// il faut la modifier directement dans le code maintenant
+// - meilleur gestion de la destruction de la popup et de l'affichage de la dernière image demandée
+// - correction de la gestion de l'affichage du message de chargement (Loading...)
 // 2.6.2 (09/06/2018) :
 // - suppression de lemde.fr des urls shortener (lemonde.fr)
 // - remise en place des logs de débug en commentés
@@ -89,54 +128,78 @@
 // - prise en compte des citation "quote" (citation simple)
 // - ajout d'une version avec un .1 en plus
 
-var ball = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACsklEQVQ4y2WTPYxUZRSGn%2Fe7352fu8yiLBoNsKyTLDKTQIeyFhoLs1pCYk9FjA2JBXagxs5CJZAQGmNjIQqVxppmCxElRIaAO%2BAKcXd1Z2Eus3Pv3J9jMVnD6mnOOcl537w5ySP%2BU%2FE7hPXXXJvJA3NKV1okyxjqAAvDv%2Bxm4wTZk%2Fd6ctk4x2ytPf8DBz6Y1vAPz2ARHlyE9WuYKaewpaSnN6N37c6mxm0Ooy84Ut%2F7wm0dOttUuuxJ7sKwCz4ADwrxCmnWd9rt0Zcc3WIQn9Gsn%2BASkzPQv2E8vg7xDRj8AoOfwQPOwAeGD%2FB1fRuf0SyAeu8Rbn919y13%2BELTNrrG4idSFGHDVZSvYQIKUPQcRIewUqbeTyofPbj76A4v%2BkaLtvafmGZjCfWviux30m%2BgMg%2BEoBEkX3u0p0nl7d0ICStR2t%2FT2Bu3nXnmSO57%2Btfgz4uUa5B8CsUVxtEj0LpDLkQ1QILKFNR2eENzXl4t%2FfY5Fgp5Q0%2FBts%2FATQMBmEH1ZAa1dWyUIaqYC8aGTi1XFGAIyca9AsFB0NRYLIDMYHgPRssYoPwxlj6kKEp8kVtnmELVgXOAjZ9W3gc9D1Sh%2BBWy7%2FtUjl1Bz%2ByiGPRI478hp%2BOd00JZWp6m%2BKA0wlAM3jcUw7avgAwsg%2FQqBG%2FFlOpQZEBJ7pwW1P9IYThjtwpHUwHmasgWwVag%2BgZYDpaARVD2hXa%2BbqguW%2Fqum93Tfjd5yrJsRfPOwApUJphmwB2GbAB5CoUCbPQ0NFrmZ45JSY9shfnJ05b9y8LGBY5Q51IpkAMFY1I00cRNvYzb8QrgKK5%2FSLG%2BenTiOJe3sBAd53K6qn1BqS4FuWVguUONg7jtLwGVvOyc6w6XVvdtiv9HI8Dax4TRLrXL0ubkaKEAgkZHo4cL8Y%2FcfPb8Vpz%2FAQdYLHdXVhJgAAAAAElFTkSuQmCC";
 
-var iconimg = GM_getValue("iconimg", ball);
-var maxheight = parseInt((document.documentElement.clientHeight - 20 - 12), 10) + "px";
+// gestion de la compatibilité gm4
 
-var container;
-var bePatient;
-
-function set_icon() {
-  let l_iconimg = GM_getValue("iconimg", ball);
-  if(l_iconimg === ball) {
-    l_iconimg = "";
-  }
-  l_iconimg = window.prompt("[HFR] image preview -> url de l'icône (vide = icône par défault) :\n\n", l_iconimg);
-  if(l_iconimg === null) {
-    return;
-  }
-  if(l_iconimg.trim() === "") {
-    GM_setValue("iconimg", ball);
-  } else {
-    GM_setValue("iconimg", l_iconimg.trim());
-  }
+if(typeof GM === "undefined") {
+  this.GM = {};
+}
+if(typeof GM_xmlhttpRequest !== "undefined" && typeof GM.xmlHttpRequest === "undefined") {
+  GM.xmlHttpRequest = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_xmlhttpRequest.apply(null, args));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
 }
 
-GM_registerMenuCommand("[HFR] image preview -> url de l'icône", set_icon);
 
-function loading(element) {
-  let dyn = "";
-  return window.setInterval(function() {
-    dyn += ".";
-    if(dyn.length == 4) {
-      dyn = "";
+// image de l'icône et autres varibales globales
+
+var iconImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACsklEQVQ4y2WTPYxUZRSGn%2Fe7352fu8yiLBoNsKyTLDKTQIeyFhoLs1pCYk9FjA2JBXagxs5CJZAQGmNjIQqVxppmCxElRIaAO%2BAKcXd1Z2Eus3Pv3J9jMVnD6mnOOcl537w5ySP%2BU%2FE7hPXXXJvJA3NKV1okyxjqAAvDv%2Bxm4wTZk%2Fd6ctk4x2ytPf8DBz6Y1vAPz2ARHlyE9WuYKaewpaSnN6N37c6mxm0Ooy84Ut%2F7wm0dOttUuuxJ7sKwCz4ADwrxCmnWd9rt0Zcc3WIQn9Gsn%2BASkzPQv2E8vg7xDRj8AoOfwQPOwAeGD%2FB1fRuf0SyAeu8Rbn919y13%2BELTNrrG4idSFGHDVZSvYQIKUPQcRIewUqbeTyofPbj76A4v%2BkaLtvafmGZjCfWviux30m%2BgMg%2BEoBEkX3u0p0nl7d0ICStR2t%2FT2Bu3nXnmSO57%2Btfgz4uUa5B8CsUVxtEj0LpDLkQ1QILKFNR2eENzXl4t%2FfY5Fgp5Q0%2FBts%2FATQMBmEH1ZAa1dWyUIaqYC8aGTi1XFGAIyca9AsFB0NRYLIDMYHgPRssYoPwxlj6kKEp8kVtnmELVgXOAjZ9W3gc9D1Sh%2BBWy7%2FtUjl1Bz%2ByiGPRI478hp%2BOd00JZWp6m%2BKA0wlAM3jcUw7avgAwsg%2FQqBG%2FFlOpQZEBJ7pwW1P9IYThjtwpHUwHmasgWwVag%2BgZYDpaARVD2hXa%2BbqguW%2Fqum93Tfjd5yrJsRfPOwApUJphmwB2GbAB5CoUCbPQ0NFrmZ45JSY9shfnJ05b9y8LGBY5Q51IpkAMFY1I00cRNvYzb8QrgKK5%2FSLG%2BenTiOJe3sBAd53K6qn1BqS4FuWVguUONg7jtLwGVvOyc6w6XVvdtiv9HI8Dax4TRLrXL0ubkaKEAgkZHo4cL8Y%2FcfPb8Vpz%2FAQdYLHdXVhJgAAAAAElFTkSuQmCC";
+var maxWidth = "450px";
+var maxHeight = parseInt((document.documentElement.clientHeight - 20 - 12), 10) + "px";
+var containerId = "gm_hip_r21_container_id";
+var container;
+var loadingTimer;
+var loadingText;
+var loadingTextInit = "Loading";
+var previwIconClass = "gm_hip_r21_preview_icon_class";
+var lastCall;
+
+function loading(elt) {
+  loadingText = "";
+  loadingTimer = window.setInterval(function(elt) {
+    loadingText += ".";
+    if(loadingText.length === 4) {
+      loadingText = "";
     }
-    element.textContent = "Loading" + dyn;
-  }, 500);
+    elt.textContent = loadingTextInit + loadingText;
+  }, 500, elt);
+}
+
+function destructPreview(destruct = true) {
+  window.clearInterval(loadingTimer);
+  let containerEl = document.getElementById(containerId);
+  if(containerEl) {
+    while(containerEl.firstChild) {
+      containerEl.firstChild.remove();
+    }
+    if(destruct) {
+      containerEl.remove();
+      lastCall = null;
+    }
+  }
 }
 
 function imagePreview(link) {
   //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK 0");
   // ne traite pas les lien contenant déjà une image
-  if(!link.firstElementChild || link.firstElementChild.nodeName.toUpperCase() !== "IMG") {
+  if(!link.firstElementChild ||
+    (link.firstElementChild.nodeName.toUpperCase() !== "IMG" &&
+      (link.firstElementChild.nodeName.toUpperCase() !== "SPAN" ||
+        !link.firstElementChild.firstElementChild ||
+        link.firstElementChild.firstElementChild.nodeName.toUpperCase() !== "IMG"))) {
     //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK 1");
     // ne traite pas les liens vide (bug du forum ?)
     if(link.firstChild) {
       //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK 2");
       // ne traite pas les liens vers le forum, sauf si c'est des images explicites,
       // et ne traite pas les liens (trop) mal formés
-      if(link.href && (link.href.match(/^.*\.(?:gif|jpe?g|png)$/gi) ||
+      if(link.href && (link.href.match(/^.*\.(?:gif|jpe?g|png|webp|svg)$/gi) ||
           (link.href.match(/^https?:\/\/forum\.hardware\.fr\/.*$/g) === null)) &&
         link.href.match(/^https?:\/\/[^\s\/$.?#].[^\s]*$/)) {
         //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK 3");
@@ -144,7 +207,7 @@ function imagePreview(link) {
         // basé sur http://bit.do/list-of-url-shorteners.php et http://dig.do/about/url-shortener
         if(link.href.match(/^https?:\/\/(?:[^\/]+\.)?(?:1click\.im|1dl\.us|1o2\.ir|1y\.lt|2tag\.nl|4ks\.net|4u2bn\.com|4zip\.in|9en\.us|ad4\.us|ad7\.biz|adbooth\.com|adbooth\.net|adf\.ly|adfa\.st|adfoc\.us|adfro\.gs|adlock\.in|adnld\.com|adshor\.tk|adspl\.us|adurl\.biz|adzip\.us|articleshrine\.com|asso\.in|at5\.us|awe\.sm|b2s\.me|bc\.vc|bih\.cc|bit\.do|bit\.ly|biturl\.net|bizz\.cc|budurl\.com|buraga\.org|cc\.cr|cf\.ly|cf6\.co|clicky\.me|cutt\.us|dai3\.net|dollarfalls\.info|domainonair\.com|dstats\.net|fur\.ly|goo\.gl|gooplu\.com|hide4\.me|hotshorturl\.com|iiiii\.in|ik\.my|ilikear\.ch|infovak\.com|is\.gd|ity\.im|itz\.bz|j\.gs|jetzt-hier-klicken\.de|kaaf\.com|kly\.so|l1nks\.org|lst\.bz|magiclinker\.com|miniurl\.com|mrte\.ch|multiurl\.com|multiurlscript\.com|nicbit\.com|nowlinks\.net|nsyed\.com|omani\.ac|onelink\.ir|ooze\.us|ozn\.st|prettylinkpro\.com|rlu\.ru|s2r\.co|scriptzon\.com|seomafia\.net|short2\.in|shortxlink\.com|shr\.tn|shrinkonce\.com|shrt\.in|sitereview\.me|sk\.gy|snpurl\.biz|socialcampaign\.com|soo\.gd|swyze\.com|t\.co|tab\.bz|theminiurl\.com|tiny\.cc|tinylord\.com|tinyurl\.ms|tip\.pe|ty\.by|1url\.com|7vd\.cn|adcraft\.co|adcrun\.ch|aka\.gr|bitly\.com|buzurl\.com|crisco\.com|cur\.lv|db\.tt|dft\.ba|filoops\.info|j\.mp|lnkd\.in|ow\.ly|q\.gs|qr\.ae|qr\.net|scrnch\.me|tinyarrows\.com|tinyurl\.com|tr\.im|tweez\.me|twitthis\.com|u\.bb|u\.to|v\.gd|viralurl\.biz|viralurl\.com|virl\.ws|vur\.me|vurl\.bz|vzturl\.com|x\.co|yourls\.org)\/.*$/gi) === null) {
           //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK 4");
-          GM_xmlhttpRequest({
+          GM.xmlHttpRequest({
             method: "HEAD",
             url: link.href,
             mozAnon: true,
@@ -153,25 +216,27 @@ function imagePreview(link) {
               "Cookie": ""
             },
             onload: function(r) {
-              //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK headers :\n" + r.responseHeaders);
-              //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK content-type : " + r.responseHeaders.match(/^.*content-type.*$/im));
-              if(r.responseHeaders.match(/^.*content-type.*image\/(?:gif|jpe?g|png).*$/im)) {
+              //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK headers :\n" +
+              //  r.responseHeaders);
+              //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK content-type : " +
+              //  r.responseHeaders.match(/^.*content-type.*$/im));
+              let type = r.responseHeaders.match(/^.*content-type.*image\/(gif|jpe?g|png|webp|svg).*$/im);
+              if(type) {
                 //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK 5");
-                let ballimg = document.createElement("img");
-                ballimg.setAttribute("src", iconimg);
-                ballimg.setAttribute("title", "[HFR] image preview");
-                ballimg.style.verticalAlign = "bottom";
-                ballimg.style.border = ballimg.style.padding = "0";
-                ballimg.style.setProperty("margin", "0 5px", "important");
-                link.appendChild(ballimg);
+                let svg = type[1].toLowerCase() === "svg";
+                //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] SVG " + svg);
+                let previewIcon = document.createElement("img");
+                previewIcon.setAttribute("src", iconImg);
+                previewIcon.setAttribute("title", "[HFR] image preview");
+                previewIcon.style.verticalAlign = "bottom";
+                previewIcon.style.border = previewIcon.style.padding = "0";
+                previewIcon.style.setProperty("margin", "0 5px", "important");
+                link.appendChild(previewIcon);
                 link.addEventListener("mouseover", function() {
-                  if(bePatient) {
-                    window.clearInterval(bePatient);
-                  }
-                  if(container && container.parentNode) {
-                    container.parentNode.removeChild(container);
-                  }
+                  link = this;
+                  destructPreview();
                   container = document.createElement("div");
+                  container.setAttribute("id", containerId);
                   container.style.position = "fixed";
                   container.style.background = "#dedfdf";
                   container.style.width = "200px";
@@ -179,45 +244,39 @@ function imagePreview(link) {
                   container.style.border = "1px solid black";
                   container.style.top = "10px";
                   container.style.right = "10px";
-                  let loadingText = document.createElement("p");
-                  loadingText.style.marginLeft = "50px";
-                  loadingText.style.fontFamily = "arial,sans-serif";
-                  loadingText.style.fontWeight = "bold";
-                  loadingText.innerHTML = "Loading";
-                  container.appendChild(loadingText);
+                  let loadingElt = document.createElement("p");
+                  loadingElt.style.marginLeft = "50px";
+                  loadingElt.style.fontFamily = "arial,sans-serif";
+                  loadingElt.style.fontWeight = "bold";
+                  loadingElt.textContent = loadingTextInit;
+                  container.appendChild(loadingElt);
                   document.body.appendChild(container);
-                  bePatient = loading(loadingText);
+                  loading(loadingElt);
                   let img = new Image();
                   img.style.display = "block";
                   img.style.margin = "auto";
-                  img.style.maxWidth = "450px";
-                  img.style.maxHeight = maxheight;
+                  img.style.maxWidth = maxWidth;
+                  img.style.maxHeight = maxHeight;
+                  img.dataset.lastCall = Date.now();
+                  lastCall = img.dataset.lastCall;
                   img.addEventListener("load", function() {
-                    if(bePatient) {
-                      window.clearInterval(bePatient);
+                    if(this.dataset.lastCall !== lastCall) {
+                      return;
                     }
-                    if(container && container.parentNode) {
-                      let elts = container.querySelectorAll("p, img");
-                      for(let elt of elts) {
-                        elt.parentNode.removeChild(elt);
-                      }
-                      container.style.width = "auto";
-                      container.appendChild(this);
+                    destructPreview(false);
+                    container.style.width = "auto";
+                    if(svg && (this.naturalWidth === 0 || /* firefox */
+                        this.naturalHeight === 150 || this.naturalHeight === 300 /* chrome */ )) {
+                      //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] SVG NO WIDTH " +
+                      //  this.naturalWidth + " " + this.naturalHeight);
+                      this.style.width = maxWidth;
                     }
+                    container.appendChild(this);
                   }, false);
-                  img.src = this.href;
+                  img.src = link.href;
                 }, false);
                 link.addEventListener("mouseout", function() {
-                  if(bePatient) {
-                    window.clearInterval(bePatient);
-                  }
-                  if(container && container.parentNode) {
-                    let elts = container.querySelectorAll("p, img");
-                    for(let elt of elts) {
-                      elt.parentNode.removeChild(elt);
-                    }
-                    container.parentNode.removeChild(container);
-                  }
+                  destructPreview();
                 }, false);
               }
             }
@@ -228,10 +287,17 @@ function imagePreview(link) {
   }
 }
 
+//window.setTimeout(function(){
+
 var links = document.getElementById("mesdiscussions").querySelectorAll(
   "table.messagetable td.messCase2 div[id^='para'] > span:not(.signature) a.cLink, " +
   "table.messagetable td.messCase2 div[id^='para'] > div:not(.edited) a.cLink, " +
   "table.messagetable td.messCase2 div[id^='para'] > *:not(span):not(div) a.cLink");
 for(let link of links) {
+  //console.log(link.href + " [ HFR IMAGE PREVIEW DEBUG ] OK -1");
   imagePreview(link);
 }
+
+destructPreview();
+
+//}, 5000);

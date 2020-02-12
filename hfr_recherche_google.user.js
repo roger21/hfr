@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name          [HFR] Recherche Google
-// @version       1.5.0
+// @version       1.5.4
 // @namespace     roger21.free.fr
 // @description   Remplace le champ de recherche du forum (en haut à droite) par un champ de recherche par Google.
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
 // @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
@@ -12,9 +12,35 @@
 // @grant         GM_openInTab
 // ==/UserScript==
 
-// $Rev: 421 $
+/*
+
+Copyright © 2012-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1416 $
 
 // historique :
+// 1.5.4 (01/01/2020) :
+// - mise à jour des cats / sous-cats
+// 1.5.3 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
+// 1.5.2 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 1.5.1 (29/11/2018) :
+// - ajout de l'avis de licence AGPL v3+
 // 1.5.0 (12/08/2018) :
 // - nouveau nom : [HFR] recherche google -> [HFR] Recherche Google
 // - ajout de la metadata @author (roger21)
@@ -71,7 +97,7 @@ var open_in_foreground = true;
 
 // compatibilité gm4
 if(typeof GM === "undefined") {
-  GM = {};
+  this.GM = {};
 }
 if(typeof GM_openInTab !== "undefined" && typeof GM.openInTab === "undefined") {
   GM.openInTab = function(...args) {
@@ -150,6 +176,10 @@ var cats = {
       subcat13: {
         key: "hfr",
         name: "HFR"
+      },
+      subcat14: {
+        key: "actualites",
+        name: "Actus"
       }
     }
   },
@@ -470,6 +500,10 @@ var cats = {
         name: "Tips & Dépannage"
       },
       subcat5: {
+        key: "VR-Realite-Virtuelle",
+        name: "Réalité virtuelle"
+      },
+      subcat6: {
         key: "mobiles",
         name: "Mobiles"
       }

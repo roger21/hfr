@@ -1,19 +1,46 @@
 // ==UserScript==
-// @name          [HFR] ego quote
-// @version       0.9.4
+// @name          [HFR] Ego Quote
+// @version       0.9.7
 // @namespace     roger21.free.fr
-// @description   colore en bleu les posts contenant une citation de soi
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @description   Colore en bleu les posts contenant une citation de soi.
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/forum2.php*
 // @include       https://forum.hardware.fr/hfr/*/*-sujet_*_*.htm*
+// @author        roger21
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
 
-// $Rev: 206 $
+/*
+
+Copyright © 2015, 2017-2019 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 1153 $
 
 // historique :
+// 0.9.7 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 0.9.6 (18/09/2019) :
+// - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
+// 0.9.5 (29/11/2018) :
+// - nouveau nom : [HFR] ego quote -> [HFR] Ego Quote
+// - ajout de l'avis de licence AGPL v3+
+// - ajout de la metadata @author (roger21)
+// - réécriture de la metadata @description
 // 0.9.4 (17/05/2018) :
 // - simplifications et améliorations du code et check du code dans tm
 // - suppression des @grant inutiles (tous)

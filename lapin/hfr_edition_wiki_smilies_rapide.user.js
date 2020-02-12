@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Edition rapide du Wiki smilies
-// @version 0.1.4.2
+// @version 0.1.4.3
 // @namespace http://toyonos.info
 // @description Permet de faire rapidement des modifications dans le wiki smilies via un double clic sur un smiley perso donné
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.1.4.3 (02/10/2019) :
+// - correction pour fonctionner sur les posts de modération (en rose)
 // 0.1.4.2 (10/12/2017) :
 // - commentage des alert XML
 // 0.1.4.1 (03/12/2017) :
@@ -51,7 +53,7 @@
 		var root = document.getElementById('mesdiscussions');
 		var hashCheck = this.getElementByXpath('//input[@name="hash_check"]', document).pop().value;
 		var thisScript = this;
-		this.getElementByXpath('//table//td[@class="messCase2"]//div[starts-with(@id, "para" )]//img[starts-with(@src, "https://forum-images.hardware.fr/images/perso/" )]', root).forEach(function (img)
+		this.getElementByXpath('//table//td[starts-with(@class, "messCase2")]//div[starts-with(@id, "para" )]//img[starts-with(@src, "https://forum-images.hardware.fr/images/perso/" )]', root).forEach(function (img)
 		{		
 			// Mouseover (texte alternatif / titre)
 			img.addEventListener('mouseover', function()

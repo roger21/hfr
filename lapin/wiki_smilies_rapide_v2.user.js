@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Wiki smilies & raccourcis dans la reponse/edition rapide
-// @version 0.6.4b.1
+// @version 0.6.4b.2
 // @namespace http://toyonos.info
 // @description Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide du forum hardware.fr
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,10 @@
 
 
 // historique modifs r21 :
+// 0.6.4b.2 (28/10/2018) :
+// - modification de la gestion des raccourcis pour prendre en compte la nouvelle gestion de altGr depuis ff63 ->
+// https://developer.mozilla.org/en-US/docs/Mozilla/Firefox/Releases/63#DOM_events
+// - modification du raccourcis puce par défaut de '*' (mal géré) à 'x'
 // 0.6.4b.1 (03/12/2017) :
 // - passage au https
 
@@ -77,7 +81,7 @@ var cmScript =
 	'ws_code' : {left : '[code]', sample : 'code', right : '[/code]', key : 67},
 	'ws_fixed' : {left : '[fixed]', sample : 'texte', right : '[/fixed]', key : 70},
 	'ws_strike' : {left : '[strike]', sample : 'texte', right : '[/strike]', key : 82},
-	'ws_puce' : {left : '[*]', sample : 'texte', right : '', key : 220},
+	'ws_puce' : {left : '[*]', sample : 'texte', right : '', key : 88},
 	'ws_color_red' : {left : '[#ff0000]', sample : '<span style="color: #ff0000">texte</span>', right : '[/#ff0000]', key : 97},
 	'ws_color_blue' : {left : '[#0000ff]', sample : '<span style="color: #0000ff">texte</span>', right : '[/#0000ff]', key : 98},
 	'ws_color_yellow' : {left : '[#ffff00]', sample : '<span style="color: #ffff00">texte</span>', right : '[/#ffff00]', key : 99},
@@ -90,7 +94,7 @@ var cmScript =
 	},
 	
 	//8 : "backspace", 9 : "tab", 13 : "enter", 16 : "shift", 17 : "ctrl", 18 : "alt", 19 : "pause/break", 20 : "caps lock", 27 : "escape", 33 : "page up", 34 : "page down", 35 : "end", 36 : "home", 37 : "left arrow", 38 : "up arrow", 39 : "right arrow", 40 : "down arrow", 45 : "insert", 46 : "delete", 48 : "0", 49 : "1", 50 : "2", 51 : "3", 52 : "4", 53 : "5", 54 : "6", 55 : "7", 56 : "8", 57 : "9", 65 : "a", 66 : "b", 67 : "c", 68 : "d", 69 : "e", 70 : "f", 71 : "g", 72 : "h", 73 : "i", 74 : "j", 75 : "k", 76 : "l", 77 : "m", 78 : "n", 79 : "o", 80 : "p", 81 : "q", 82 : "r", 83 : "s", 84 : "t", 85 : "u", 86 : "v", 87 : "w", 88 : "x", 89 : "y", 90 : "z", 91 : "left window key", 92 : "right window key", 93 : "select key", 96 : "numpad 0", 97 : "numpad 1", 98 : "numpad 2", 99 : "numpad 3", 100 : "numpad 4", 101 : "numpad 5", 102 : "numpad 6", 103 : "numpad 7", 104 : "numpad 8", 105 : "numpad 9", 106 : "multiply", 107 : "add", 109 : "subtract", 110 : "decimal point", 111 : "divide", 112 : "f1", 113 : "f2", 114 : "f3", 115 : "f4", 116 : "f5", 117 : "f6", 118 : "f7", 119 : "f8", 120 : "f9", 121 : "f10", 122 : "f11", 123 : "f12", 144 : "num lock", 145 : "scroll lock", 186 : "semi-colon", 187 : "equal sign", 188 : "comma", 189 : "dash", 190 : "period", 191 : "forward slash", 192 : "grave accent", 219 : "open bracket", 220 : "back slash", 221 : "close braket", 222 : "single quote"
-	keysBinding : {65 : "a", 66 : "b", 67 : "c", 68 : "d", 70 : "f", 71 : "g", 72 : "h", 73 : "i", 74 : "j", 75 : "k", 76 : "l", 77 : "m", 78 : "n", 79 : "o", 80 : "p", 81 : "q", 82 : "r", 83 : "s", 84 : "t", 85 : "u", 86 : "v", 87 : "w", 88 : "x", 89 : "y", 90 : "z", 96 : "numpad 0", 97 : "numpad 1", 98 : "numpad 2", 99 : "numpad 3", 100 : "numpad 4", 101 : "numpad 5", 102 : "numpad 6", 103 : "numpad 7", 104 : "numpad 8", 105 : "numpad 9", 220 : "*"},
+	keysBinding : {65 : "a", 66 : "b", 67 : "c", 68 : "d", 70 : "f", 71 : "g", 72 : "h", 73 : "i", 74 : "j", 75 : "k", 76 : "l", 77 : "m", 78 : "n", 79 : "o", 80 : "p", 81 : "q", 82 : "r", 83 : "s", 84 : "t", 85 : "u", 86 : "v", 87 : "w", 88 : "x", 89 : "y", 90 : "z", 96 : "numpad 0", 97 : "numpad 1", 98 : "numpad 2", 99 : "numpad 3", 100 : "numpad 4", 101 : "numpad 5", 102 : "numpad 6", 103 : "numpad 7", 104 : "numpad 8", 105 : "numpad 9"},
 
 	backgroundDiv : null,
 	
@@ -667,38 +671,41 @@ if ($('content_form'))
 	var proceedShortcut = function (event, textAreaId)
 	{
 		var key = event.keyCode ? event.keyCode : event.which;
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_spoiler')) insertBBCode(textAreaId, "[spoiler]", "[/spoiler]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_b')) insertBBCode(textAreaId, "[b]", "[/b]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_i')) insertBBCode(textAreaId, "[i]", "[/i]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_u')) insertBBCode(textAreaId, "[u]", "[/u]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_img')) insertBBCode(textAreaId, "[img]", "[/img]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_img_rehost')) insertBBCode(textAreaId, "[img]http://hfr-rehost.net/", "[/img]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_quote')) insertBBCode(textAreaId, "[quote]", "[/quote]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_url'))
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_spoiler')) { event.preventDefault(); insertBBCode(textAreaId, "[spoiler]", "[/spoiler]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_b')) { event.preventDefault(); insertBBCode(textAreaId, "[b]", "[/b]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_i')) { event.preventDefault(); insertBBCode(textAreaId, "[i]", "[/i]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_u')) { event.preventDefault(); insertBBCode(textAreaId, "[u]", "[/u]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_img')) { event.preventDefault(); insertBBCode(textAreaId, "[img]", "[/img]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_img_rehost')) { event.preventDefault(); insertBBCode(textAreaId, "[img]http://hfr-rehost.net/", "[/img]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_quote')) { event.preventDefault(); insertBBCode(textAreaId, "[quote]", "[/quote]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_url'))
 		{
+      event.preventDefault();
 			var url = window.prompt('Entrez l\'url :', 'http://');
 			var left = url == null || url == '' ? "[url=" : "[url=" + url + "]"
 			var right = url == null || url == '' ? "][/url]" : "[/url]"
 			insertBBCode(textAreaId, left, right);
 		}
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_code'))
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_code'))
 		{
+      event.preventDefault();
 			var language = window.prompt('Entrez le nom du langage :');
 			insertBBCode(textAreaId, language == null || language == '' ? "[code]" : "[code=" + language + "]", "[/code]")
 		};
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_fixed')) insertBBCode(textAreaId, "[fixed]", "[/fixed]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_strike')) insertBBCode(textAreaId, "[strike]", "[/strike]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_puce')) insertBBCode(textAreaId, "[*]", "");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_color_red')) insertBBCode(textAreaId, "[#ff0000]", "[/#ff0000]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_color_blue')) insertBBCode(textAreaId, "[#0000ff]", "[/#0000ff]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_color_yellow')) insertBBCode(textAreaId, "[#ffff00]", "[/#ffff00]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_color_green')) insertBBCode(textAreaId, "[#00ff00]", "[/#00ff00]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_alerte')) insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/alerte/?smiley&t=", "[/img]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_nazi')) insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/nazi/?t=", "[/img]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_fb')) insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/fb/?t=", "[/img]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_seagal')) insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/StevenSeagal/?t=", "[/img]");
-		if (event.altKey && event.ctrlKey && key == cmScript.getShortcutKey('ws_bulle'))
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_fixed')) { event.preventDefault(); insertBBCode(textAreaId, "[fixed]", "[/fixed]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_strike')) { event.preventDefault(); insertBBCode(textAreaId, "[strike]", "[/strike]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_puce')) { event.preventDefault(); insertBBCode(textAreaId, "[*]", ""); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_color_red')) { event.preventDefault(); insertBBCode(textAreaId, "[#ff0000]", "[/#ff0000]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_color_blue')) { event.preventDefault(); insertBBCode(textAreaId, "[#0000ff]", "[/#0000ff]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_color_yellow')) { event.preventDefault(); insertBBCode(textAreaId, "[#ffff00]", "[/#ffff00]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_color_green')) { event.preventDefault(); insertBBCode(textAreaId, "[#00ff00]", "[/#00ff00]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_alerte')) { event.preventDefault(); insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/alerte/?smiley&t=", "[/img]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_nazi')) { event.preventDefault(); insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/nazi/?t=", "[/img]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_fb')) { event.preventDefault(); insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/fb/?t=", "[/img]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_seagal')) { event.preventDefault(); insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/StevenSeagal/?t=", "[/img]"); }
+		if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_bulle'))
 		{
+      event.preventDefault();
 			var url = 'http://hfr.toyonos.info/generateurs/bulle/?t=';
 			var text = window.prompt('Entrez le contenu de la bulle :');
 			url += text;

@@ -1,34 +1,65 @@
 // ==UserScript==
-// @name          [HFR] vos smileys favoris mod_r21
-// @version       2.2.3
+// @name          [HFR] Vos smileys favoris mod_r21
+// @version       2.3.3
 // @namespace     fred.82.free.fr
 // @description   Permet d'afficher une liste illimitée de smileys favoris personnels, ainsi que des statistiques sur leur utilisation (historique et les plus utilisés). Documentation : http://fred.82.free.fr/hfr_greasemonkey/VSF/
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
 // @include       https://forum.hardware.fr/*
-// @author        fred82
+// @author        roger21
+// @authororig    fred82
 // @modifications basé sur la version 1.4.0 - correction de bugs, amélioration du fonctionnement et du design, nettoyage du code, compatibilité ff 30+ / gm 2+ et ajout de fonctionnalités
-// @modtype       modification de fonctionnalités
-// @homepage      http://roger21.free.fr/hfr/
+// @modtype       modifications et évolutions
+// @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
-// @grant         GM_info
-// @grant         GM_deleteValue
 // @grant         GM_getValue
-// @grant         GM_listValues
 // @grant         GM_setValue
-// @grant         GM_getResourceText
-// @grant         GM_getResourceURL
 // @grant         GM_addStyle
-// @grant         GM_log
-// @grant         GM_openInTab
 // @grant         GM_registerMenuCommand
-// @grant         GM_setClipboard
-// @grant         GM_xmlhttpRequest
 // @grant         unsafeWindow
 // ==/UserScript==
 
-// modifications roger21 $Rev: 2 $
+/*
+
+Copyright © 2010-2011, 2014-2017, 2019 fred.82@free.fr, roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// modifications roger21 $Rev: 1353 $
 
 // historique :
+// 2.3.3 (02/12/2019) :
+// - ajout de paramètres en dur pour la taille des onglets sur la réponse normale
+// - correction de l'affichage du voile de fond pour les fenêtres (de configuration et de choix)
+// 2.3.2 (02/10/2019) :
+// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
+// 2.3.1 (18/09/2019) :
+// - ajout de la directive "@inject-into page" pour explicitement autoriser le script à accéder ->
+// à la page (unsafeWindow) sous violentmonkey
+// 2.3.0 (10/05/2019) :
+// - correction du tri des smileys pour les onglets Top et Historique par frankie_flowers
+// - ajout d'une option dans les paramètres pour trier les favoris par code de smiley au lieu de par top
+// - correction du filtrage des quotes dans le comptage des stats
+// - suppression du code relatif aux stickers...
+// - check du code dans tm et corrections diverses
+// - passage (ou retour) de le remarque en rouge sur l'onglet des paramètres
+// - nouveau nom : [HFR] vos smileys favoris mod_r21 -> [HFR] Vos smileys favoris mod_r21
+// - ajout de l'avis de licence AGPL v3+ *si Fred82 est d'accord*
+// - modification de la metadata @author (roger21)
+// - ajout de la metadata @authororig (fred82)
+// - maj de la metadata @homepageURL
+// - réécriture de la metadata @modtype
+// - suppression des @grant inutiles
 // 2.2.3 (28/11/2017) :
 // - passage au https
 // 2.2.2 (08/10/2017) :
@@ -205,6 +236,7 @@
 var sm_count = 10; // Nombre maximal de smileys affichés sur le panneau
 var sm_confirm_delete = true; // Confirmer la suppression de smileys
 var sm_include_fav = true; // Inclure les favoris dans les panneaux "Top" et "Historique"
+var sm_sort_fav = false; // Trier les favoris par code ou lieu de top
 var sm_fast_reply = true; // Afficher le panneau de smileys à côté de la réponse rapide
 var sm_fast_reply_position = 0; // Position du panneau des smileys à côté de la réponse rapide
 var sm_notify_new = false; // Être notifié quand un nouveau smiley est trouvé dans votre nouveau message
@@ -221,13 +253,17 @@ var sm_fav_panel_height = "162px"; // Hauteur du panneau des favoris en réponse
 var sm_first_start = true;
 
 // Réglages système
-// Hauteur max du contenu des onglets (defaut : 200px -> 3 rangées)
-var panel_max_height = "216px";
+// taille des onglets sur la réponse normale
+var panel_max_width_left = "232px"; // (1 smiley prend 74px et il faut compter la barre de défilement)
+var panel_max_height_left = "288px"; // (defaut : "288px" -> 4 rangées)
+// taille des onglets de la fenêtre de configuration
+var panel_max_width = "auto";
+var panel_max_height = "216px"; // (defaut : "216px" -> 3 rangées)
 // Largeur de la fenêtre de conf (defaut : 720px)
 var config_window_width = "720px";
 // Largeur de la fenêtre de choix des favoris (défaut : 343px -> 4,5 smileys)
 var favorite_window_width = "343px";
-// Hauteur max du contenu de le fenêtre de choix des favoris (défaut : 179px -> 2,5 rangées)
+// Hauteur max du contenu de la fenêtre de choix des favoris (défaut : 179px -> 2,5 rangées)
 var favorite_window_content_max_height = "179px";
 
 // Variables de stockage temporaire
@@ -242,6 +278,7 @@ var staticImgMarginTop = 0 // Marge fixe pour la position du bouton de configura
 var key_sm_count = "sm_count";
 var key_sm_confirm_delete = "sm_confirm_delete";
 var key_sm_include_fav = "sm_include_fav";
+var key_sm_sort_fav = "sm_sort_fav";
 var key_sm_fast_reply = "sm_fast_reply";
 var key_sm_fast_reply_position = "sm_fast_reply_position";
 var key_sm_notify_new = "sm_notify_new";
@@ -261,7 +298,7 @@ var key_favorite_panel = "vsf_favorite_panel"; // id du panneau des favoris en r
 // id du bouton d'accès à la fenêtre de configuration en réponse rapide
 var key_favorite_panel_img = "vsf_favorite_panel_img";
 var key_config_window_content = "vsf_config_window_content"; // id du contenu de la fenêtre de configuration
-var key_favorite_window_content = "vsf_favorite_window_content"; // id du contenu de le fenêtre de choix des favoris
+var key_favorite_window_content = "vsf_favorite_window_content"; // id du contenu de la fenêtre de choix des favoris
 
 var key_tab_top = "tab_top"; // id de l'onglet top
 var key_tab_history = "tab_history"; // id de l'onglet historique
@@ -299,7 +336,7 @@ var image_base_url = "https://forum-images.hardware.fr/icones/smilies/"; // Url 
 var image_utilisateur_url = "https://forum-images.hardware.fr/images/perso/"; // Url pour les smileys utilisateur
 
 // Textes
-var script_name = "[HFR] vos smileys favoris";
+var script_name = "[HFR] Vos smileys favoris";
 var tab_top_title = "Top";
 var tab_history_title = "Historique";
 var tab_favorite_title = "Favoris";
@@ -353,10 +390,11 @@ function GetSmileysList(message) {
     var regExp = new RegExp(pattern, "g");
     var smileysList = message.match(regExp);
     if(smileysList != null) {
-      if(smileysList2 === null)
+      if(smileysList2 === null) {
         smileysList2 = smileysList;
-      else
+      } else {
         smileysList2 = smileysList2.concat(smileysList);
+      }
       // Suppression des smileys de base du message
       message = message.replace(regExp, "");
     }
@@ -409,12 +447,6 @@ function ConvertFullCodeToTinyCode(full_code) {
   return tiny_code;
 }
 
-function SortSmileysAndBuildJsonString() {
-  // Tri de la liste des smileys dans l'ordre des statistiques
-  smileyStats = sortAssocStat(smileyStats);
-  return BuildJsonString(smileyStats);
-}
-
 /*
   Supprime ce smiley du dictionnaire des statistiques
 */
@@ -433,9 +465,9 @@ function RemoveSmileyStat() {
   saveUserStats(); // Sauve et recharge les stats triées et recharge le panneau des favoris de la réponse rapide
 
   // Mise à jour complete de l'onglet top
-  RefreshTab_FromUI(smileyStats, key_tab_top, key_tab_top_content, key_prefix_top);
+  RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
   // Mise à jour complete de l'onglet historique
-  RefreshTab_FromUI(sortAssocHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
+  RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
   // Suppression du smiley dans l'onglet favoris
   RemoveSmileyStat_FromUI(smiley_tiny_code, key_prefix_fav);
 }
@@ -443,22 +475,23 @@ function RemoveSmileyStat() {
 /*
   Rafraichi completement le contenu d'un onglet de smileys
 
-  smileyList : la list des smileys triée en fonction de l'onglet
+  smileyArray : tableau des smileys ordonné en fonction de l'onglet
   key_tab : id de l'onglet
   key_tab_content : id du contenu de l'onglet
   key_prefix : prefix pour l'id des smileys
 */
-function RefreshTab_FromUI(smileyList, key_tab, key_tab_content, key_prefix) {
+function RefreshTab_FromUI(smileyArray, key_tab, key_tab_content, key_prefix) {
   // Raffraichi l'onglet correspondant dans la réponse normale et dans la fenêtre de conf
-  for(var id_context of[key_smiley_panel, key_tab_yoursmileys]) {
+  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
     var context = null;
     var smileys_table = null;
     var clickable = (id_context === key_smiley_panel);
     context = document.getElementById(id_context);
     if(context !== null) {
       smileys_table = context.querySelector("div[id=\"" + key_tab_content + "\"]");
-      if(smileys_table !== null)
-        rebuildSmileyTabContent(smileyList, key_tab, smileys_table, key_prefix, clickable);
+      if(smileys_table !== null) {
+        rebuildSmileyTabContent(smileyArray, key_tab, smileys_table, key_prefix, clickable);
+      }
     }
   }
 }
@@ -471,7 +504,7 @@ function RefreshTab_FromUI(smileyList, key_tab, key_tab_content, key_prefix) {
 */
 function RemoveSmileyStat_FromUI(smiley_tiny_code, key) {
   // Supprime un smiley de l'onglet correspondant dans la réponse normale et dans la fenêtre de conf
-  for(var id_context of[key_smiley_panel, key_tab_yoursmileys]) {
+  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
     var context = null;
     var smiley = null;
     var container = null;
@@ -515,14 +548,14 @@ function ChangeFavoriteStatus() {
     favorite_img_src = icon_fav_active;
     saveUserStats(); // Sauve et recharge les stats triées et recharge le panneau des favoris de la réponse rapide
     // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(smileyStats, key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
+    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
   }
 
   if(!sm_include_fav) {
     // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(smileyStats, key_tab_top, key_tab_top_content, key_prefix_top);
+    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
     // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortAssocHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
+    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
   } else {
     // Mise à jour du smiley dans l'onglet top
     ChangeFavoriteStatus_InUI(smiley, favorite_img_src, key_prefix_top);
@@ -557,7 +590,7 @@ function ChangeFavoriteStatus_InUI(smiley, favorite_img_src, key) {
   }
 
   // gestion de l'onglets correspondant dans la réponse normale et dans la fenêtre de conf
-  for(var id_context of[key_smiley_panel, key_tab_yoursmileys]) {
+  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
     var context = null;
     favorite_img = null;
     context = document.getElementById(id_context);
@@ -578,7 +611,7 @@ function ChangeFavoriteStatus_InUI(smiley, favorite_img_src, key) {
 function AddFavoriteToPanel(smiley_full_code) {
   var smiley = smileyStats[smiley_full_code];
 
-  for(var id_context of[key_smiley_panel, key_tab_yoursmileys]) {
+  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
     var context = null;
     context = document.getElementById(id_context);
     if(context !== null) {
@@ -592,74 +625,74 @@ function AddFavoriteToPanel(smiley_full_code) {
           favorite_panel.removeChild(favorite_panel.childNodes[1]);
         }
 
-        if(id_context === key_smiley_panel) // reponse normale -> clickable
+        if(id_context === key_smiley_panel) { // reponse normale -> clickable
           AddSmileyToPanel(smiley, key_tab_favorite, smileys_table, 0, key_prefix_fav, true);
-        else if(id_context === key_tab_yoursmileys) // fenêtre de conf -> non clickable
+        } else if(id_context === key_tab_yoursmileys) { // fenêtre de conf -> non clickable
           AddSmileyToPanel(smiley, key_tab_favorite, smileys_table, 0, key_prefix_fav, false);
+        }
       }
     }
   }
 }
 
 /*
-  Tri du tableau associatif, à partir du champ statistique/top (stat)
+  Convertit le tableau associatif (objet) des stats des smileys en un
+  tableau normal et trié par stat décroissante pour l'onglet Top
 */
-function sortAssocStat(o) {
-  var sorted = {},
-    key, a = [];
+function sortSmileysByStat(o) {
+  // Conversion en array
+  var a = Object.values(o);
 
-  // Conversion en format temporaire
-  for(key in o) {
-    if(o.hasOwnProperty(key)) {
-      a.push([key, o[key]]);
-    }
-  }
-
-  // Tri
-  a.sort(function() {
-    return arguments[0][1].s < arguments[1][1].s
+  // Tri par stat décroissante
+  a.sort(function(x, y) {
+    return y.s - x.s;
   });
 
-  // Conversion à nouveau dans le format initial
-  for(key = 0; key < a.length; key++) {
-    sorted[a[key][0]] = a[key][1];
-  }
-
-  return sorted;
+  return a;
 }
 
 /*
-  Tri du tableau associatif, à partir du champ historique (date)
+  Convertit le tableau associatif (objet) des stats des smileys en un
+  tableau normal et trié par date décroissante pour l'onglet Historique
 */
-function sortAssocHistory(o) {
-  var sorted = {},
-    key, a = [];
+function sortSmileysByHistory(o) {
+  // Conversion en array
+  var a = Object.values(o);
 
-  // Conversion en format temporaire
-  for(key in o) {
-    if(o.hasOwnProperty(key)) {
-      a.push([key, o[key]]);
-    }
-  }
-
-  // Tri
-  a.sort(function() {
-    return new Date(arguments[0][1].d) < new Date(arguments[1][1].d)
+  // Tri par date décroissante
+  a.sort(function(x, y) {
+    return new Date(y.d) - new Date(x.d);
   });
 
-  // Conversion à nouveau dans le format initial
-  for(key = 0; key < a.length; key++) {
-    sorted[a[key][0]] = a[key][1];
+  return a;
+}
+
+/*
+  Convertit le tableau associatif (objet) des stats des smileys en un
+  tableau normal et trié par code de smiley pour l'onglet et le panneau des Favoris
+*/
+function sortSmileysByName(o) {
+  // Tri par stat décroissante par défaut
+  if(!sm_sort_fav) {
+    return sortSmileysByStat(o);
   }
 
-  return sorted;
+  // Conversion en array
+  var a = Object.values(o);
+
+  // Tri par code de smiley
+  a.sort(function(x, y) {
+    return (x.c > y.c) ? 1 : ((x.c < y.c) ? -1 : 0);
+  });
+
+  return a;
 }
 
 /*
   Retire les citations en code BB du message HFR
 */
 function RemoveBBQuotes(msg) {
-  return msg.replace(/\[quotemsg(.+?)\[\/quotemsg\]/g, "", "").replace(/\[citation(.+?)\[\/citation\]/g, "", "");
+  return msg.replace(/\[quotemsg[\s\S]*?\[\/quotemsg\]/g, "").replace(/\[citation[\s\S]*?\[\/citation\]/g, "");
 }
 
 /*
@@ -681,7 +714,7 @@ function BuildSmileyListFromMessage(msg) {
     if(smileysList != null) {
 
       // Comptage des occurences
-      for(var i = 0; i < smileysList.length; i++) {
+      for(var i = 0; i < smileysList.length; ++i) {
         var smiley_full_code = smileysList[i];
         if(!smileysListExt[smiley_full_code]) {
           smileysListExt[smiley_full_code] = {};
@@ -717,12 +750,21 @@ function TAinsert(text1, text2) {
     if(text2 != "") {
       if(str == "") {
         var instances = countInstances(text1, text2);
-        if(instances % 2 != 0) sel.text = sel.text + text2;
-        else sel.text = sel.text + text1;
-      } else sel.text = text1 + sel.text + text2;
-    } else sel.text = sel.text + text1;
+        if(instances % 2 != 0) {
+          sel.text = sel.text + text2;
+        } else {
+          sel.text = sel.text + text1;
+        }
+      } else {
+        sel.text = text1 + sel.text + text2;
+      }
+    } else {
+      sel.text = sel.text + text1;
+    }
   } else if(ta.selectionStart || ta.selectionStart == 0) {
-    if(ta.selectionEnd > ta.value.length) ta.selectionEnd = ta.value.length;
+    if(ta.selectionEnd > ta.value.length) {
+      ta.selectionEnd = ta.value.length;
+    }
     var firstPos = ta.selectionStart;
     var secondPos = ta.selectionEnd + text1.length;
     var contenuScrollTop = ta.scrollTop;
@@ -733,10 +775,13 @@ function TAinsert(text1, text2) {
     ta.focus();
     ta.scrollTop = contenuScrollTop;
   } else {
-    var sel = document.hop.content_form;
-    var instances = countInstances(text1, text2);
-    if(instances % 2 != 0 && text2 != "") sel.value = sel.value + text2;
-    else sel.value = sel.value + text1;
+    var sel2 = document.hop.content_form;
+    var instances2 = countInstances(text1, text2);
+    if(instances2 % 2 != 0 && text2 != "") {
+      sel2.value = sel2.value + text2;
+    } else {
+      sel2.value = sel2.value + text1;
+    }
   }
 }
 
@@ -744,10 +789,11 @@ function TAinsert(text1, text2) {
   Insère un smiley dans le post via TAinsert
 */
 function putSmiley(tt) {
-  if(sm_no_space_insert)
+  if(sm_no_space_insert) {
     TAinsert(tt, "");
-  else
+  } else {
     TAinsert(" " + tt + " ", "");
+  }
 }
 
 /*
@@ -771,7 +817,7 @@ function IsBaseSmiley(smiley_code) {
 function ConvertBaseSmileyCodeToString(smiley_code) {
   var hfr_string = null;
 
-  switch(smiley_code) {
+  switch (smiley_code) {
     case ":)":
       hfr_string = "smile";
       break;
@@ -814,7 +860,7 @@ function GetUrlForBaseSmiley(smiley_code) {
   var url = null;
   var hfr_string = ConvertBaseSmileyCodeToString(smiley_code);
 
-  switch(smiley_code) {
+  switch (smiley_code) {
     case ":)":
     case ":(":
     case ":D":
@@ -866,11 +912,15 @@ function CreateSmileyDefaultObject(full_code) {
   http://fr.wikipedia.org/wiki/XPath
 */
 var getElementByXpath = function(path, element) {
-  var arr = Array(),
-    xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
-  for(; item = xpr.iterateNext();) arr.push(item);
+  var arr = Array();
+  var xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+  var item = xpr.iterateNext();
+  while(item) {
+    arr.push(item);
+    item = xpr.iterateNext();
+  }
   return arr;
-}
+};
 
 /*
   Construit un objet JSON à partir d'une string
@@ -884,7 +934,7 @@ function BuildJsonObjectFromString(JSON_string) {
   Construit une string à partir d'un format JSON
 */
 function BuildJsonString(JSON_object) {
-  JSON_string = JSON.stringify(JSON_object);
+  var JSON_string = JSON.stringify(JSON_object);
   return JSON_string;
 }
 
@@ -947,8 +997,8 @@ function GetMessageEditingBox() {
   Compter le nombre d'occurences du pattern donné
 */
 String.prototype.count = function(pattern) {
-  return(this.length - this.replace(new RegExp(pattern, "g"), "").length) / pattern.length;
-}
+  return (this.length - this.replace(new RegExp(pattern, "g"), "").length) / pattern.length;
+};
 
 /*
   Teste si l'objet est vide, objet Json notamment. Basé sur l'implémentation "isEmptyObject" de JQuery.
@@ -970,7 +1020,7 @@ Array.prototype.getUnique = function(fieldNameCompare) {
   var foundCounter = 0;
   var newArray = [];
 
-  for(var i = 0; i < this.length; i++) {
+  for(var i = 0; i < this.length; ++i) {
     var item = eval("this[i]." + fieldNameCompare);
     var match = "|" + item.toLowerCase() + "|";
 
@@ -981,7 +1031,7 @@ Array.prototype.getUnique = function(fieldNameCompare) {
   }
 
   return newArray;
-}
+};
 
 // =============================================================== //
 // Outils d'enregistrement, backup et reset
@@ -992,7 +1042,7 @@ Array.prototype.getUnique = function(fieldNameCompare) {
 */
 function saveUserStats() {
   // Construction de la string Json
-  var JSON_string = SortSmileysAndBuildJsonString();
+  var JSON_string = BuildJsonString(smileyStats);
   saveUserStatsFromJsonString(JSON_string);
   // Force la relecture des stats pour avoir la version triée
   LoadSmileyStats(true);
@@ -1017,6 +1067,7 @@ function loadUserConfig() {
   sm_count = GM_getValue(key_sm_count, sm_count);
   sm_confirm_delete = GM_getValue(key_sm_confirm_delete, sm_confirm_delete);
   sm_include_fav = GM_getValue(key_sm_include_fav, sm_include_fav);
+  sm_sort_fav = GM_getValue(key_sm_sort_fav, sm_sort_fav);
   sm_fast_reply = GM_getValue(key_sm_fast_reply, sm_fast_reply);
   sm_fast_reply_position = GM_getValue(key_sm_fast_reply_position, sm_fast_reply_position);
   sm_notify_new = GM_getValue(key_sm_notify_new, sm_notify_new);
@@ -1035,31 +1086,46 @@ function loadUserConfig() {
 */
 function reloadUserConfig() {
   loadUserConfig();
-  if(document.getElementById(key_sm_count))
+  if(document.getElementById(key_sm_count)) {
     document.getElementById(key_sm_count).value = sm_count;
-  if(document.getElementById(key_sm_confirm_delete))
-    document.getElementById(key_sm_confirm_delete).checked = sm_confirm_delete;
-  if(document.getElementById(key_sm_include_fav))
-    document.getElementById(key_sm_include_fav).checked = sm_include_fav;
-  if(document.getElementById(key_sm_fast_reply))
-    document.getElementById(key_sm_fast_reply).checked = sm_fast_reply;
-  for(var i = 0; i < 4; ++i) {
-    if(i === sm_fast_reply_position)
-      if(document.getElementById(key_sm_fast_reply_position + "_" + i))
-        document.getElementById(key_sm_fast_reply_position + "_" + i).checked = true;
   }
-  if(document.getElementById(key_sm_notify_new))
+  if(document.getElementById(key_sm_confirm_delete)) {
+    document.getElementById(key_sm_confirm_delete).checked = sm_confirm_delete;
+  }
+  if(document.getElementById(key_sm_include_fav)) {
+    document.getElementById(key_sm_include_fav).checked = sm_include_fav;
+  }
+  if(document.getElementById(key_sm_sort_fav)) {
+    document.getElementById(key_sm_sort_fav).checked = sm_sort_fav;
+  }
+  if(document.getElementById(key_sm_fast_reply)) {
+    document.getElementById(key_sm_fast_reply).checked = sm_fast_reply;
+  }
+  for(var i = 0; i < 4; ++i) {
+    if(i === sm_fast_reply_position) {
+      if(document.getElementById(key_sm_fast_reply_position + "_" + i)) {
+        document.getElementById(key_sm_fast_reply_position + "_" + i).checked = true;
+      }
+    }
+  }
+  if(document.getElementById(key_sm_notify_new)) {
     document.getElementById(key_sm_notify_new).checked = sm_notify_new;
-  if(document.getElementById(key_sm_hide_forum_smileys))
+  }
+  if(document.getElementById(key_sm_hide_forum_smileys)) {
     document.getElementById(key_sm_hide_forum_smileys).checked = sm_hide_forum_smileys;
-  if(document.getElementById(key_sm_no_space_insert))
+  }
+  if(document.getElementById(key_sm_no_space_insert)) {
     document.getElementById(key_sm_no_space_insert).checked = sm_no_space_insert;
-  if(document.getElementById(key_sm_fav_world))
+  }
+  if(document.getElementById(key_sm_fav_world)) {
     document.getElementById(key_sm_fav_world).checked = sm_fav_world;
-  if(document.getElementById(key_sm_fav_world_icon))
+  }
+  if(document.getElementById(key_sm_fav_world_icon)) {
     document.getElementById(key_sm_fav_world_icon).value = sm_fav_world_icon;
-  if(document.getElementById(key_fav_world_icon_preview))
+  }
+  if(document.getElementById(key_fav_world_icon_preview)) {
     document.getElementById(key_fav_world_icon_preview).src = sm_fav_world_icon;
+  }
 }
 
 /*
@@ -1117,20 +1183,28 @@ function ImportFavPersoForum(firstStart) {
     // Mise à jour du panneau des favoris en reponse rapide
     ReloadSmileysFullPanel();
     // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(smileyStats, key_tab_top, key_tab_top_content, key_prefix_top);
+    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
     // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortAssocHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
+    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
     // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(smileyStats, key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
+    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
 
     // Message d'information avec le nombre des smileys importés
     var favsSmileyTxt = "smiley favori";
-    if(favsCpt > 1) favsSmileyTxt = "smileys favoris";
+    if(favsCpt > 1) {
+      favsSmileyTxt = "smileys favoris";
+    }
     var persosSmileyTxt = "smiley personnel";
-    if(persosCpt > 1) persosSmileyTxt = "smileys personnels";
+    if(persosCpt > 1) {
+      persosSmileyTxt = "smileys personnels";
+    }
     var importeTxt = "du forum ont été importés";
-    if(favsCpt + persosCpt === 0) importeTxt = "du forum n'a été importé";
-    if(favsCpt + persosCpt === 1) importeTxt = "du forum a été importé";
+    if(favsCpt + persosCpt === 0) {
+      importeTxt = "du forum n'a été importé";
+    }
+    if(favsCpt + persosCpt === 1) {
+      importeTxt = "du forum a été importé";
+    }
     alert(favsCpt + " " + favsSmileyTxt + " et " + persosCpt + " " + persosSmileyTxt +
       importeTxt + " dans vos favoris.");
 
@@ -1165,12 +1239,12 @@ function ResetAllStats() {
     // Mise à jour du panneau des favoris en reponse rapide
     ReloadSmileysFullPanel();
     // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(smileyStats, key_tab_top, key_tab_top_content, key_prefix_top);
+    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
     // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortAssocHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
+    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
     // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(smileyStats, key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
-    alert("Vos donneés de smileys ont été réinitialisées.");
+    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
+    alert("Vos données de smileys ont été réinitialisées.");
   }
 }
 
@@ -1197,7 +1271,7 @@ function ReloadIconFavWorld() {
 */
 function DoBackupFile() {
   LoadSmileyStats();
-  var blob = new Blob([SortSmileysAndBuildJsonString()], {
+  var blob = new Blob([BuildJsonString(smileyStats)], {
     type: "application/json"
   });
   var url = window.URL.createObjectURL(blob);
@@ -1235,12 +1309,12 @@ function readBackupFile() {
     // Mise à jour du panneau des favoris en reponse rapide
     ReloadSmileysFullPanel();
     // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(smileyStats, key_tab_top, key_tab_top_content, key_prefix_top);
+    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
     // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortAssocHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
+    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
     // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(smileyStats, key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
-    alert("Vos donneés de smileys ont été mises à jour.");
+    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
+    alert("Vos données de smileys ont été mises à jour.");
   }
 }
 
@@ -1251,7 +1325,7 @@ function CheckFormatBackupFile(JSON_string) {
   try {
     var jsonObj = BuildJsonObjectFromString(JSON_string);
     return true;
-  } catch(err) {
+  } catch (err) {
     return false;
   }
 }
@@ -1287,8 +1361,7 @@ function Main() {
   var current_url = document.URL;
 
   // Switch suivant la page affichée
-  if(
-    current_url.match("https://forum.hardware.fr/message.php*") ||
+  if(current_url.match("https://forum.hardware.fr/message.php*") ||
     current_url.match("https://forum.hardware.fr/hfr/.*/nouveau_sujet.htm") ||
     current_url.match("https://forum.hardware.fr/hfr/.*/nouveau_sondage.htm") ||
     current_url.match("https://forum.hardware.fr/hfr/.*/repondre.*")) {
@@ -1424,8 +1497,9 @@ function ShowFavoriteSmileysPanel(create) {
   }
 
   // Ajout de chaque smiley favori
-  for(var k in smileyStats) {
-    var smiley = smileyStats[k];
+  var smileyArray = sortSmileysByName(smileyStats);
+  for(var i = 0; i < smileyArray.length; ++i) {
+    var smiley = smileyArray[i];
     if(smiley.fav) {
       var smiley_tiny_code = ConvertFullCodeToTinyCode(smiley.c); // Tiny code
       var smiley_img = BuildSmileyImage(smiley, smiley_tiny_code, true);
@@ -1456,65 +1530,45 @@ function ShowFavoriteSmileysPanel(create) {
       cmScript.showConfigWindow(key_window_config, key_tab_yoursmileys);
     }, false);
 
-    if(sm_fast_reply_position === 1 || sm_fast_reply_position === 2) // à droite ou en dessous
+    if(sm_fast_reply_position === 1 || sm_fast_reply_position === 2) { // à droite ou en dessous
       var next = textarea.nextElementSibling;
-
-    if(sm_fast_reply_position === 0 || sm_fast_reply_position === 2) // au dessus ou en dessous
-      var br = getLineBreak();
-
-    function setPanelPosition() {
-      switch(sm_fast_reply_position) {
-        case 0: // au dessus
-          container.style.margin = "1px 3px 0px";
-          staticImgMarginTop = 1;
-          textarea.parentNode.insertBefore(container, textarea);
-          textarea.parentNode.insertBefore(img, textarea);
-          textarea.parentNode.insertBefore(br, textarea);
-          savePanelPosition(); // met à jour la marge de l'image
-          break;
-        case 1: // à droite
-          container.style.margin = "1px 3px -2px 1px";
-          staticImgMarginTop = 1;
-          textarea.parentNode.insertBefore(container, next);
-          textarea.parentNode.insertBefore(img, next);
-          savePanelPosition(); // met à jour la marge de l'image
-          break;
-        case 2: // en dessous
-          container.style.margin = "0px 3px 1px";
-          staticImgMarginTop = 0;
-          textarea.parentNode.insertBefore(br, next);
-          textarea.parentNode.insertBefore(container, next);
-          textarea.parentNode.insertBefore(img, next);
-          savePanelPosition(); // met à jour la marge de l'image
-          break;
-        case 3: // à gauche
-          container.style.margin = "1px 1px -2px 19px";
-          staticImgMarginTop = 1;
-          textarea.parentNode.insertBefore(img, textarea);
-          textarea.parentNode.insertBefore(container, textarea);
-          savePanelPosition(); // met à jour la marge de l'image
-          break;
-      }
     }
 
-    setPanelPosition();
+    if(sm_fast_reply_position === 0 || sm_fast_reply_position === 2) { // au dessus ou en dessous
+      var br = getLineBreak();
+    }
 
-    // Gestion de la position du panneau avec les stickers (qui font chier à la base)
-    if(sm_fast_reply_position === 1 || sm_fast_reply_position === 2) { // à droite ou en dessous
-      function waitForStickers(mutations, observer) {
-        next = document.getElementById("fstk_container");
-        if(next !== null) {
-          setPanelPosition();
-          observer.disconnect();
-        }
-      }
-      var observer = new MutationObserver(waitForStickers);
-      observer.observe(textarea.parentNode, {
-        attributes: false,
-        childList: true,
-        characterData: false,
-        subtree: false
-      });
+    switch (sm_fast_reply_position) {
+      case 0: // au dessus
+        container.style.margin = "1px 3px 0px";
+        staticImgMarginTop = 1;
+        textarea.parentNode.insertBefore(container, textarea);
+        textarea.parentNode.insertBefore(img, textarea);
+        textarea.parentNode.insertBefore(br, textarea);
+        savePanelPosition(); // met à jour la marge de l'image
+        break;
+      case 1: // à droite
+        container.style.margin = "1px 3px -2px 1px";
+        staticImgMarginTop = 1;
+        textarea.parentNode.insertBefore(container, next);
+        textarea.parentNode.insertBefore(img, next);
+        savePanelPosition(); // met à jour la marge de l'image
+        break;
+      case 2: // en dessous
+        container.style.margin = "0px 3px 1px";
+        staticImgMarginTop = 0;
+        textarea.parentNode.insertBefore(br, next);
+        textarea.parentNode.insertBefore(container, next);
+        textarea.parentNode.insertBefore(img, next);
+        savePanelPosition(); // met à jour la marge de l'image
+        break;
+      case 3: // à gauche
+        container.style.margin = "1px 1px -2px 19px";
+        staticImgMarginTop = 1;
+        textarea.parentNode.insertBefore(img, textarea);
+        textarea.parentNode.insertBefore(container, textarea);
+        savePanelPosition(); // met à jour la marge de l'image
+        break;
     }
   }
 }
@@ -1649,7 +1703,7 @@ function HandleEditingMessagePage() {
   // Ajout de ce panneau au conteneur latéral gauche
   parent_container.appendChild(smiley_panel);
 
-  BuildYourSmileysPanel(smiley_panel, true);
+  BuildYourSmileysPanel(smiley_panel, true, panel_max_height_left, panel_max_width_left);
 
   // Lien pour ouvrir la fenêtre de configuration
   var link_config = document.createElement("a");
@@ -1666,45 +1720,28 @@ function HandleEditingMessagePage() {
 
   // Mémorisation du TextArea.
   initialText = GetMessageEditingBox().value;
-
-  // Correction de la position du "+" des stickers si présent
-  function waitForStickers(mutations, observer) {
-    var close = document.getElementById("f-close");
-    if(close !== null && close.textContent === "+") {
-      close.style.left = "auto";
-      close.style.right = "40px";
-    }
-  }
-  var observer = new MutationObserver(waitForStickers);
-  observer.observe(parent_container, {
-    attributes: false,
-    childList: true,
-    characterData: false,
-    subtree: true
-  });
 }
 
 /*
   Construction du panneau des smileys avec les trois onglets {top, historique, favoris)
 */
-function BuildYourSmileysPanel(parentPanel, clickable) {
+function BuildYourSmileysPanel(parentPanel, clickable, panel_height, panel_width) {
   LoadSmileyStats();
 
   // 1) Panneau Top
 
-  displaySmileysInPanel(smileyStats, key_tab_top, key_tab_top_content, key_prefix_top,
-    tab_top_title, "Vos " + sm_count + " smileys les plus utilisés", parentPanel, clickable);
+  displaySmileysInPanel(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top,
+    tab_top_title, "Vos " + sm_count + " smileys les plus utilisés", parentPanel, clickable, panel_height, panel_width);
 
   // 2) Panneau Historique
 
-  var smileysHistoryStats = sortAssocHistory(smileyStats);
-  displaySmileysInPanel(smileysHistoryStats, key_tab_history, key_tab_history_content, key_prefix_hist,
-    tab_history_title, "Vos " + sm_count + " smileys les plus récents", parentPanel, clickable);
+  displaySmileysInPanel(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist,
+    tab_history_title, "Vos " + sm_count + " smileys les plus récents", parentPanel, clickable, panel_height, panel_width);
 
   // 3) Panneau Favoris
 
-  displaySmileysInPanel(smileyStats, key_tab_favorite, key_tab_favorite_content, key_prefix_fav,
-    tab_favorite_title, null, parentPanel, clickable);
+  displaySmileysInPanel(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav,
+    tab_favorite_title, null, parentPanel, clickable, panel_height, panel_width);
 
   if(parentPanel.id == key_smiley_panel) {
     // Affiche l'onglet précédemment affiché par l'utilisateur
@@ -1735,7 +1772,8 @@ function ShowThisTab(key_tab) {
 
 /*
   Affiche la liste des smileys dans le panneau indiqué
-  smileysList : liste des smileys
+
+  smileyArray : tableau des smileys ordonné en fonction de l'onglet
   tab_key : type du panneau
   id_panel : id du sous-panneau à créer
   prefix_id : préfixe de l'id du conteneur de chaque image
@@ -1743,8 +1781,10 @@ function ShowThisTab(key_tab) {
   tips_title : texte en haut du sous-panneau décrivant son utilité,
   parentPanel : panneau parent hébergeant le sous-panneau
   clickable : est-ce que le smiley peut-être selectioné pour un message (oui en réponse normale, non en fenêtre de conf)
+  panel_height : hauteur
+  panel_width : largeur
 */
-function displaySmileysInPanel(smileysList, tab_key, id_panel, prefix_id, tab_title, tips_title, parentPanel, clickable) {
+function displaySmileysInPanel(smileyArray, tab_key, id_panel, prefix_id, tab_title, tips_title, parentPanel, clickable, panel_height, panel_width) {
   var panel = document.createElement("div");
   panel.id = tab_key;
   panel.className = "tabbertab";
@@ -1764,14 +1804,15 @@ function displaySmileysInPanel(smileysList, tab_key, id_panel, prefix_id, tab_ti
   var smileys_table = document.createElement("div");
   smileys_table.id = id_panel;
   smileys_table.style.overflow = "auto";
-  smileys_table.style.maxHeight = panel_max_height;
+  smileys_table.style.height = panel_height;
+  smileys_table.style.width = panel_width;
 
-  rebuildSmileyTabContent(smileysList, tab_key, smileys_table, prefix_id, clickable);
+  rebuildSmileyTabContent(smileyArray, tab_key, smileys_table, prefix_id, clickable);
 
   panel.appendChild(smileys_table);
 }
 
-function rebuildSmileyTabContent(smileysList, tab_key, smileys_table, prefix_id, clickable) {
+function rebuildSmileyTabContent(smileyArray, tab_key, smileys_table, prefix_id, clickable) {
   // Suppression du contenu existant
   while(smileys_table.hasChildNodes()) {
     smileys_table.removeChild(smileys_table.lastChild);
@@ -1781,18 +1822,18 @@ function rebuildSmileyTabContent(smileysList, tab_key, smileys_table, prefix_id,
   var i = 0;
 
   // Construction des smileys
-  for(var k in smileysList) {
+  for(var j = 0; j < smileyArray.length; ++j) {
     if(tab_key != key_tab_favorite && i == sm_count) {
       // Pour les panneaux autres que celui des favoris, une limite de nombre de smiley est appliquée
       break;
     }
 
-    var smiley = smileyStats[k];
+    var smiley = smileyArray[j];
 
     var displayThisSmiley = false;
 
     // Détermination si on affiche ce smiley
-    switch(tab_key) {
+    switch (tab_key) {
       case key_tab_top:
       case key_tab_history:
         if(!smiley.fav || sm_include_fav) {
@@ -1811,7 +1852,7 @@ function rebuildSmileyTabContent(smileysList, tab_key, smileys_table, prefix_id,
     if(displayThisSmiley) {
       // Ajout du smiley dans le panneau
       AddSmileyToPanel(smiley, tab_key, smileys_table, i, prefix_id, clickable);
-      i++;
+      ++i;
     }
   }
 
@@ -1836,6 +1877,7 @@ function displayAucun(parent) {
 
 /*
   Ajoute un smiley au panneau désigné
+
   smiley : objet smiley
   tab_key : type du panneau
   smileys_table : objet graphique contenant les smileys graphiques du panneau
@@ -1877,7 +1919,7 @@ function AddSmileyToPanel(smiley, tab_key, smileys_table, i, prefix_id, clickabl
     var statInfoText = null;
     var statInfoToolTipText = null;
 
-    switch(tab_key) {
+    switch (tab_key) {
       case key_tab_top:
         statInfoText = smiley.s;
         statInfoToolTipText = smiley.s + " fois";
@@ -2073,8 +2115,7 @@ function ValidateFunction(fastEditMsgId) {
     var newSmileyList = new Array;
     var newSmileyCount = 0;
 
-    for(var i in smileysList_New) // Pour chaque smiley trouvé
-    {
+    for(var i in smileysList_New) { // Pour chaque smiley trouvé
       var smiley_New = smileysList_New[i];
 
       // Recherche si ce smiley était déjà présent avant l'édition
@@ -2096,7 +2137,7 @@ function ValidateFunction(fastEditMsgId) {
 
       if(smiley == null) {
         newSmileyList.push(smiley_New.code);
-        newSmileyCount++;
+        ++newSmileyCount;
 
         // Nouveau smiley, nouvelle entrée
 
@@ -2117,12 +2158,13 @@ function ValidateFunction(fastEditMsgId) {
       } else {
         msg = newSmileyCount + " nouveaux smileys ont été trouvés :\n\n";
         for(var s = 0; s < newSmileyList.length; ++s) {
-          if(s === newSmileyList.length - 2)
+          if(s === newSmileyList.length - 2) {
             msg += newSmileyList[s] + " et ";
-          else if(s === newSmileyList.length - 1)
+          } else if(s === newSmileyList.length - 1) {
             msg += newSmileyList[s];
-          else
+          } else {
             msg += newSmileyList[s] + ", ";
+          }
         }
       }
 
@@ -2205,16 +2247,18 @@ var cmScript = {
   },
 
   setBackgroundPosition: function() {
-    cmScript.backgroundDiv.style.width = document.documentElement.clientWidth + "px";
-    cmScript.backgroundDiv.style.height = document.documentElement.offsetHeight + "px";
+    cmScript.backgroundDiv.style.width = document.documentElement.scrollWidth + "px";
+    cmScript.backgroundDiv.style.height = document.documentElement.scrollHeight + "px";
     cmScript.backgroundDiv.style.top = "0";
   },
 
   setConfigWindowPosition: function() {
-    if(parseInt(cmScript.configDiv.clientHeight) > this.configHeight)
+    if(parseInt(cmScript.configDiv.clientHeight) > this.configHeight) {
       this.configHeight = parseInt(cmScript.configDiv.clientHeight);
-    if(parseInt(cmScript.favoriteDiv.clientHeight) > this.favoriteHeight)
+    }
+    if(parseInt(cmScript.favoriteDiv.clientHeight) > this.favoriteHeight) {
       this.favoriteHeight = parseInt(cmScript.favoriteDiv.clientHeight);
+    }
     cmScript.configDiv.style.left = (document.documentElement.clientWidth / 2) -
       (parseInt(cmScript.configDiv.style.width) / 2) + window.scrollX + "px";
     cmScript.configDiv.style.top = (document.documentElement.clientHeight / 2) -
@@ -2257,7 +2301,7 @@ var cmScript = {
         clearInterval(cmScript.timer);
         cmScript.hideConfigWindow();
       }, false);
-      cssManager.addCssProperties("#sm_back{display:none;position:absolute;left:0px;top:0px;background-color:#242424;z-index:1001;}");
+      cssManager.addCssProperties("#sm_back{display:none;position:fixed;left:0;top:0;background-color:#242424;z-index:1001;}");
       document.body.appendChild(cmScript.backgroundDiv);
     }
   },
@@ -2269,7 +2313,7 @@ var cmScript = {
   buildConfigWindow: function() {
     // Styles de la fenêtre
     cssManager.addCssProperties(".sm_front{display:none;vertical-align:bottom;position:fixed;z-index:1002;border:1px dotted #778;" +
-                                "padding:8px;text-align:center;font-family:Verdana,Arial,Sans-serif,Helvetica;}");
+      "padding:8px;text-align:center;font-family:Verdana,Arial,Sans-serif,Helvetica;}");
     cssManager.addCssProperties(".sm_front dl{clear:both;margin:0;}");
     cssManager.addCssProperties(".sm_front dt{float:left;width:80%;text-align:right;font-size:14px;margin-bottom:10px;}");
     cssManager.addCssProperties(".sm_front dd{float:left;font-size:14px;margin-left:20px;}");
@@ -2358,6 +2402,9 @@ var cmScript = {
     this.addCheckBoxField(formular, "Inclure les favoris dans les onglets \"Top\" et \"Historique\"",
       key_sm_include_fav, sm_include_fav, true);
 
+    this.addCheckBoxField(formular, "Trier les smileys favoris par nom au lieu du tri par \"Top\"",
+      key_sm_sort_fav, sm_sort_fav, true);
+
     this.addCheckBoxField(formular, "Afficher vos smileys favoris à côté de la réponse rapide",
       key_sm_fast_reply, sm_fast_reply, true);
 
@@ -2385,6 +2432,7 @@ var cmScript = {
     note.innerHTML = "Si vous changez ces réglages, vous devrez actualiser la page afin qu'ils soient appliqués.";
     note.style.cssFloat = "left";
     note.style.fontSize = "10px";
+    note.style.color = "crimson";
     note.style.fontWeight = "bold";
     note.style.margin = "16px 0 0 16px";
     formular.appendChild(note);
@@ -2590,8 +2638,9 @@ var cmScript = {
       inputField.type = "radio";
       inputField.id = field_id + "_" + i;
       inputField.setAttribute("name", field_id);
-      if(i === field_value)
+      if(i === field_value) {
         inputField.checked = true;
+      }
       dd.appendChild(inputField);
       var inputLabel = document.createElement("label");
       inputLabel.setAttribute("for", field_id + "_" + i);
@@ -2725,7 +2774,7 @@ var cmScript = {
 
     smileysList = smileysList.getUnique("alt"); // case insensitive!
 
-    for(var i = 0; i < smileysList.length; i++) {
+    for(var i = 0; i < smileysList.length; ++i) {
       var smiley_code = smileysList[i];
       smiley_code = smiley_code.replace(/^:O$/, ":o").replace(/^:P$/, ":p").replace(/^:d$/, ":D");
       var smiley = smileyStats[smiley_code];
@@ -2762,7 +2811,7 @@ var cmScript = {
   validateConfig: function() {
     getElementByXpath(".//input[starts-with(@id, \"sm_\")]", document.getElementById("sm_configWindow")).
     forEach(function(input) {
-      switch(input.type) {
+      switch (input.type) {
         case "text":
           // Enregistrement du réglage
           GM_setValue(input.name, input.value);
@@ -2804,7 +2853,7 @@ var cmScript = {
       if(opacity >= 0.8) {
         clearInterval(cmScript.timer);
 
-        switch(windowToShow) {
+        switch (windowToShow) {
           case key_window_config:
             cmScript.configDiv.style.display = "block";
             break;
@@ -2813,6 +2862,7 @@ var cmScript = {
             break;
         }
 
+        cmScript.setBackgroundPosition();
         cmScript.setConfigWindowPosition();
 
         if(key_tab !== undefined && key_tab !== null) {
@@ -2878,14 +2928,15 @@ function BuildYourSmileysContentTab(yourSmileysTabId) {
 
     // suppression du contenu de "Vos smileys"
     var yourSmileysContent = yourSmileysTab.querySelector("div[id=\"" + key_tab_yoursmileys_content + "\"]");
-    if(yourSmileysContent !== null)
+    if(yourSmileysContent !== null) {
       yourSmileysTab.removeChild(yourSmileysContent);
+    }
 
     // construction du nouveau contenu de "Vos smileys"
     yourSmileysContent = document.createElement("div");
     yourSmileysContent.id = key_tab_yoursmileys_content;
     yourSmileysContent.className = "tabber";
-    BuildYourSmileysPanel(yourSmileysContent, false);
+    BuildYourSmileysPanel(yourSmileysContent, false, panel_max_height, panel_max_width);
     yourSmileysTab.insertBefore(yourSmileysContent, yourSmileysTab.lastElementChild);
 
     // initialisation des onglets dans le contenu de "Vos smileys"
@@ -2942,7 +2993,7 @@ var tabberOptions = {
   Sauvegarde de l'onglet actuellement affiché
 */
 function SaveCurrentShownTab(title) {
-  switch(title) {
+  switch (title) {
     case tab_top_title:
       sm_current_tab = key_tab_top;
       break;
@@ -3120,7 +3171,7 @@ tabberObj.prototype.init = function(e) {
 
   /* Loop through an array of all the child nodes within our tabber element. */
   childNodes = e.childNodes;
-  for(i = 0; i < childNodes.length; i++) {
+  for(i = 0; i < childNodes.length; ++i) {
 
     /* Find the nodes where class="tabbertab" */
     if(childNodes[i].className &&
@@ -3148,7 +3199,7 @@ tabberObj.prototype.init = function(e) {
   DOM_ul.className = this.classNav;
 
   /* Loop through each tab we found */
-  for(i = 0; i < this.tabs.length; i++) {
+  for(i = 0; i < this.tabs.length; ++i) {
 
     t = this.tabs[i];
 
@@ -3170,7 +3221,7 @@ tabberObj.prototype.init = function(e) {
          So try to get the title from an element within the DIV.
          Go through the list of elements in this.titleElements
          (typically heading elements ["h2","h3","h4"]) */
-      for(i2 = 0; i2 < this.titleElements.length; i2++) {
+      for(i2 = 0; i2 < this.titleElements.length; ++i2) {
         headingElement = t.div.getElementsByTagName(this.titleElements[i2])[0];
         if(headingElement) {
           t.headingText = headingElement.innerHTML;
@@ -3310,7 +3361,7 @@ tabberObj.prototype.tabHideAll = function() {
   var i; /* counter */
 
   /* Hide all tabs and make all navigation links inactive */
-  for(i = 0; i < this.tabs.length; i++) {
+  for(i = 0; i < this.tabs.length; ++i) {
     this.tabHide(i);
   }
 };
@@ -3417,7 +3468,7 @@ function InitTabSystem(tabberArgs, rootDiv) {
   /* First get an array of all DIV elements and loop through them */
   divs = rootDiv.getElementsByTagName("div");
 
-  for(i = 0; i < divs.length; i++) {
+  for(i = 0; i < divs.length; ++i) {
     /* Is this DIV the correct class? */
     if(divs[i].className && divs[i].className.match(tempObj.REclassMain)) {
       /* Now tabify the DIV */
