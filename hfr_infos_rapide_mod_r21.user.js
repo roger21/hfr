@@ -1,15 +1,19 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.0.1
+// @version       4.0.2
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
-// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @exclude       https://forum.hardware.fr/message.php*
 // @author        roger21
 // @authororig    toyonos
 // @modifications Basé sur la version 3 (ou c) - Ajout du statut (membre, modal, etc.), suppression de l'info de region (désactivée sur le forum), meilleur calcul de l'age, ajout de l'avatar sur les pseudo des citations (et ceux de [HFR] Postal Recall) et ajout de la gestion de l'affichage et de l'édition des mots-clés des smileys persos et de l'insertion des smileys persos dans l'édition rapide ou la réponse rapide.
 // @modtype       réécriture et évolutions
+// @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_infos_rapide_mod_r21.user.js
+// @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_infos_rapide_mod_r21.user.js
+// @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_infos_rapide_mod_r21.user.js
+// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         GM.openInTab
@@ -33,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1547 $
+// $Rev: 1590 $
 
 // historique :
+// 4.0.2 (13/02/2020) :
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 4.0.1 (30/01/2020) :
 // - ajout du lien vers la page du smiley sur le wiki sur le code du smiley dans la popup d'édition
 // - prise en compte du bouton du clic pour l'ouverture du profil (gauche -> premier plan, milieu -> arrière plan)

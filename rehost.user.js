@@ -1,11 +1,15 @@
 // ==UserScript==
 // @name          Rehost
-// @version       1.1.6
+// @version       1.1.7
 // @namespace     roger21.free.fr
 // @description   Version en script Greasemonkey de l'extension reho.st pour Firefox qui permet de générer, dans le presse-papier, le BBCode de réhébergement d'une image sur reho.st à partir du menu contextuel de l'image.
-// @icon          https://reho.st/self/f87acf6712efa617e6edcd330fdc1f6c0d34a086.png
+// @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAA3UlEQVR42mP4T2PAMGoBSRYwYABMceJFBs4CigJkgC2gQpQOsAWUBxFRyRRNxYV77xbvu7%2F55JMfP%2F9sOvFkyb57W08%2FpaYFQNPda%2FeHtB12qd7nWLEHSE7YcJ2aQQSxAIgS%2B4%2Bfuvlm3dFH7z79%2FPfvH9UiGWKBY%2BXe33%2F%2B4jKXChakTDxJq1QEsSBt8klapSJMC%2BABRTDEyLTg8ePHXGAAZNAkiBobGyEqgQwqRPLcnXesS3bH9hxD9gEnGJDsA%2FwAM%2Bgx42BQlkWDy4LBUWVSUt0PtAWjTccBsQAADls0nT6oOB0AAAAASUVORK5CYII%3D
 // @include       *
 // @author        roger21
+// @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/rehost.user.js
+// @installURL    https://raw.githubusercontent.com/roger21/hfr/master/rehost.user.js
+// @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/rehost.user.js
+// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @grant         GM.getValue
 // @grant         GM_getValue
@@ -35,9 +39,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1473 $
+// $Rev: 1590 $
 
 // historique :
+// 1.1.7 (13/02/2020) :
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.1.6 (11/01/2020) :
 // - mise à jour des images des boutons de la fenêtre de configuration
 // 1.1.5 (10/11/2019) :

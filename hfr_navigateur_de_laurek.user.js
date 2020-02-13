@@ -1,12 +1,16 @@
 // ==UserScript==
 // @name          [HFR] Navigateur de laureka
-// @version       3.1.2
+// @version       3.1.3
 // @namespace     roger21.free.fr
 // @description   Ajoute une barre de navigation qui permet de naviguer directement d'un laureka à l'autre sur le topic culture générale (la barre a de nombreuses options, voir les tooltips pour les détails).
-// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=13&subcat=423&post=95092*
 // @include       https://forum.hardware.fr/hfr/Discussions/Societe/*sujet_95092_*.htm*
 // @author        roger21
+// @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_navigateur_de_laurek.user.js
+// @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_navigateur_de_laurek.user.js
+// @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_navigateur_de_laurek.user.js
+// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         GM.deleteValue
@@ -19,7 +23,7 @@
 
 /*
 
-Copyright © 2014-2019 roger21@free.fr
+Copyright © 2014-2020 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -34,9 +38,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1262 $
+// $Rev: 1590 $
 
 // historique :
+// 3.1.3 (13/02/2020) :
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 3.1.2 (07/11/2019) :
 // - adaptation du code pour la compatibilité avec [HFR] Anti HS mod_r21 3.2.7+ ->
 // (ajout d'une espace après les liens de page dans les tableaux des topics)

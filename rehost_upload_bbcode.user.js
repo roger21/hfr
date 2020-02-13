@@ -1,12 +1,16 @@
 // ==UserScript==
 // @name          Rehost Upload BBCode
-// @version       1.4.2
+// @version       1.4.3
 // @namespace     roger21.free.fr
 // @description   Remplace les liens vers la page de visualisation par des liens vers l'image pleine taille dans le BBCode des images uploadées sur reho.st.
-// @icon          https://reho.st/self/f87acf6712efa617e6edcd330fdc1f6c0d34a086.png
+// @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAA3UlEQVR42mP4T2PAMGoBSRYwYABMceJFBs4CigJkgC2gQpQOsAWUBxFRyRRNxYV77xbvu7%2F55JMfP%2F9sOvFkyb57W08%2FpaYFQNPda%2FeHtB12qd7nWLEHSE7YcJ2aQQSxAIgS%2B4%2Bfuvlm3dFH7z79%2FPfvH9UiGWKBY%2BXe33%2F%2B4jKXChakTDxJq1QEsSBt8klapSJMC%2BABRTDEyLTg8ePHXGAAZNAkiBobGyEqgQwqRPLcnXesS3bH9hxD9gEnGJDsA%2FwAM%2Bgx42BQlkWDy4LBUWVSUt0PtAWjTccBsQAADls0nT6oOB0AAAAASUVORK5CYII%3D
 // @include       http://reho.st/upload
 // @include       https://reho.st/upload
 // @author        roger21
+// @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/rehost_upload_bbcode.user.js
+// @installURL    https://raw.githubusercontent.com/roger21/hfr/master/rehost_upload_bbcode.user.js
+// @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/rehost_upload_bbcode.user.js
+// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
@@ -14,7 +18,7 @@
 
 /*
 
-Copyright © 2013-2015, 2018-2019 roger21@free.fr
+Copyright © 2013-2015, 2018-2020 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -29,9 +33,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1153 $
+// $Rev: 1590 $
 
 // historique :
+// 1.4.3 (13/02/2020) :
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.4.2 (02/10/2019) :
 // - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
 // 1.4.1 (18/09/2019) :

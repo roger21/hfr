@@ -1,11 +1,15 @@
 // ==UserScript==
 // @name          [HFR] Arc-en-ciel
-// @version       1.2.6
+// @version       1.2.7
 // @namespace     roger21.free.fr
 // @description   Permet de colorer le texte sélectionné en arc-en-ciel avec ctrl+alt+g dans les zones d'édition et de rédaction des posts (ou avec le bouton dans la réponse et l'édition normale).
-// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
+// @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_arc_en_ciel.user.js
+// @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_arc_en_ciel.user.js
+// @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_arc_en_ciel.user.js
+// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
@@ -28,9 +32,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1440 $
+// $Rev: 1590 $
 
 // historique :
+// 1.2.7 (13/02/2020) :
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.2.6 (07/01/2020) :
 // - amélioration et nettoyage (et correction) du code
 // - correction du focus sur la réponse après la coloration

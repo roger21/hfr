@@ -1,14 +1,18 @@
 // ==UserScript==
 // @name          [HFR] Anti Rehost mod_r21
-// @version       2.4.3
+// @version       2.4.4
 // @namespace     roger21.free.fr
 // @description   Supprime le réhostage des images quand c'est possible (utile quand reho.st est innaccessible).
-// @icon          http://roger21.free.fr/sav/roger21_hfr.png
+// @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
 // @authororig    mycrub
 // @modifications Gestion du passage à reho.st et au https, gestion de toutes les adresses possibles et traitement des liens en plus des images.
 // @modtype       réécriture et évolutions
+// @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_anti_rehost_mod_r21.user.js
+// @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_anti_rehost_mod_r21.user.js
+// @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_anti_rehost_mod_r21.user.js
+// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
@@ -31,9 +35,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1578 $
+// $Rev: 1590 $
 
 // historique :
+// 2.4.4 (13/02/2020) :
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - correction pour la prise en compte des urls uploadées pour les gifs (à ne pas dé-rého.ster)
 // 2.4.3 (11/02/2020) :
 // - correction des regexp pour exclure les urls brutes (i.e. sans contenu)
 // 2.4.2 (02/10/2019) :
@@ -98,15 +105,19 @@ var rehost = [
   "http://reho.st/preview/(?:https?://)?self/",
   "http://reho.st/thumb/(?:https?://)?self/",
   "http://reho.st/view/(?:https?://)?self/",
+  "http://reho.st/view/gif/",
   "http://reho.st/fullview/(?:https?://)?self/",
   "http://reho.st/fullsize/(?:https?://)?self/",
+  "http://reho.st/gif/",
   "http://reho.st/(?:https?://)?self/",
   "https://reho.st/medium/(?:https?://)?self/",
   "https://reho.st/preview/(?:https?://)?self/",
   "https://reho.st/thumb/(?:https?://)?self/",
   "https://reho.st/view/(?:https?://)?self/",
+  "https://reho.st/view/gif/",
   "https://reho.st/fullview/(?:https?://)?self/",
   "https://reho.st/fullsize/(?:https?://)?self/",
+  "https://reho.st/gif/",
   "https://reho.st/(?:https?://)?self/",
   "http://reho.st/medium/",
   "http://reho.st/preview/",
@@ -121,10 +132,10 @@ var rehost = [
   "https://reho.st/view/",
   "https://reho.st/fullview/",
   "https://reho.st/fullsize/",
-  "https://reho.st/"
+  "https://reho.st/",
 ];
 
-var rehost_not_rehost_limit = 14;
+var rehost_not_rehost_limit = 18;
 
 var imgs = document.querySelectorAll("td.messCase2 > div[id^='para'] img");
 for(let img of imgs) {

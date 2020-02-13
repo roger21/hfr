@@ -1,11 +1,15 @@
 // ==UserScript==
 // @name          [HFR] Last Post Super Light
-// @version       1.1.0
+// @version       1.1.1
 // @namespace     roger21.free.fr
 // @description   Version fortement allégée de [HFR] Last Post Highlight, sans fenêtre de configuration ni sections optionnelles ni réparation d'ancres (configuration possible des couleurs des leds et de la ligne de séparation dans le code).
-// @icon          https://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
+// @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_last_post_super_ligh.user.js
+// @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_last_post_super_ligh.user.js
+// @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_last_post_super_ligh.user.js
+// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         none
@@ -28,9 +32,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1537 $
+// $Rev: 1590 $
 
 // historique :
+// 1.1.1 (13/02/2020) :
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.1.0 (30/01/2020) :
 // - ajout d'une option de configuration pour permettre la navigation sur les leds
 // 1.0.0 (24/11/2019) :
