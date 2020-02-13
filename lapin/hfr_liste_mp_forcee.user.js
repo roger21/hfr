@@ -1,7 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Liste MP forcée
-// @version       0.9.0
-// @icon          http://reho.st/self/40f387c9f48884a57e8bbe05e108ed4bd59b72ce.png
+// @version       0.9.1
 // @namespace     roger21.free.fr
 // @description   remplace le lien "Vous avez 1 nouveau message privé" par le lien générique de la page des messages privés, au lieu d'ouvrir directement un éventuel MP non lu.
 // @include       https://forum.hardware.fr/*
@@ -10,6 +9,8 @@
  
 
 // historique :
+// 0.9.1 (09/03/2018) :
+// - suppression de l'icone du script chez reho.st (non remplacé)
 // 0.9.0 (09/03/2018) :
 // - création
  
