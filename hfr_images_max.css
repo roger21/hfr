@@ -1,13 +1,13 @@
 /* @name          [HFR] images max */
 /* @version       1.0.1 */
 /* @namespace     roger21.free.fr */
-/* @description   permet de limiter par défaut la taille maximale des images */
-/* @revision      $Rev: 1023 $ */
+/* @description   permet de limiter par dÃ©faut la taille maximale des images */
+/* @revision      $Rev: 1594 $ */
 
 /*
 historique :
 1.0.1 (23/08/2019) :
-- suppression du @namesapce pour la compatibilité avec Stylus
+- suppression du @namesapce pour la compatibilitÃ© avec Stylus
 1.0.0 (21/04/2019) :
 - creation
 */
@@ -15,8 +15,8 @@ historique :
 @-moz-document domain("forum.hardware.fr") {
 
   table td.messCase2 div[id^='para'] img{
-    max-width:1600px; /* à adapter à la taille que vous voulez */
-    /*max-height:800px;*/ /* à décomenter et à adapter pour limiter aussi les images en hauteur */
+    max-width:1600px; /* Ã  adapter Ã  la taille que vous voulez */
+    /*max-height:800px;*/ /* Ã  dÃ©comenter et Ã  adapter pour limiter aussi les images en hauteur */
   }
 
 }
