@@ -1,11 +1,15 @@
-/* @name          [HFR] monkey topic */
-/* @version       1.0.1 */
-/* @namespace     roger21.free.fr */
-/* @description   permet de décorer le titre du topic des scripts greasemonkey avec des têtes de singe dans la liste des topics */
-/* @revision      $Rev: 1594 $ */
+/* ==UserStyle==
+@name          [HFR] Monkey Topic
+@version       1.0.2
+@namespace     roger21.free.fr
+@description   Permet de décorer le titre du topic des scripts greasemonkey avec des têtes de singe dans la liste des topics.
+@revision      $Rev: 1595 $
+==/UserStyle== */
 
 /*
 historique :
+1.0.2 (13/02/2020) :
+- mise en forme des metadata pour la compatibilité avec Stylus
 1.0.1 (23/08/2019) :
 - suppression du @namesapce pour la compatibilité avec Stylus
 1.0.0 (29/04/2018) :

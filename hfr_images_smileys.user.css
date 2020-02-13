@@ -1,11 +1,15 @@
-/* @name          [HFR] images smileys */
-/* @version       1.2.0 */
-/* @namespace     roger21.free.fr */
-/* @description   permet un affichage identique des images et des smileys (sans marge) */
-/* @revision      $Rev: 1594 $ */
+/* ==UserStyle==
+@name          [HFR] Images Smileys
+@version       1.2.1
+@namespace     roger21.free.fr
+@description   Permet un affichage identique des images et des smileys (sans marge).
+@revision      $Rev: 1595 $
+==/UserStyle== */
 
 /*
 historique :
+1.2.1 (13/02/2020) :
+- mise en forme des metadata pour la compatibilité avec Stylus
 1.2.0 (20/09/2019) :
 - ajout du support pour le script [HFR] Taille des images
 1.1.1 (23/08/2019) :
