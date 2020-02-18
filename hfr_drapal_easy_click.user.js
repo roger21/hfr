@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Drapal Easy Click
-// @version       1.8.4
+// @version       1.8.5
 // @namespace     roger21.free.fr
 // @description   Permet de cliquer sur la case du drapal au lieu d'avoir à viser le drapal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -35,9 +35,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 1612 $
 
 // historique :
+// 1.8.5 (18/02/2020) :
+// - prise en compte de l'attribut target _blank sur les drapals
+// - correction de l'option en dur drapals_refresh à false par défaut
 // 1.8.4 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.8.3 (02/10/2019) :
@@ -107,9 +110,9 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 1.0.1 (14/09/2012) :
 // - ajout des metadata @grant
 
-/* options en dur */
+// options en dur
 var open_in_background = true;
-var drapals_refresh = true;
+var drapals_refresh = false;
 var refresh_delay = 5000; // 5 secondes
 
 // compatibilité gm4
@@ -134,6 +137,57 @@ function page_refresh() {
 }
 var refresh_timer = null;
 
+// fonction de gestion du mouseup sur la case du drapal
+function mouseup(e) {
+  e.preventDefault();
+  if(e.target === this) {
+    if((this.firstElementChild.hasAttribute("target") &&
+        this.firstElementChild.getAttribute("target") === "_blank") ||
+      ((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) ||
+      ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
+      if(this.firstElementChild.hasAttribute("href")) {
+        GM.openInTab(this.firstElementChild.href, open_in_background);
+      } else if(this.firstElementChild.dataset.href) {
+        GM.openInTab(this.firstElementChild.dataset.href, open_in_background);
+      }
+      if(drapals_refresh) {
+        window.clearTimeout(refresh_timer);
+        refresh_timer = window.setTimeout(page_refresh, refresh_delay);
+      }
+    } else if((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+      if(this.firstElementChild.hasAttribute("href")) {
+        window.location.href = this.firstElementChild.href;
+      } else if(this.firstElementChild.dataset.href) {
+        window.location.href = this.firstElementChild.dataset.href;
+      }
+    }
+  }
+}
+
+// fonction de gestion du dblclick sure la case du topic
+function dblclick(e) {
+  e.preventDefault();
+  let drapal = this.parentElement.querySelector("td.sujetCase5 a");
+  if(drapal.hasAttribute("target") &&
+    drapal.getAttribute("target") === "_blank") {
+    if(drapal.hasAttribute("href")) {
+      GM.openInTab(drapal.href, open_in_background);
+    } else if(drapal.dataset.href) {
+      GM.openInTab(drapal.dataset.href, open_in_background);
+    }
+    if(drapals_refresh) {
+      window.clearTimeout(refresh_timer);
+      refresh_timer = window.setTimeout(page_refresh, refresh_delay);
+    }
+  } else {
+    if(drapal.hasAttribute("href")) {
+      window.location.href = drapal.href;
+    } else if(drapal.dataset.href) {
+      window.location.href = drapal.dataset.href;
+    }
+  }
+}
+
 // recherche des cases des drapals
 var cells = document.querySelectorAll("tr[class^=\"sujet ligne_booleen\"] > td.sujetCase5");
 for(let cell of cells) {
@@ -147,32 +201,11 @@ for(let cell of cells) {
     cell.style.cursor = "pointer";
     // gestion du clic, du ctrl-clic et du clic-milieu
     cell.addEventListener("mousedown", function(e) {
-      if(e.ctrlKey) {
+      if(e.button === 1 || e.ctrlKey) {
         e.preventDefault();
       }
     }, false);
-    cell.addEventListener("mouseup", function(e) {
-      if(e.target === this) {
-        if(((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) ||
-           ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
-          if(this.firstElementChild.hasAttribute("href")) {
-            GM.openInTab(this.firstElementChild.href, open_in_background);
-          } else if(this.firstElementChild.dataset.href) {
-            GM.openInTab(this.firstElementChild.dataset.href, open_in_background);
-          }
-          if(drapals_refresh) {
-            window.clearTimeout(refresh_timer);
-            refresh_timer = window.setTimeout(page_refresh, refresh_delay);
-          }
-        } else if((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-          if(this.firstElementChild.hasAttribute("href")) {
-            window.location.href = this.firstElementChild.href;
-          } else if(this.firstElementChild.dataset.href) {
-            window.location.href = this.firstElementChild.dataset.href;
-          }
-        }
-      }
-    }, false);
+    cell.addEventListener("mouseup", mouseup, false);
     // gestion de l'effet sur mouseover
     cell.addEventListener("mouseover", function(e) {
       //this.style.backgroundColor = "rgba(0,0,0,0.3)";
@@ -185,13 +218,6 @@ for(let cell of cells) {
     // gestion du dblclick
     let topic = cell.parentElement.querySelector("td.sujetCase3");
     topic.removeAttribute("ondblclick");
-    topic.addEventListener("dblclick", function(e) {
-      e.preventDefault();
-      if(cell.firstElementChild.hasAttribute("href")) {
-        window.location.href = cell.firstElementChild.href;
-      } else if(cell.firstElementChild.dataset.href) {
-        window.location.href = cell.firstElementChild.dataset.href;
-      }
-    }, false);
+    topic.addEventListener("dblclick", dblclick, false);
   }
 }
