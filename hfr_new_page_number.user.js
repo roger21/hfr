@@ -40,11 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1631 $
+// $Rev: 1639 $
 
 // historique :
 // 2.8.0 (20/02/2020) :
-// - ajout d'une double option pour ouvrir les draplas dans un nouvel onglet
+// - ajout d'une double option pour ouvrir les drapals dans un nouvel onglet
 // - correction de la gestion des attributs spécifiques du script
 // - ajout d'une tempo sur l'actualisation du drapal sur l'ouverture en masse ->
 // pour éventuellement permettre une actualisation plus fiable
