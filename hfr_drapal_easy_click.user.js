@@ -35,10 +35,10 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1633 $
+// $Rev: 1636 $
 
 // historique :
-// 1.8.6 (18/02/2020) :
+// 1.8.6 (20/02/2020) :
 // - prise en compte des attributs de [HFR] New Page Number pour l'ouverture des drapals dans un nouvel onglet
 // 1.8.5 (18/02/2020) :
 // - prise en compte de l'attribut target _blank sur les drapals
