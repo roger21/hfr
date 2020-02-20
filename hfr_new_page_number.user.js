@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.7.0
+// @version       2.8.0
 // @namespace     roger21.free.fr
 // @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,15 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1605 $
+// $Rev: 1631 $
 
 // historique :
+// 2.8.0 (20/02/2020) :
+// - ajout d'une double option pour ouvrir les draplas dans un nouvel onglet
+// - correction de la gestion des attributs spécifiques du script
+// - ajout d'une tempo sur l'actualisation du drapal sur l'ouverture en masse ->
+// pour éventuellement permettre une actualisation plus fiable
+// - correction d'un bug visuel sur la fenêtre de conf (suppression de la règle CSS line-height inutile)
 // 2.7.0 (18/02/2020) :
 // - prise en compte de l'attribut target _blank sur les drapals
 // 2.6.9 (13/02/2020) :
@@ -252,6 +258,8 @@ var delay_click;
 var display_totals;
 var refresh_page;
 var delay_page;
+var open_new_tab;
+var new_tab_foreground;
 
 /* timers des refresh */
 var refresh_click_timer = null;
@@ -276,7 +284,8 @@ function refresh() {
 }
 
 function do_refresh_click(e) {
-  if(refresh_click && (e === null || e.ctrlKey || e.shiftKey || e.button === 1)) {
+  if(refresh_click && (e === null || e.ctrlKey || e.shiftKey || e.button === 1 || open_new_tab ||
+      (this.hasAttribute("target") && this.getAttribute("target") === "_blank"))) {
     scheduled_for_refresh = true;
     window.clearTimeout(refresh_click_timer);
     refresh_click_timer = window.setTimeout(refresh, delay_click * 1000);
@@ -449,7 +458,7 @@ style.textContent =
   "#npn_config p{font-size:12px;font-weight:normal;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
   "#npn_config legend{background-color:#ffffff;}" +
   "#npn_config legend.npn_alone{padding:0 3px 2px;}" +
-  "#npn_config p{margin:4px 0 0;line-height:1.4;}" +
+  "#npn_config p{margin:4px 0 0;}" +
   "#npn_config input[type=checkbox]{margin:0 0 1px;vertical-align:text-bottom;}" +
   "#npn_config legend input[type=checkbox]{margin-left:2px;}" +
   "#npn_config input[type=text]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
@@ -609,7 +618,7 @@ npn_p_maxtab.appendChild(document.createTextNode("nombre maximum d'onglets à ou
 var npn_in_maxtab = document.createElement("input");
 npn_in_maxtab.setAttribute("type", "text");
 npn_in_maxtab.setAttribute("size", "2");
-npn_in_maxtab.setAttribute("maxLength", "2");
+npn_in_maxtab.setAttribute("maxlength", "2");
 npn_in_maxtab.setAttribute("pattern", "[1-9]([0-9])?");
 npn_in_maxtab.setAttribute("title", "de 1 à 99 onglets");
 npn_in_maxtab.style.textAlign = "right";
@@ -794,7 +803,7 @@ var npn_in_limit_fixed = document.createElement("input");
 npn_in_limit_fixed.setAttribute("id", "npn_in_limit_fixed");
 npn_in_limit_fixed.setAttribute("type", "text");
 npn_in_limit_fixed.setAttribute("size", "3");
-npn_in_limit_fixed.setAttribute("maxLength", "5");
+npn_in_limit_fixed.setAttribute("maxlength", "5");
 npn_in_limit_fixed.setAttribute("pattern", "[1-9]([0-9])*");
 npn_in_limit_fixed.setAttribute("title", "nombre de pages nécéssaires pour atteindre la couleur de fin");
 npn_in_limit_fixed.style.textAlign = "right";
@@ -845,7 +854,7 @@ npn_p_progress.appendChild(create_help_button(200,
   "une forte disparité dans les nombres des pages en retard."));
 npn_fs_gradient.appendChild(npn_p_progress);
 
-/* option_diverses : smaller_text, go_top, refresh_click, display_totals et refresh_page */
+/* option_diverses : smaller_text, go_top, refresh_click, display_totals, refresh_page et open_new_tab*/
 var npn_fs_misc = document.createElement("fieldset");
 var npn_lg_misc = document.createElement("legend");
 npn_lg_misc.appendChild(document.createTextNode("Options diverses"));
@@ -889,7 +898,7 @@ var npn_in_refreshclick = document.createElement("input");
 npn_in_refreshclick.setAttribute("id", "npn_in_refreshclick");
 npn_in_refreshclick.setAttribute("type", "text");
 npn_in_refreshclick.setAttribute("size", "2");
-npn_in_refreshclick.setAttribute("maxLength", "2");
+npn_in_refreshclick.setAttribute("maxlength", "2");
 npn_in_refreshclick.setAttribute("pattern", "[1-9]([0-9])?");
 npn_in_refreshclick.setAttribute("title", "de 1 à 99 secondes");
 npn_in_refreshclick.style.textAlign = "right";
@@ -925,13 +934,13 @@ var npn_cb_refreshpage = document.createElement("input");
 npn_cb_refreshpage.setAttribute("id", "npn_cb_refreshpage");
 npn_cb_refreshpage.setAttribute("type", "checkbox");
 var npn_lb_refreshpage = document.createElement("label");
-npn_lb_refreshpage.appendChild(document.createTextNode(" recharger la page des drapals toutes les  "));
+npn_lb_refreshpage.appendChild(document.createTextNode(" recharger la page des drapals toutes les "));
 npn_lb_refreshpage.setAttribute("for", "npn_cb_refreshpage");
 var npn_in_refreshpage = document.createElement("input");
 npn_in_refreshpage.setAttribute("id", "npn_in_refreshpage");
 npn_in_refreshpage.setAttribute("type", "text");
 npn_in_refreshpage.setAttribute("size", "2");
-npn_in_refreshpage.setAttribute("maxLength", "2");
+npn_in_refreshpage.setAttribute("maxlength", "2");
 npn_in_refreshpage.setAttribute("pattern", "[1-9]([0-9])?");
 npn_in_refreshpage.setAttribute("title", "de 1 à 99 minutes");
 npn_in_refreshpage.style.textAlign = "right";
@@ -948,6 +957,26 @@ npn_p_refreshpage.appendChild(npn_lb_in_refreshpage);
 npn_p_refreshpage.appendChild(create_help_button(250,
   "Cette option permet de recharger régulièrement et automatiquement la page des drapals."));
 npn_fs_misc.appendChild(npn_p_refreshpage);
+var npn_p_opennewtab = document.createElement("p");
+var npn_cb_opennewtab = document.createElement("input");
+npn_cb_opennewtab.setAttribute("id", "npn_cb_opennewtab");
+npn_cb_opennewtab.setAttribute("type", "checkbox");
+var npn_lb_opennewtab = document.createElement("label");
+npn_lb_opennewtab.appendChild(document.createTextNode(" ouvrir les drapals dans un nouvel onglet "));
+npn_lb_opennewtab.setAttribute("for", "npn_cb_opennewtab");
+var npn_cb_newtabforeground = document.createElement("input");
+npn_cb_newtabforeground.setAttribute("id", "npn_cb_newtabforeground");
+npn_cb_newtabforeground.setAttribute("type", "checkbox");
+var npn_lb_cb_newtabforeground = document.createElement("label");
+npn_lb_cb_newtabforeground.appendChild(document.createTextNode(" au premier plan "));
+npn_lb_cb_newtabforeground.setAttribute("for", "npn_cb_newtabforeground");
+npn_p_opennewtab.appendChild(npn_cb_opennewtab);
+npn_p_opennewtab.appendChild(npn_lb_opennewtab);
+npn_p_opennewtab.appendChild(npn_cb_newtabforeground);
+npn_p_opennewtab.appendChild(npn_lb_cb_newtabforeground);
+npn_p_opennewtab.appendChild(create_help_button(250,
+  "Cette option permet d'ouvrir les drapals sur un simple clic dans un nouvel onglet."));
+npn_fs_misc.appendChild(npn_p_opennewtab);
 
 /* l'info "sans rechargement" et les boutons valider / annuler */
 var npn_di_saveclose = document.createElement("div");
@@ -1035,6 +1064,10 @@ function saveconfig() {
   delay_page = Math.min(delay_page, 99);
   if(isNaN(delay_page)) delay_page = default_delay_page;
   GM.setValue("delay_page", delay_page);
+  open_new_tab = npn_cb_opennewtab.checked;
+  GM.setValue("open_new_tab", open_new_tab);
+  new_tab_foreground = npn_cb_newtabforeground.checked;
+  GM.setValue("new_tab_foreground", new_tab_foreground);
   // réinitialisation des computed colors
   computed_colors = {};
   // masquage de la fenêtre de configuration
@@ -1113,6 +1146,8 @@ function showconfig() {
   npn_cb_displaytotals.checked = display_totals;
   npn_cb_refreshpage.checked = refresh_page;
   npn_in_refreshpage.value = delay_page;
+  npn_cb_opennewtab.checked = open_new_tab;
+  npn_cb_newtabforeground.checked = new_tab_foreground;
   // affichage de la fenêtre de configuration
   npn_config.style.visibility = "visible";
   npn_background.style.visibility = "visible";
@@ -1151,7 +1186,7 @@ for(let row of rows) {
     nb_pages += diff + 1;
     if(diff !== 0) {
       case5.firstElementChild.appendChild(document.createTextNode("\u00a0+" + diff));
-      case5.firstElementChild.setAttribute("npn_multi_page_nb", diff);
+      case5.firstElementChild.setAttribute("data-npn-multi-page-nb", diff);
       case5.firstElementChild.setAttribute("class", "cCatTopic");
       case5.firstElementChild.style.textDecoration = "none";
       case5.firstElementChild.firstElementChild.style.verticalAlign = "-2px";
@@ -1182,21 +1217,18 @@ function drapal_mouseover() {
 /* fonction de gestion du mouseout sur les drapals */
 function drapal_mouseout(e) {
   this.style.backgroundColor = "rgba(255,255,255,0)";
-  this.style.color = this.getAttribute("npn_saved_color");
+  this.style.color = this.getAttribute("data-npn-saved-color");
 }
 
-/* ajout de la gestion du refresh_click sur les drapals */
-var drapals1 = document.querySelectorAll("tr[class^=\"sujet ligne_booleen\"] td.sujetCase5 a");
-for(let drapal1 of drapals1) {
-  drapal1.addEventListener("mouseup", do_refresh_click, false);
+/* ajout de la gestion du refresh_click sur les drapals et de la donnée pour
+la gestion de l'ouverture en masse et de l'ouverture dans un nouvel onglet */
+var drapals = document.querySelectorAll("tr[class^=\"sujet ligne_booleen\"] td.sujetCase5 a");
+for(let drapal of drapals) {
+  drapal.addEventListener("mouseup", do_refresh_click, false);
+  drapal.dataset.href = drapal.href;
 }
 
-/* fonctions de gestion de l'ouverture en masse */
-var drapals2 = document.querySelectorAll("tr[class^=\"sujet ligne_booleen\"] td.sujetCase5 a[npn_multi_page_nb]");
-for(let drapal2 of drapals2) {
-  drapal2.dataset.href = drapal2.href;
-}
-
+/* fonctions de gestion de l'ouverture en masse et de l'ouverture dans un nouvel onglet */
 function drapal_mousedown(e) {
   if(e.button === 1 || e.ctrlKey) {
     e.preventDefault();
@@ -1205,9 +1237,10 @@ function drapal_mousedown(e) {
 
 function drapal_mouseup(e) {
   e.preventDefault();
-  if(mass_opener && (max_tab > 1) && (e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey) {
+  if(mass_opener && (max_tab > 1) && (this.hasAttribute("data-npn-multi-page-nb")) && (e.button === 1) &&
+    !e.altKey && !e.shiftKey && !e.metaKey) {
     // construction du tableau des onglets à ouvrir
-    let local_max_tab = Math.min(max_tab - 1, parseInt(this.getAttribute("npn_multi_page_nb"), 10));
+    let local_max_tab = Math.min(max_tab - 1, parseInt(this.getAttribute("data-npn-multi-page-nb"), 10));
     let base_url = /^(.*)#t[0-9]+$/.exec(this.dataset.href)[1];
     let url_array = [this.dataset.href];
     if(base_url.indexOf(".htm") !== -1) { // url verbeuse
@@ -1230,9 +1263,13 @@ function drapal_mouseup(e) {
       GM.openInTab(url, open_in_background);
     });
     // force l'actualisation du drapal en réouvrant le dernier onglet silencieusement
-    let xhr = new XMLHttpRequest();
-    xhr.open("GET", last_url);
-    xhr.send();
+    window.setTimeout(function() {
+      let xhr = new XMLHttpRequest();
+      xhr.open("GET", last_url);
+      xhr.send();
+    }, 1000);
+  } else if(open_new_tab && (e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+    GM.openInTab(this.dataset.href, new_tab_foreground ? false : open_in_background);
   } else if((this.hasAttribute("target") && this.getAttribute("target") === "_blank") ||
     ((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) ||
     ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
@@ -1310,58 +1347,63 @@ function apply_config() {
   /* modification des drapeaux */
   // actual bigest page number
   actual_bigest_page_number = limit_type === "fixed" ? fixed_limit : bigest_page_number;
-  // gestion des couleurs
-  let drapals1 = document.querySelectorAll("tr[class^=\"sujet ligne_booleen\"] td.sujetCase5 a");
-  for(let drapal1 of drapals1) {
+  let drapals = document.querySelectorAll("tr[class^=\"sujet ligne_booleen\"] td.sujetCase5 a");
+  for(let drapal of drapals) {
+    // gestion des couleurs
     if(color_gradient && (color_start_type !== "trans" || color_end_type !== "trans")) {
-      let colors = !drapal1.hasAttribute("npn_multi_page_nb") ? compute_colors(0) :
+      let colors = !drapal.hasAttribute("data-npn-multi-page-nb") ? compute_colors(0) :
         compute_colors(Math.min(actual_bigest_page_number,
-          parseInt(drapal1.getAttribute("npn_multi_page_nb"), 10)));
-      drapal1.setAttribute("npn_saved_color", colors.text);
-      drapal1.style.color = colors.text;
-      drapal1.parentElement.style.backgroundColor = colors.background;
+          parseInt(drapal.getAttribute("data-npn-multi-page-nb"), 10)));
+      drapal.setAttribute("data-npn-saved-color", colors.text);
+      drapal.style.color = colors.text;
+      drapal.parentElement.style.backgroundColor = colors.background;
     } else {
-      drapal1.setAttribute("npn_saved_color", color_text);
-      drapal1.style.color = color_text;
-      drapal1.parentElement.style.backgroundColor = "transparent";
+      drapal.setAttribute("data-npn-saved-color", color_text);
+      drapal.style.color = color_text;
+      drapal.parentElement.style.backgroundColor = "transparent";
     }
-  }
-  let drapals2 = document.querySelectorAll("a[npn_multi_page_nb]");
-  for(let drapal2 of drapals2) {
-    // taille du texte
-    if(smaller_text) {
-      drapal2.style.fontSize = "9px";
-      if(drapal2.firstElementChild.src.includes("/themes_static/images/CrystalXP/")) {
-        drapal2.style.padding = "7px 7px 3px";
-      } else if(drapal2.firstElementChild.src.includes("/themes_static/images/silk/")) {
-        drapal2.style.padding = "6px 7px 4px";
+    if(drapal.hasAttribute("data-npn-multi-page-nb")) {
+      // gestion de la taille du texte
+      if(smaller_text) {
+        drapal.style.fontSize = "9px";
+        if(drapal.firstElementChild.src.includes("/themes_static/images/CrystalXP/")) {
+          drapal.style.padding = "7px 7px 3px";
+        } else if(drapal.firstElementChild.src.includes("/themes_static/images/silk/")) {
+          drapal.style.padding = "6px 7px 4px";
+        } else {
+          drapal.style.padding = "5px 7px";
+        }
       } else {
-        drapal2.style.padding = "5px 7px";
+        drapal.style.fontSize = "small";
+        drapal.style.padding = "3px 7px 2px";
       }
-    } else {
-      drapal2.style.fontSize = "small";
-      drapal2.style.padding = "3px 7px 2px";
+      // gestion du title (tooltip) sur le nombre de pages en retard
+      if(mass_opener && (max_tab > 1)) {
+        let diff = parseInt(drapal.getAttribute("data-npn-multi-page-nb"), 10);
+        let local_max_tab = Math.min(max_tab - 1, diff) + 1;
+        if(diff > (max_tab - 1)) {
+          drapal.title = "clic-milieu pour ouvrir les " + local_max_tab + " prochaines pages en retard";
+        } else {
+          drapal.title = "clic-milieu pour ouvrir les " + local_max_tab + " pages en retard";
+        }
+      } else {
+        drapal.title = drapal.firstElementChild.title;
+      }
     }
-    // gestion du title (tooltip) sur le nombre de pages en retard
-    // et gestion de l'ouverture en masse
-    if(mass_opener && (max_tab > 1)) {
-      let diff = parseInt(drapal2.getAttribute("npn_multi_page_nb"), 10);
-      let local_max_tab = Math.min(max_tab - 1, diff) + 1;
-      if(diff > (max_tab - 1)) {
-        drapal2.title = "clic-milieu pour ouvrir les " + local_max_tab + " prochaines pages en retard";
-      } else {
-        drapal2.title = "clic-milieu pour ouvrir les " + local_max_tab + " pages en retard";
-      }
-      drapal2.removeAttribute("href");
-      drapal2.style.cursor = "pointer";
-      drapal2.addEventListener("mousedown", drapal_mousedown, false);
-      drapal2.addEventListener("mouseup", drapal_mouseup, false);
+    // gestion des attributs pour l'ouverture dans un nouvel onglet
+    drapal.setAttribute("data-npn-open-new-tab", open_new_tab ? "true" : "false");
+    drapal.setAttribute("data-npn-new-tab-foreground", new_tab_foreground ? "true" : "false");
+    // gestion de l'ouverture en masse et de l'ouverture dans un nouvel onglet
+    if(open_new_tab || (mass_opener && (max_tab > 1) && drapal.hasAttribute("data-npn-multi-page-nb"))) {
+      drapal.removeAttribute("href");
+      drapal.style.cursor = "pointer";
+      drapal.addEventListener("mousedown", drapal_mousedown, false);
+      drapal.addEventListener("mouseup", drapal_mouseup, false);
     } else {
-      drapal2.title = drapal2.firstElementChild.title;
-      drapal2.setAttribute("href", drapal2.dataset.href);
-      drapal2.style.cursor = "";
-      drapal2.removeEventListener("mousedown", drapal_mousedown, false);
-      drapal2.removeEventListener("mouseup", drapal_mouseup, false);
+      drapal.setAttribute("href", drapal.dataset.href);
+      drapal.style.cursor = "";
+      drapal.removeEventListener("mousedown", drapal_mousedown, false);
+      drapal.removeEventListener("mouseup", drapal_mouseup, false);
     }
   }
 }
@@ -1387,6 +1429,8 @@ Promise.all([
   GM.getValue("display_totals", true),
   GM.getValue("refresh_page", false),
   GM.getValue("delay_page", default_delay_page),
+  GM.getValue("open_new_tab", false),
+  GM.getValue("new_tab_foreground", false),
 ]).then(function([
   display_button_value,
   button_icon_value,
@@ -1408,6 +1452,8 @@ Promise.all([
   display_totals_value,
   refresh_page_value,
   delay_page_value,
+  open_new_tab_value,
+  new_tab_foreground_value,
 ]) {
   display_button = display_button_value;
   button_icon = button_icon_value;
@@ -1429,6 +1475,8 @@ Promise.all([
   display_totals = display_totals_value;
   refresh_page = refresh_page_value;
   delay_page = delay_page_value;
+  open_new_tab = open_new_tab_value;
+  new_tab_foreground = new_tab_foreground_value;
   hash_haut = go_top ? "#haut" : "";
   apply_config();
   do_refresh_page();
