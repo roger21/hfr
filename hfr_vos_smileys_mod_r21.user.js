@@ -1,30 +1,32 @@
 // ==UserScript==
 // @name          [HFR] Vos smileys favoris mod_r21
-// @version       2.3.4
-// @namespace     fred.82.free.fr
-// @description   Permet d'afficher une liste illimitée de smileys favoris personnels, ainsi que des statistiques sur leur utilisation (historique et les plus utilisés). Documentation : http://fred.82.free.fr/hfr_greasemonkey/VSF/
+// @version       3.0.0
+// @namespace     roger21.free.fr
+// @description   Permet de gérer une liste illimitée de smileys favoris.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
 // @authororig    fred82
-// @modifications basé sur la version 1.4.0 - correction de bugs, amélioration du fonctionnement et du design, nettoyage du code, compatibilité ff 30+ / gm 2+ et ajout de fonctionnalités
-// @modtype       modifications et évolutions
+// @modifications corrections, améliorations, nettoyage, évolutions, compatibilité, réécriture
+// @modtype       réécriture et évolutions
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_vos_smileys_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_vos_smileys_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_vos_smileys_mod_r21.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
+// @grant         GM.getValue
 // @grant         GM_getValue
+// @grant         GM.setValue
 // @grant         GM_setValue
-// @grant         GM_addStyle
+// @grant         GM.openInTab
+// @grant         GM_openInTab
 // @grant         GM_registerMenuCommand
-// @grant         unsafeWindow
 // ==/UserScript==
 
 /*
 
-Copyright © 2010-2011 fred.82@free.fr, 2014-2017, 2019-2020 roger21@free.fr
+Copyright © 2020 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -39,3462 +41,3099 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// modifications roger21 $Rev: 1590 $
+// $Rev: 1697 $
 
 // historique :
-// 2.3.4 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
-// 2.3.3 (02/12/2019) :
-// - ajout de paramètres en dur pour la taille des onglets sur la réponse normale
-// - correction de l'affichage du voile de fond pour les fenêtres (de configuration et de choix)
-// 2.3.2 (02/10/2019) :
-// - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
-// 2.3.1 (18/09/2019) :
-// - ajout de la directive "@inject-into page" pour explicitement autoriser le script à accéder ->
-// à la page (unsafeWindow) sous violentmonkey
-// 2.3.0 (10/05/2019) :
-// - correction du tri des smileys pour les onglets Top et Historique par frankie_flowers
-// - ajout d'une option dans les paramètres pour trier les favoris par code de smiley au lieu de par top
-// - correction du filtrage des quotes dans le comptage des stats
-// - suppression du code relatif aux stickers...
-// - check du code dans tm et corrections diverses
-// - passage (ou retour) de le remarque en rouge sur l'onglet des paramètres
-// - nouveau nom : [HFR] vos smileys favoris mod_r21 -> [HFR] Vos smileys favoris mod_r21
-// - ajout de l'avis de licence AGPL v3+ *si Fred82 est d'accord*
-// - modification de la metadata @author (roger21)
-// - ajout de la metadata @authororig (fred82)
-// - maj de la metadata @homepageURL
-// - réécriture de la metadata @modtype
-// - suppression des @grant inutiles
-// 2.2.3 (28/11/2017) :
-// - passage au https
-// 2.2.2 (08/10/2017) :
-// - ajout du nom de la version de base dans la metadata @modifications
-// 2.2.1 (11/02/2017) :
-// - correction du style font-fammily à Verdana,Arial,Sans-serif,Helvetica (HFR Style)
-// 2.2.0 (09/12/2016) :
-// - suppression de code mort sur la gestion des fenêtres
-// - remise en place de la gestion de la touche echap pour quitter les fenêtres
-// - légères modificatons sur la configuration de l'icône "favori"
-// - mise à jour d'une image (gif vers png + mieux)
-// - compression des images (pngoptimizer)
-// 2.1.2 (29/01/2016) :
-// - correction du nom du script dans le menu greasemonkey
-// 2.1.1 (27/01/2016) :
-// - correction de la requete xpath de recherche des smileys pour la fenetre d'ajout des favoris ->
-// plus stricte, ne détecte que les smileys (avec l'url hfr) -- problème signalé par heeks
-// 2.1.0 (22/11/2015) :
-// - nouveau nom : [HFR] Vos smileys favoris 2.0.0 mod_r21 -> [HFR] vos smileys favoris mod_r21
-// 2.0.0 (21/11/2015) :
-// - modification de la description de modifications
-// - nouveau numéro de version : 1.4.0.7 -> 2.0.0
-// - nouveau nom : [HFR] Vos smileys favoris 1.4.0 mod r21 -> [HFR] Vos smileys favoris 2.0.0 mod_r21
-// - modification de l'année dans les dates de l'historique : passage de 2 a 4 chiffres
-// - reformatage du code (Online JavaScript beautifier : ->
-// "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
-// 1.4.0.7 (17/10/2015) :
-// - suppression des quotes autour du nom du script quand on l'affiche
-// - uniformisation des orthographes : smilies -> smileys
-// - modification des tournures "les smileys" -> "vos smileys"
-// 1.4.0.6 (07/03/2015) :
-// - modification du mode d'affichage des fenetres de conf et d'ajout de favoris pour éviter le redimensionnement ->
-// de la page en enlevant la scrollbar
-// - transformation des boutons de suppression des favoris par des images (plus joli, plus leger)
-// - ajout des zeros dans la date affichée pour les favoris
-// 1.4.0.5 (07/03/2015) :
-// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
-// 1.4.0.4 (09/11/2014) :
-// - ajout de l'url vers la documentation de fred82 dans la description
-// 1.4.0.3 (14/09/14) :
-// - correction de la position du "+" des stickers avec l'affichage des onglets en réponse/édition normale
-// - correction de l'affichage des onglets quand les stickers sont activés en réponse/édition normale
-// 1.4.0.2 (07/09/2014) :
-// - ajout d'une emphase sur la nécéssité de recharger la page pour appliquer les nouveaux paramètres
-// - rajout de getLineBreak qui redevient utile
-// - suppression de l'ombre sur l'icone toolbox
-// - ajout d'un parmetre pour la position du panneau des favoris en réponse rapide
-// 1.4.0.1 (31/08/2014) :
-// - nouvelle gestion de la sauvegarde avec un nom de fichier et une extension (.json) et avec date et heure et ->
-// sans ouverture de nouvel onglet
-// - réécriture du message de signalement des nouveaux smileys trouvés
-// - suppression du setTimeout 0 dans ReloadIconFavWorld et remplacement de l'event "paste" par un event "input"
-// - remplacement des ' par des " autour des strings et remplacement des " par des \" dans les ->
-// xpath query, les query selector et les strings (pasque !)
-// - modification du reset de l'icône de marquage en favoris dans la fenêtre de configuration, il n'est plus ->
-// sauvegardé automatiquement, il doit être validé (comme les autres champs de la fenêtre de configuration)
-// - suppression des @infomsg (osef)
-// - ajout d'un filtre sur la detection des smileys dans les message pour ne pas détecter le smiley ":/" dans les urls
-// - "robustesseisation" de la fonction reloadUserConfig en cas d'accès concurentiel assynchrone (cas du premier lancement)
-// - "correction" de config en configuration et perso en personnel dans les commentaires
-// - reduction de la taille et positionnement en bas du bouton "gérer vos smiley" sur la réponse rapide
-// - reformulation des tooltip sur les boutons favori
-// - ajout d'une gestion de "premier lancement" pour proposer l'import et la masquage des smileys favoris et personnels ->
-// du forum
-// - ajout de la gestion de l'import des smileys favoris et personnels du forum (au premier lancement et via un lien ->
-// dans l'onglet "vos smileys")
-// - suppression du @require sur editPost.js et ajout des deux fonctions nécéssaire dans le script à la place
-// - ajustement de la hauteur max du contenu des onglets à 3 rangées de smileys
-// - refresh complet des onglets top, histo et fav à chaque changement le nécéssitant
-// - mise à jour du panneau des favoris en réponse rapide en cas de reset ou de chargement d'une sauvagarde
-// - mise à jour de smileyStats en cas de reset ou de chargement d'une sauvagarde ->
-// en vu d'un reload des panneaux et onglets à la place du reload de la page
-// - restylage / réorganisation / homogénéisation / renommage / commentage des constantes et variables globales du script
-// - réordonnancement/homogénéisation des parametres width et height (partout)
-// - ajout d'une gestion de mémorisation du resize du panneau des favoris (en partie d'après la 1.4.6)
-// - ajout d'un effet mouse over distinct sur les smileys du panneau des favoris (mais identique à celui des smileys)
-// - homogénéisation des messages de confirmation d'import et de reset et du lien de reset
-// - restylage du code de certains blocs if et if / else if
-// - ajout de cesures dans le code par endroits
-// - clarification et ajout de commentaires par endroits
-// - nettoyage d'un paramètre non utilisé sur la fonction putSmiley
-// - suppression des reload et demande de reload de page sur les restauration de sauvegarde et reinitialisation de stats ->
-// en vu d'un reload des panneaux et onglets à la place
-// - rajout des "_" sur les prefix key_prefix_fav, key_prefix_fav_img et key_prefix_smiley_img
-// - nettoyage de la variable sm_favmsg_icon non utilisée
-// - ajout d'une gestion parametrable de non affichage des espaces autour des smileys insérés
-// - ajout d'une gestion parametrable de masquage des smileys favoris et personnels du forum dans l'interface de postage ->
-// (inspiré et d'après la 1.4.6)
-// - réordonnancement/homogénéisation des blocs de variable "sn_" dans le code
-// - ajout d'un effet mouse over sur le bouton étoile (identique à celui des smileys mais ils se cumulent)
-// - suppression de la methode contains des tableaux, non utilisée
-// - suppression de la fonction getLineBreak plus utilisée (getLineBreakBlankLine only)
-// - reconstruction systématique de l'onglet "Vos smileys" lors de son affichage pour refleter les changements de stats ->
-// en cas d'edition rapide et pour refleter l'ajout/suppression de favoris dans les onglet top et histo en réponse rapide
-// - simplification de la fonction de comptage des occurences des smileys et correction du comptage des smileys multicasses
-// - ajout d'une gestion pour fixer la position des fenêtres de conf et de fav malgrés la variation de leur tailles
-// - suppression de la hauteur fixe sur les fenêtres de conf et de fav (avec un maxheight pour la fav)
-// - restylage de la fenêtre d'ajout de favoris depuis un post
-// - homogénéisation du label d'ouverture de la fenêtre de conf avec l'action en réponse normale
-// - suppression de la clickabilité/sélectionabilité des smiley en fenêtre de conf
-// - réaffichage automatique du "aucun" en cas de suppression totale des smileys d'un onglets
-// - correction du probleme de gestion des smileys depuis la fenêtre de configuration en réponse normal ->
-// (suppression/ajout/fav x2)
-// - choix de l'onglet à l'ouverture de la fenêtre de conf fixé suivant l'origine (params ou smileys uniquement)
-// - ajout d'un hack sur le panneau des favoris pour conserver le padding bottom en cas d'averflow
-// - restylage du panneau des favoris de la réponse rapide (avec resize css, non mémorisé)
-// - commentaires plus détaillés sur les parametres de dimmension des fenêtres (user accessible ?)
-// - réorganisation de la fonction AddSmileyToPanel
-// - ajout d'un effet mouse over sur les smileys (simplifié à l'extreme parceque rien trouvé de beau)
-// - correction de la marge de droite (absente) du dernier onglet
-// - léger compactage de l'affichage des smileys dans les onglets
-// - centrage horizontale du bouton favori sous les smileys
-// - centrage vertical de la stat des smileys top et histo
-// - correction de la gestion du tooltip sur la fenêtre de choix des favoris
-// - clarification du nom des variables "message" dans ValidateFunction
-// - remplacement du curseur texte par le curseur fleche sur les stats des smileys top et histo (inspiré par la 1.4.6)
-// - ajout de la limite de taille + scrollbar sur les onglets en réponse normale (et en fenêtre de conf) (d'après la 1.4.6)
-// - gestion des smileys de base multicasses :o / :O, :p / :P, et :d / :D
-// - prise en compte des [citation][/citation] pour la non recherche de smileys dans les posts
-// - ajout de la gestion du smileys de base ":/" et correction de la gestion des smileys de base ":'(" et :??:
-// - suppression de l'ombre sur l'image coeur
-// - suppression des espaces non-sémantiques dans les chaines de css
-// - modifications mineures du code par endroits (!= -> !==, null -> undefined, ...)
-// - homogénéisations mineures du code par endroits (ma_var -> maVar, ...)
-// - modifications mineures des commentaires par endroits
-// - léger restyllage et homogénéisation du style des onglets
-// - restylage/réorganisation/relabelisation de la fenêtre de configuration
-// - restylage du "aucun" sur les onglets des smileys
-// - homogénéisation du message des onglets top et histo sur la fenêtre de configuration
-// - renomage des fastReply en fastEdit (erreur sémantique)
-// - ajout d'une metadata @infomsg sur la qualité du code (enfin je devrait :o)
-// - utilisation du nouveau SDK pour unsafeWindow ou contournement
-// - suppression du code mort autour et dans ValidateFunction
-// - reformatage du code (Online JavaScript beautifier : ->
-// "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
-// - untabify
-// - suppression des // en double
-// - homogénéisation du format des commentaires /* */
-// - suppression du commentaire sur la récupération des smileys favoris dans about:config (discontinued)
-// - ajout d'une metadata @infomsg pour la conservation des smileys favoris du script original
-// - remplacement de l'utilisation de BlobBuilder (discontinued) par Blob pour la sauvegarde
-// - correction de la "syntax error" (?) sur les GM_addStyle par compactage du css sur une ligne
-// - ajout d'une metadata @infomsg pour la modification du nom
-// - ajout de "1.4.0 mod r21" dans le nom pour le distinguer expressément
-// - changement du namesapce de http://forum.hardware.fr à fred.82.free.fr
-// - indentation des metadata
-// - ajout de metadata pour la publication (@author, @modifications, @modtype)
-// - ajout d'une icone au script
-// - ajout des metadata @grant
-// - ajout d'un .1 sur le numero de version
-// - suppression du module d'auto-update (code mort)
-// - désactivation de l'auto-update pour conserver les modifs
-
-// Création : 15/09/2010
-// Dernière MAJ : 10/12/2011
-// Auteur : Fred82
+// 3.0.0 (xx/03/2020) :
+// - refonte complète / fresh restart
 
 /*
-  Chaque smiley est mémorisé sous une forme déterminée dont voici un exemple (format "Json") :
-  ":love:":{"c":":love:","s":2,"d":"2011/11/22 8:53:10","fav":true}
 
-  c : code du smiley en format entier (string). ex : [:toto:1].
-  s : nombre d'utilisations (entier).
-  d : date de dernière utilisation (string) ex: 2011/10/5 21:52:33.
-  fav : indique le status favoris (bool).
+format de stockage des smileys en JSON :
+
+{
+
+  "[:roger21:2]":                 // code du smiley
+  {
+    c: "[:roger21:2]",            // code du smiley (string)
+    s: 2,                         // nombre de fois utilisé ou 0 (number)
+    d: 20191229154525,            // date YYYYMMDDHHMMSS ou 0 (number)
+    f: true                       // favori true ou false (boolean)
+  },
+
+  ":D":                           // code du smiley
+  {
+    c: ":D",                      // code du smiley (string)
+    s: 5,                         // nombre de fois utilisé ou 0 (number)
+    d: 20200102070910,            // date YYYYMMDDHHMMSS ou 0 (number)
+    f: false                      // favori true ou false (boolean)
+  },
+
+  "[:rhaegal:1]":                 // code du smiley
+  {
+    c: "[:rhaegal:1]",            // code du smiley (string)
+    s: 0,                         // nombre de fois utilisé ou 0 (number)
+    d: 0,                         // date YYYYMMDDHHMMSS ou 0 (number)
+    f: true                       // favori true ou false (boolean)
+  }
+
+}
+
+format d'import/export des smileys en JSON pour la rétro-compatibilité :
+
+{
+
+  "[:roger21:2]":                 // code du smiley
+  {
+    c: "[:roger21:2]",            // code du smiley (string)
+    s: 2,                         // nombre de fois utilisé ou 0 (number)
+    d: "2019/12/29 15:45:25",     // date "YYYY/M/D H:M:S" ou "1970/1/1 0:0:0" (string)
+    fav: true                     // favori true ou absent (boolean)
+  },
+
+  ":D":                           // code du smiley
+  {
+    c: ":D",                      // code du smiley (string)
+    s: 5,                         // nombre de fois utilisé ou 0 (number)
+    d: "2020/1/1 7/9/10"          // date "YYYY/M/D H:M:S" ou "1970/1/1 0:0:0" (string)
+  },
+
+  "[:rhaegal:1]":                 // code du smiley
+  {
+    c: "[:rhaegal:1]",            // code du smiley (string)
+    s: 0,                         // nombre de fois utilisé ou 0 (number)
+    d: "1970/1/1 0:0:0",          // date "YYYY/M/D H:M:S" ou "1970/1/1 0:0:0" (string)
+    fav: true                     // favori true ou absent (boolean)
+  }
+
+}
+
 */
 
-// =============================================================== //
-// Constantes et variables et globales
-// =============================================================== //
+/* -------------- */
+/* options en dur */
+/* -------------- */
 
-// Réglages utilisateur (modifiables dans la fenêtre de configuration).
-// Les valeurs indiquées ci-dessous sont les valeurs par défaut.
-var sm_count = 10; // Nombre maximal de smileys affichés sur le panneau
-var sm_confirm_delete = true; // Confirmer la suppression de smileys
-var sm_include_fav = true; // Inclure les favoris dans les panneaux "Top" et "Historique"
-var sm_sort_fav = false; // Trier les favoris par code ou lieu de top
-var sm_fast_reply = true; // Afficher le panneau de smileys à côté de la réponse rapide
-var sm_fast_reply_position = 0; // Position du panneau des smileys à côté de la réponse rapide
-var sm_notify_new = false; // Être notifié quand un nouveau smiley est trouvé dans votre nouveau message
-var sm_hide_forum_smileys = false; // Masquer les smileys favoris et personnels du forum
-var sm_no_space_insert = false; // Insérer les smileys sans espaces autour
-var sm_fav_world = true; // Permettre de définir des favoris sur toutes les pages du forum
-var sm_fav_world_icon = null; // Icône affichée à côté de chaque message pour afficher ses smileys
-var sm_current_tab = "tab_top"; // Onglet affiché par défaut / dernier onglet affiché
-var sm_fav_panel_width = "496px"; // Largeur du panneau des favoris en réponse rapide (defaut : 496px)
-var sm_fav_panel_height = "162px"; // Hauteur du panneau des favoris en réponse rapide (defaut : 162px -> 3 rangées)
-//var sm_fav_panel_height = "135px"; // Hauteur du panneau des favoris en réponse rapide (defaut : 135px -> 2,5 rangées)
-//var sm_fav_panel_height = "108px"; // Hauteur du panneau des favoris en réponse rapide (defaut : 108px -> 2 rangées)
-// Premier lancement du script pour proposer l'import et le masquage des smileys favoris et personnels du forum
-var sm_first_start = true;
+// affichage des mots-clés dans le title/tooltip des smileys (true) ou dans un tooltip/popup en html (false)
+const in_title = false;
 
-// Réglages système
-// taille des onglets sur la réponse normale
-var panel_max_width_left = "232px"; // (1 smiley prend 74px et il faut compter la barre de défilement)
-var panel_max_height_left = "288px"; // (defaut : "288px" -> 4 rangées)
-// taille des onglets de la fenêtre de configuration
-var panel_max_width = "auto";
-var panel_max_height = "216px"; // (defaut : "216px" -> 3 rangées)
-// Largeur de la fenêtre de conf (defaut : 720px)
-var config_window_width = "720px";
-// Largeur de la fenêtre de choix des favoris (défaut : 343px -> 4,5 smileys)
-var favorite_window_width = "343px";
-// Hauteur max du contenu de la fenêtre de choix des favoris (défaut : 179px -> 2,5 rangées)
-var favorite_window_content_max_height = "179px";
+// activer les box-shadow (true) ou pas (false) sur les tooltip et popup des mots-clés
+const box_shadow = true;
 
-// Variables de stockage temporaire
-var root = null; // Elément HTML correspondant à la racine du panneau d'édition d'un message sur la page HFR
-var smileyStats = {}; // Conteneur des statistiques de smiley (format Json)
-var initialText = null; // Stockage du post HFR initial
-var resizeTimer = null; // Timer pour l'enregistrement des dimensions du panneau des favoris
-var fileReader = null; // Fichier pour la restauration d'une sauvegarde
-var staticImgMarginTop = 0 // Marge fixe pour la position du bouton de configuration en réponse rapide
+// ajouter une espace finale dans la popup d'édition des mots-clés (true) ou pas (false)
+const add_final_space = false;
 
-// Clés des variables utilisateur. "sm" pour "smiley".
-var key_sm_count = "sm_count";
-var key_sm_confirm_delete = "sm_confirm_delete";
-var key_sm_include_fav = "sm_include_fav";
-var key_sm_sort_fav = "sm_sort_fav";
-var key_sm_fast_reply = "sm_fast_reply";
-var key_sm_fast_reply_position = "sm_fast_reply_position";
-var key_sm_notify_new = "sm_notify_new";
-var key_sm_hide_forum_smileys = "sm_hide_forum_smileys";
-var key_sm_no_space_insert = "sm_no_space_insert";
-var key_sm_fav_world = "sm_fav_world";
-var key_sm_fav_world_icon = "sm_fav_world_icon";
-var key_sm_current_tab = "sm_current_tab";
-var key_sm_fav_panel_width = "sm_fav_panel_width";
-var key_sm_fav_panel_height = "sm_fav_panel_height";
-var key_sm_first_start = "sm_first_start";
-var key_sm_smiley_stats = "sm_smiley_stats";
+/* ---------------------------- */
+/* gestion de compatibilité gm4 */
+/* ---------------------------- */
 
-// Clés des objets HTML
-var key_smiley_panel = "vsf_smiley_panel"; // id du panneau des onglets en réponse normale
-var key_favorite_panel = "vsf_favorite_panel"; // id du panneau des favoris en réponse rapide
-// id du bouton d'accès à la fenêtre de configuration en réponse rapide
-var key_favorite_panel_img = "vsf_favorite_panel_img";
-var key_config_window_content = "vsf_config_window_content"; // id du contenu de la fenêtre de configuration
-var key_favorite_window_content = "vsf_favorite_window_content"; // id du contenu de la fenêtre de choix des favoris
-
-var key_tab_top = "tab_top"; // id de l'onglet top
-var key_tab_history = "tab_history"; // id de l'onglet historique
-var key_tab_favorite = "tab_favorite"; // id de l'onglet favoris
-var key_tab_top_content = "tab_top_content"; // id du contenu de l'onglet top
-var key_tab_history_content = "tab_history_content"; // id du contenu de l'onglet historique
-var key_tab_favorite_content = "tab_favorite_content"; // id du contenu de l'onglet favoris
-
-var key_tab_parameters = "tab_parameters"; // id de l'onglet parametres (dans la fenêtre de conf)
-var key_tab_yoursmileys = "tab_yoursmileys"; // id de l'onglet vos smileys (dans la fenêtre de conf)
-var key_tab_yoursmileys_content = "tab_yoursmileys_content"; // id du contenu de l'onglet vos smileys
-
-// id de l'icone de marquage des smileys en favoris dans l'onglet des parametres
-var key_fav_world_icon_preview = "fav_world_icon_preview";
-
-var key_prefix_top = "top_"; // prefix pour l'id des smileys dans l'onglet top
-var key_prefix_hist = "hist_"; // prefix pour l'id des smileys dans l'onglet historique
-var key_prefix_fav = "fav_"; // prefix pour l'id des smileys dans l'onglet favoris
-var key_prefix_favwin = "favwin_"; // prefix pour l'id des smileys dans la fenêtre de choix des favoris
-
-// prefix pour l'id des boutons favoris (l'étoile)
-var key_prefix_fav_img = "fav_img_";
-// prefix pour l'id des images des smileys (dans la fenêtre de choix des favoris)
-var key_prefix_smiley_img = "smiley_img_";
-
-// Constantes
-var key_window_config = "window_config";
-var key_window_favorite = "window_favorite";
-
-var index_tab_parameters = 0; // Indice de l'onglet "Paramètres" dans le système d'onglets de la fenêtre de configuration
-var index_tab_yoursmileys = 2; // Indice de l'onglet "Vos smileys" dans le système d'onglets de la fenêtre de configuration
-
-var image_general_url = "https://forum-images.hardware.fr/icones/"; // Url pour les smileys de base généraux (:o)
-var image_base_url = "https://forum-images.hardware.fr/icones/smilies/"; // Url pour les smileys de base (:ouch:)
-var image_utilisateur_url = "https://forum-images.hardware.fr/images/perso/"; // Url pour les smileys utilisateur
-
-// Textes
-var script_name = "[HFR] Vos smileys favoris";
-var tab_top_title = "Top";
-var tab_history_title = "Historique";
-var tab_favorite_title = "Favoris";
-
-// Images incorporées
-var icon_fav_active = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAC5UlEQVR42t2U3UtTYRzHB0JXXeXUzWxzp8kkZ0RSUfRCiRc5N8sUSgwqQ7wwKQN7sawgKAwqo4JQnG7O2Va%2BDpfLxVIqLOsgZRCB0UV%2FQSAEg2%2FfxzNRQ7YD7qoHPjwv5%2Fv8vr%2Fn7Wg0KgtC2jqMatsRTE3TJLsgoN2JES3mGU51Jd9gQBtAxAz8Ogi2o%2BjXWpIX3JdWQIAfNoWhDWDfmTwDb3ofBk3AN1sMrqI3PQpfhnn1wXsy8uFOB2YY%2BHOxwle2fVyFN8O5im3RG%2BDV7YZbF8ZTZj%2FNoJ%2BKFaZLgC%2Fsd%2Bui6NUVURt%2FJXBnbodL34LuTD88mVOsoxwDOvXAs1zgox34wKCTNgXRljk2YAW6qOmm1jPPDNshxnqCDv1xDGWlKAaDhjl0GAA%2FJ4zuYpYOcgiYKmVAtt8x2JuSRd7albH3DkUjUyuzDu%2Bh6VYmxtvWkwUEjDWKgd84C%2F9GYIITInalXmCcvLYrRGIs9Mcdy7Xi2ysmMFHIZI0CW%2Bwgs03kJ7x0jjCTEIUvyZhDHUIbijG2n9lnC%2BqWn0OXZCDf0cmVhMv4YmkU5NJfJCBYGtOK%2BgDPRBLUrHzYbWYdmUErb80gJw%2BR4cPxETqBZy84V1Ad%2F0Y9zknDbUnGvQKgjwH6y%2BLznBo%2Fs282Rjn3hLo3cM1kQyMPyXeEkxMgNLe2gHq%2F%2Bkd2wdSA8zyo3nK%2B1hg9%2F%2BBdwoN9QEO2rN6gQXLi6mbuawXgJq7yRZb2RVtourhV56Q%2FuGFZo86gXprEHWbVySDOGN6jvI7VvIYnue9V%2FFahjAuNi%2B163p6LOfmJg1%2B2pKBW%2Bo1HPLg2kR0DBxj47g7g%2BibB3Hw9QiMvjdorFF0tDc6aKxMbXMkzoy6H2R3jLToFPOTDac4ThEkBWUfuExpxGwOn%2BS%2Bi0Rn%2BsxpzWxIbNFmLCDPjCxV1k1UWYyvo1pN2EsXNbUBrodD2JTa4ZF1LgkQmlSr0FuIhs8Sm%2BS%2FLX4noOGmhaGeEAAAAAElFTkSuQmCC";
-
-var icon_fav_inactive = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAACX0lEQVR42t2UT2saURTFhUBXXRUChUKgIGSVVaBQ6DYrv0GgUChklVU%2FRlbdCpERMaIMRhditTKIIqJQGRAqohhRREQREUUsCq%2FnPHzDlGoc6Kw68MPnm3P%2FvHfvHY%2FH4VMsFm8LhcJ9Pp8%2F9bj9wOl7IIhhGCHXA%2BRyuZRpmmKz2Qist%2BDcNefZbPYSiPV6LcFVCfzXXAuQyWQeS6WSWC6XFtjbIojXDecX6XRaLBYLMZ%2FPJVyjDgyi%2FcudnyHDD3BusLB0PJ1OJSrI7hRX0HqPZfkOju7wq8PgBw2BYOblclnMZjPpeDKZSFSQarUqNdSyRuAn1t%2Bx50%2BlUh9RqxPV3yuKKpWKaDab1lXYHY%2FHYwt7IGrU9bXbbVGr1dhlEtTtRvX4EzuDxqPR6A9nam8f%2B3TD4VD0%2B32xmxmfDICCvQU9TKkUDQYDCcVOUHrS6XRkA4Dbv4oK2jwagzALu%2BEhqFPwinbXc3NooF6zUMlkUvR6PYndwT6UjlO%2BK%2FTnZzsKHXAaj8dNZtLtdi0Hh6CGmYfD4S1sPzmagUgk4gsGg%2FI%2B6eA5qEFLCuh1x0MWCoW%2BaJomjRXM0o79HT8j0JuOA0Cs4ZosZ61Wy8L%2BX73n7MDkl67rLxwFCAQCVfYxDRW8DjWA7B4GUO%2B4hg3rcHHUeTQaPfH7%2FQt2RaPRkBlyYtnbPBVY8Zd7LDI1BDY8xfXRADiml9nQMaeT3yLsEQNcglfgK1glEgkZiKdjU6A57pwEuKLDer2uHJvc26N7A%2B7BVn0UsX48GiAWi70E34AJrh3oz8EDeAI%2Bz3%2F5%2FAZTjtmr3wx5SwAAAABJRU5ErkJggg%3D%3D";
-
-var icon_del = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs%2B9AAABhklEQVQY0wXBT0iTcRjA8e%2Fz%2FN537%2FvamjVa7lSUhUbsEiQRQf%2BoQ3gL6hSskA5Bt%2FQSXTz0%2F2xBl7okZR6EqEgiAvFgCAW1SPLPlGluilubZsv29PmQe37SAUw2u75Swv%2F%2BeXt7R2ve3I27K8GTzoObf8RTF78kU8e4NtTrAGa9qL9GaFVhfrDzdOvibt23rMGrCtiMyABX3g7JARt3b1KZPX%2FAKoLVnI6VHTMVxJZ8ffb4fHYb514Umi58uxMArBOzNYdVBVsiqFd8yY2dOpra%2Fy6nPBg%2F67%2B%2FetkBTGzhUx3sl9Cogk3HwiMA2Q8PHY8u%2FfQApoOwpwYbNaGxBraAtwrQvbwjlh0eUd04cV8Wo3TX1r%2F12%2F8UJyAIjYiwafYmLQPJUYt3jChTiebjZbAavq2KFuckdq%2BM%2FK56NArivmLmBruGPQoufLkuWMkxlffjhwAWktGZkmq96HS072l3lJlfUT6md%2B3Ma9A%2Fp24vQC6f8TFzk4lN6ddtbS2HbUKvF2%2Fpf4cUlw8oMuVkAAAAAElFTkSuQmCC";
-
-var icon_cancel = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACEklEQVR42q1S%2FU9SYRhlbW13%2FQ0V5Woub05zfZkCXhUhpmmb8v3h5ZKoCQjcwVBi1Q%2B19Zf0d2lWxpeR3AuX93J8qGVjgK2tZ3u3d3t2znmecx6D4R%2BrsS5dGdiEnDXS4weCQ2Fe9QUSdafH3B%2Bc3UM7k4OeSPWQNIIi3xAjaG5u48fz1Y%2B1peU7PWAU3qBNT0%2FKaG3tnJOogXWe1NGKJYB8AZ3%2Fic2RqMxaL%2F0iSGe4dlLW23uvgPcfoOfyHQI0RYlX%2FSGe1KHtxAHqqyERJwtPWUWYv9w1oh5PcuxlnOlyFnj7DiydQSMcAalD244Buf2f%2F6rVTuA5rq9JregW15Q2WCu2S%2Bu8BvYLBMwD2RxUfxDVeRurzMxyF8cUFDnFG9CRo3V8QcDtA%2BQMqnMLetkicH%2FNWfH4O1EBlAacHmDVBeymaG87ipPT%2FMVgt49XvH5okSiQkgmYBuK0DhmorrlQMVnwdXyiP0nd5eUVjw%2BatAFQjIrbCzKLlabN%2BunSChDdRP3ZCor3H%2BJoeKSbhC6LJ3Vo4RekmoRCo5NZrDRl5oqPJrnjiQesZrUBYQmndgeOR8dweGPoDwldllB3uqGJEpQ1N8gsVnpiOjfsy%2Bg493nkLvtuEaA4FvFt7B4OrhmFrinosoTa4jLK5hmdzOpx%2B%2Bj2MPdp6BbrC%2F5dZZNFKD6eGhjVofEmd3D1umD4n3UGltFKFDkd60gAAAAASUVORK5CYII%3D";
-
-var icon_validate = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACl0lEQVR42q2T60uTYRiH%2FTv2bnttAwlkRCGChFD7FCQSm2ZDMQ%2FL0nRnj7TNGDbTooychzFSSssstdqc8zB1anNrSpm47FVCzH3pQLVhdLBfzztoJlifvOEHz4fnuu7nGBe311XgOyLMnTmsz%2FakMBljB8OSEVFY4kpkJM5Efbp9v%2FC%2FcJ43VSrzJId0HhluBy3oW%2BmKpnOpGSWuExD30iFxDy3dFSZdpZkTSZHr80Y41%2Fphe3UDpvnKaNixY60PjbNVOGTjRZJtvJ2SHE%2BKINOdtMHC7MSaQBkq%2FCXQzJ6DjqScpNp3HvY3D3B5ugIiC3dDdJMriAlk7iSDajwr2pmFWVDlPQPFTCEU0wVQTxfCvT4Ig1cJB5Hk9hxDwjWuISbIGBExncFmWINNqPAVQ%2FlUTsB8KKdIPPmYeOsCW6HIOtpeNMI234j4ei4TExy3J2w%2BWr2L2oAGWm8RWckAlj4uQDVZiPH1oSj8c%2BsH2p5fgWGyGH3BTvCN1GZMIH5Ib%2FavdMPoV6HWr8Xnb5%2Bi0Iev72KwZa4ealc29O6z6A92gF%2Fzt6CHZm4tNKF98Sp0U3KYfdWIfP8Shbd%2BbcHy7BLKnFnQEEFLoA7tXjPoKmp7C6l3%2BAb5QBrsq%2FdRPSmH2n0adTPlWH6%2FiLa5BpQOnoTCcQo6Zw7sr7uRbj0KupLaPsRkK09wgFyN2aPBY%2BYeKkfzoB3OgWpIBqWDDQtn48lyF4xDxeCrORu0mhLseAuJTVxpfAMVMbnL4CCS1oAZ%2BtEiXBiWo5VswU5gvbMIvFJOhMC7v8Z9DVwpbaJCkg4x2v1m9L60onfBCovXhLSWVPAVnBCt%2Bgf8p%2BiLXCFtoPR0DcXwtZwwX8UJk44MiZ4upYR7%2Fnt%2FA%2Bw9sdKFchsrAAAAAElFTkSuQmCC";
-
-var icon_toolbox = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAD70lEQVR42r1Vf1CTdRx%2BB0iAHsmPbbANGN0S2dlBENZxaVYkFeDM658IT9SjiMGUEQXHjd%2BEXUrHEpZDL9pElnUsx0aTQuIQjFNPxgIE7K6NEcG4CW3CWtw9vdjplTIG6vW5e%2F94v9%2Fn%2FTzv8%2Fk%2Bn8%2BXIB4yMt%2FlU%2B48TkFlJaW7ent6sTUmdsdakgtyDhfKZDKjXC6DXCZXfS6RhiwL3MPj7Z2fv4Xh69cRv%2FXZVFeJ%2Ff382MJDwuMjJN5g%2BBU9F7txStpgkzXK%2FJyrKC45MTc3B0XzVzgurvVxQZBisVhgmTGjs%2BMH7E%2Ff17e0XiEqpgoPC5ucfnggba9wanIS36k10KrVns5w2VkC%2FuLiIhwOBwb1OohrjqH6o2qOpE4CqURiWFF%2BOJWabDIaoVIq4QzzYX5BBciw2WwYHRlGk7wJJ6UnodcPorS0ROjy8J4OD91pMhpIkpZlSSrLyk5brVaUl1aAdA%2BM4yYM6PRoVan3k%2B9vrcoh0WxmvMlggPKbrx337omKP8PV3isYGh5DRdVRTJstME1MQpibf3BNHudnvJO1pER5VmG%2BuxjbZfJNH8InjRehbVOhqOxIh6i4vPbIxzVHH6iR8gWCtJmpCUwVFlnKkwUTujAWPNJvgHh1AEk8Qd6qS7JSiDdFvrdot2O26Uv0hTMwGB4GIqbjReJRBf%2BlopumPbvwe042pt7Pw2B0FB5ZclrBkPW5gAS0MBi4GsnBH6SzxpOTcI7JQCOd7vNQyV%2BoHrhJxKtAvDaCD3g16GKxoAmiY7qgAGaRCM3BwZDS6acfKHnKsWs279e1IJ7qRITYDtoXDrzCTlzfHhyc%2BS2pxtbeDkt9PRrodFQFBKCBFhi4%2Bj8v6vnNP6UNBKcF7OoFRNfNg9jdl3RnXx4UZFaSJAv9%2FZhTKHCCRkPlPyQxrhss78KwP%2B88CHYz6IWz2Na4gHVvdkvuxZH1RyeHAzs5Ua2attskS0rOcUOcK4nMvqChp14CwTqDjZkTSGiyw3ff5WWHl5hK3X0mKAiXuFzYR0dh1Z6%2FTbJUsu6XufdfPk8K%2Bqu2fzqLkIwboB4wYMcpO5hZQyvasZZKfVvDZOLyli34c2wMVlUryPLhLHn4%2F7Vialdg2CEDvNLGf9pcecuQ0uxAaP4M3N7Qx7lsQio1tyc0FANRUVjQ6WCpq8e1mFj8vDM%2B8S7Ia3MuLZCcL88o%2FrLwf1kEPWcaFL%2Fn41ZriowNG1K%2FJ5VciYiAg7xPrK3q%2B5WvZyQ%2BEX6wF5z0H%2BHtH7ft33sbfQj3x33d3VciCXNzY2lJEmNCArZ7enKd4SLILJu8CGLNHbqO4ubhQaF4u1MojxH%2FZ%2FwNeMgFpABqKTEAAAAASUVORK5CYII%3D";
-
-var icon_scan_smileys = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABcklEQVR42mNgGDTghost4y1THb87Ztor71rpz7xlpmMKk7tlrmd810pvBlBuxS1jbf8bDpZMGAZcszOdf8VY%2Ff9FbaX%2FF7UU%2F18xUvt%2F09cl5pa%2Fe9QVQzWw2CVtoDhQzTUbo0Uoms%2FZmged1lH6f1xR%2Bv9xJShWkPp%2FxkDtIwiD2HBxoBqQ2nPWJqFwAw5qKXbuV5H5v09ZGhUrQTGaOEjtAU2FbrgBu%2FQ0qrcqSP7fBlRMDAap3aWrVgc3YLeLvdk6ecn%2F64DOIwavBard5WhrhRIOa031Fy%2BRFfu%2FTFEKLwapWWOkswwjFnbFRQovUFe8MUdO4v9cYKBhwyC5BRpKt3bGRohiTQt74qKUpipIvZ0iJ%2Fl%2FirwUGpb8P1Ve6vWe2AgVvAlqlpmhxnQV%2BXsTgBp6oHgC0PbpqvIPphloqxGVKl3FRfhL5CS3dgM1gnCJrOR2L2kJAZKSNlCDvLewwHIgXgFik5U%2FQBrJ1kwsAAC8lOiuvmntngAAAABJRU5ErkJggg%3D%3D";
-
-// Liste des smileys HFR de base
-var base_smileys = [":whistle:", ":wahoo:", ":vomi:", ":sweat:", ":sum:", ":spookie:", ":spamafote:", ":sol:", ":sleep:", ":sarcastic:", ":pt1cable:", ":pouah:", ":pfff:", ":ouimaitre:", ":ouch:", ":non:", ":na:", ":mouais:", ":mmmfff:", ":miam:", ":mad:", ":love:", ":lol:", ":kaola:", ":jap:", ":int:", ":hot:", ":hello:", ":heink:", ":hebe:", ":hap:", ":gun:", ":gratgrat:", ":fuck:", ":fouyaya:", ":foudtag:", ":fou:", ":evil:", ":eek2:", ":eek:", ":dtc:", ":cry:", ":crazy:", ":calimero:", ":bug:", ":bounce:", ":bic:", ":benetton:", ":ange:", ":24:", ":)", ":(", ":o", ":D", ";)", ":p", ":'(", ":??:", ":/"];
-
-// =============================================================== //
-// Traitement des smileys
-// =============================================================== //
-
-/*
-  Obtient la liste des smileys contenus dans le message HFR
-
-  Input : message à analyser (string)
-
-  Output : liste des smileys trouvés.
-  Pour obtenir le nombre de smileys : .length
-  pour obtenir chacun d'entre eux. : .[0] .[1]  (etc...)
-*/
-function GetSmileysList(message) {
-  // 1) Smileys utilisateur => de la forme [:toto] ou [:toto:1]
-  var regExp1 = /\[:[\w\s-@:]+\]/g;
-  var smileysList1 = message.match(regExp1);
-  // Suppression des smileys utilisateur du message
-  message = message.replace(regExp1, "");
-
-  // 2) Smileys de base => de la forme :toto:
-  var smileysList2 = null;
-  // Suppression des https?:// pour eviter une fausse détection du smiley ":/"
-  message = message.replace(/https?:\/\//gi, "");
-  // Remplacement des smileys de base à code multicasse
-  message = message.replace(/:O/g, ":o").replace(/:P/g, ":p").replace(/:d/g, ":D");
-  base_smileys.forEach(function(pattern) {
-    pattern = ParseSpecialCharFromSmileyCode(pattern);
-    var regExp = new RegExp(pattern, "g");
-    var smileysList = message.match(regExp);
-    if(smileysList != null) {
-      if(smileysList2 === null) {
-        smileysList2 = smileysList;
-      } else {
-        smileysList2 = smileysList2.concat(smileysList);
+if(typeof GM === "undefined") {
+  this.GM = {};
+}
+if(typeof GM_getValue !== "undefined" && typeof GM.getValue === "undefined") {
+  GM.getValue = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_getValue.apply(null, args));
+      } catch (e) {
+        reject(e);
       }
-      // Suppression des smileys de base du message
-      message = message.replace(regExp, "");
-    }
-  });
-
-  // 3) Résultat
-  if(smileysList2 === null) {
-    return smileysList1;
-  } else if(smileysList1 === null) {
-    return smileysList2;
-  } else {
-    return smileysList1.concat(smileysList2);
-  }
+    });
+  };
 }
-
-/*
-  Obtient les statistiques de smileys à partir de la configuration GreaseMonkey, si existante.
-*/
-function LoadSmileyStats(forceRefresh) {
-  if(forceRefresh || isEmptyObject(smileyStats)) {
-    var smileyStatsString = GM_getValue(key_sm_smiley_stats, "");
-    if(smileyStatsString !== undefined && smileyStatsString !== "") {
-      // Convertit la string en objet Json
-      smileyStats = BuildJsonObjectFromString(smileyStatsString);
-    } else {
-      smileyStats = {};
-    }
-  }
-}
-
-/*
-  Convertit le code entier d'un smiley en code réduit
-
-  Ne fonctionne que pour les smileys utilisateurs
-  exemple :
-  full_code : [:xxx]
-  tiny_code : xxx ou xxx:1
-*/
-function ConvertFullCodeToTinyCode(full_code) {
-  var tiny_code = null;
-
-  if(IsBaseSmiley(full_code)) {
-    // Smiley de base
-    tiny_code = ConvertBaseSmileyCodeToString(full_code);
-  } else {
-    // Smiley utilisateur
-    tiny_code = full_code.substring(2, full_code.length - 1);
-  }
-
-  return tiny_code;
-}
-
-/*
-  Supprime ce smiley du dictionnaire des statistiques
-*/
-function RemoveSmileyStat() {
-  var full_code = this.alt;
-  var smiley_tiny_code = ConvertFullCodeToTinyCode(full_code); // Tiny code
-
-  if(sm_confirm_delete) {
-    if(confirm("Etes-vous sûr de vouloir supprimer le smiley " + full_code + " ?") == false) {
-      return;
-    }
-  }
-
-  delete smileyStats[full_code];
-
-  saveUserStats(); // Sauve et recharge les stats triées et recharge le panneau des favoris de la réponse rapide
-
-  // Mise à jour complete de l'onglet top
-  RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
-  // Mise à jour complete de l'onglet historique
-  RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
-  // Suppression du smiley dans l'onglet favoris
-  RemoveSmileyStat_FromUI(smiley_tiny_code, key_prefix_fav);
-}
-
-/*
-  Rafraichi completement le contenu d'un onglet de smileys
-
-  smileyArray : tableau des smileys ordonné en fonction de l'onglet
-  key_tab : id de l'onglet
-  key_tab_content : id du contenu de l'onglet
-  key_prefix : prefix pour l'id des smileys
-*/
-function RefreshTab_FromUI(smileyArray, key_tab, key_tab_content, key_prefix) {
-  // Raffraichi l'onglet correspondant dans la réponse normale et dans la fenêtre de conf
-  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
-    var context = null;
-    var smileys_table = null;
-    var clickable = (id_context === key_smiley_panel);
-    context = document.getElementById(id_context);
-    if(context !== null) {
-      smileys_table = context.querySelector("div[id=\"" + key_tab_content + "\"]");
-      if(smileys_table !== null) {
-        rebuildSmileyTabContent(smileyArray, key_tab, smileys_table, key_prefix, clickable);
+if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
+  GM.setValue = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_setValue.apply(null, args));
+      } catch (e) {
+        reject(e);
       }
-    }
-  }
+    });
+  };
 }
-
-/*
-  Enlève un smiley
-
-  smiley_tiny_code : code du smiley en format "tiny"
-  key : code du panneau où enlever ce smiley
-*/
-function RemoveSmileyStat_FromUI(smiley_tiny_code, key) {
-  // Supprime un smiley de l'onglet correspondant dans la réponse normale et dans la fenêtre de conf
-  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
-    var context = null;
-    var smiley = null;
-    var container = null;
-    context = document.getElementById(id_context);
-    if(context !== null) {
-      smiley = context.querySelector("li[id=\"" + key + smiley_tiny_code + "\"]");
-      if(smiley !== null) {
-        container = smiley.parentNode;
-        container.removeChild(smiley);
+if(typeof GM_openInTab !== "undefined" && typeof GM.openInTab === "undefined") {
+  GM.openInTab = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_openInTab.apply(null, args));
+      } catch (e) {
+        reject(e);
       }
-    }
-    if(container !== null && !container.hasChildNodes()) {
-      displayAucun(container);
-    }
-  }
+    });
+  };
 }
 
-/*
-  Changer le status favoris du smiley
-*/
-function ChangeFavoriteStatus() {
-  var full_code = this.alt;
-  var smiley_tiny_code = ConvertFullCodeToTinyCode(full_code); // Tiny code
-  var smiley = smileyStats[full_code];
-  var favorite_img_src = null;
+/* ---------- */
+/* les images */
+/* ---------- */
 
-  if(smiley != null && smiley.fav == true) {
-    // Ce smiley ne fait plus partie des favoris
-    smiley.fav = false;
-    favorite_img_src = icon_fav_inactive;
-    saveUserStats(); // Sauve et recharge les stats triées et recharge le panneau des favoris de la réponse rapide
-    // Suppression du smiley dans l'onglet favoris
-    RemoveSmileyStat_FromUI(smiley_tiny_code, key_prefix_fav);
-  } else {
-    // Ce smiley devient un favori
-    if(smiley == null) {
-      smiley = CreateSmileyDefaultObject(full_code);
-      smileyStats[full_code] = smiley;
-    }
-    smiley.fav = true;
-    favorite_img_src = icon_fav_active;
-    saveUserStats(); // Sauve et recharge les stats triées et recharge le panneau des favoris de la réponse rapide
-    // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
-  }
+var img_star = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAADi0lEQVR42p1U7UuTexi2D%2FYlKYy5%2FOBRO2JmKJwOHjjG6UMH5ETv9kZCnwqF8KCiNHUWTqdr6aaJOme6Sl22NV%2FO1G0eNt%2FPWbOtNiE59CGE6g9oEARBXef6TQpsL6QPXDzb87svrvu57ut%2B4uJiXHBKpMT2uC1e3d3d0q6urq3xYZPugG33e0zu7tsKX6fT7Whra3tP9G2tAUuiBv5fgL9TAYvkh83ym5ubNdPT0%2Bjt7UVra%2Bvm%2BDBJ4mGSvsXaaWC1ADAmmjfDV6lU8Wq1%2Bu3q6io8Hg8aGhrMm2tgSFoE92%2FAyjHgv1PAaHqQDUm%2Bl9%2FU1FTkcDiwvLwMv9%2BPzs7OIBuKzIduTzwGky9jaI8WD5I8MEhewJL5Ab7jwFPCdwJw%2Fw7cT3qFgaQVDEqHWatAX3Ke4NfX18dT8DIt1zY2NnoUCsULhu%2BD2%2B3G0tISxH1mZka48EqpVK6wdphgmSJvvYGJ1MMY4Jxt%2BYC%2FEHh%2BDlg%2BA%2FxzYh3%2FngSe0IVnZ%2BnIeWCOzYwcBEwpn%2BBIlzDlhzljWCwW%2BHy%2BEITtCwsLWFxcDEE04vV6EQgEYLPZYDAYoNVqP%2Bn1ekkczGkJeJT%2BGnZa7qTYjMCpcMwSLp65eJ%2F8GXiUdkO8QHt7ewLxenR0NPSms7OzmJubC7sLfDk3Go3gdtzYOApD2ktM%2FQHY6YLjTDjsDKSN%2BOsQYEhVRQjey4mJCTidzjC4XC6IjRC5MJlM4LhUEYK3fxdup6%2Fh4VGKnA3HGBvro0s9GcpIWero6Ngll8vXzGZzSOhb2O120HIhroye%2Frq9BWhnFh6fC4flAnAz602s9FdUVBRwHKE5T01NfYX4L1BdXf0m9vpV%2FXgHHUe49xQbYuAGKDx4fv33MJ%2Bp8xGLX1paeodfQIhRjI%2BPY2xsLASr1Rp6JsIau4E%2F9wagZ8geXKQwxa2XKEz7jUXAPTZxiyOQZeZF45eUlAREwL4Ii9AJcfH2IyMj0Gg0KCsry4vewLWMj7BcBXT8%2Bil%2FCkKeWYi6rB6o%2BUm2XmEDXMHrWXXR%2BMXFxR%2Fn5%2BfR398P7nmwqqqqUCaT9TCgoXUU46msrIzMhzxnJ%2Bpygrj16zvUHNBvPMvdB1mWlyP4zJq7kfg1NTU7a2trgy0tLe8ouoHPcO6jsJcOfGbN3egO1OZk4Pr%2BlIhnlbnbIMvOZk1CND5DlsEgRuSXl5dvoyPZrNnA%2Fx%2BzI%2BiAcKxsLQAAAABJRU5ErkJggg%3D%3D";
+var img_fav = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABcklEQVR42mNgGDTghost4y1THb87Ztor71rpz7xlpmMKk7tlrmd810pvBlBuxS1jbf8bDpZMGAZcszOdf8VY%2Ff9FbaX%2FF7UU%2F18xUvt%2F09cl5pa%2Fe9QVQzWw2CVtoDhQzTUbo0Uoms%2FZmged1lH6f1xR%2Bv9xJShWkPp%2FxkDtIwiD2HBxoBqQ2nPWJqFwAw5qKXbuV5H5v09ZGhUrQTGaOEjtAU2FbrgBu%2FQ0qrcqSP7fBlRMDAap3aWrVgc3YLeLvdk6ecn%2F64DOIwavBard5WhrhRIOa031Fy%2BRFfu%2FTFEKLwapWWOkswwjFnbFRQovUFe8MUdO4v9cYKBhwyC5BRpKt3bGRohiTQt74qKUpipIvZ0iJ%2Fl%2FirwUGpb8P1Ve6vWe2AgVvAlqlpmhxnQV%2BXsTgBp6oHgC0PbpqvIPphloqxGVKl3FRfhL5CS3dgM1gnCJrOR2L2kJAZKSNlCDvLewwHIgXgFik5U%2FQBrJ1kwsAAC8lOiuvmntngAAAABJRU5ErkJggg%3D%3D";
+var img_fav_plus = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACFElEQVR42mNgoAdgZmYWZmVlzQFhFhYWYayKbrjYMt4y1fG7Y6a98q6V%2FsxbZjqmMLmypMS1d%2B7c%2BX%2Ft2rX%2F5VGR2284WDJhGHDNznT%2BFWP1%2Fxe1lf5f1FL8f8VI7f9NX5eYW%2F7uURP9vf%2BfOnXq%2F5EjR%2F73%2BXr8v2ZjtAhF8zlb86DTOkr%2FjytK%2Fz%2BuBME7ZCX%2Bd%2Fh4%2FOwE4pqkxP%2B7d%2B%2F%2Bv23btv9lMdH%2Fm5zs%2Fqd6ee5mY2ODeOeglmLnfhWZ%2F%2FuUpeE4X0zo%2F759%2B%2F5v3779%2F8aNG%2F%2BvWbPm%2F7Jly%2F4vXLjw%2F5w5c%2F7PmDHjPwcHRy7YgF16GtVbFST%2FbwPaDMPZQAPWr1%2F%2Ff%2Fny5f8XLVr0f%2B7cuf%2BnT5%2F%2Bf9KkSf97enr%2Bd3Z2IgzY7WJvtk5e8v86oBdgeIGc5P9iW2swTg3w%2F9%2FX1%2Fe%2Fo6Pjf5ynx%2F9sU6P%2FfvZ2W4AGiMLDYa2p%2FuIlsmL%2FlylKYWCQhvr6%2Bv%2BVlZX%2F0%2FV1%2F68x0lmGEQu74iKFF6gr3pgjJ%2FF%2FroIUCk7S1%2FlfWFj4Pzs7%2B3%2BMge6HnbERoljTwp64KKWpClJvpwCdP0VeCo47gTESISr0P0xU6EuVnbUJ3lQ3y8xQY7qK%2FL0JwDDpgeIJQFdMV5V%2FMM1AW42opOsqLsJfIie5tRuoEYRLZCW3e0lLCJCU%2FoEa5L2FBZYD8QoQm6xMBNJItmZiAQB4ogWPlqwaKAAAAABJRU5ErkJggg%3D%3D";
+var img_fav_conf = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACYklEQVR42mNgGDTghost4y1THb87Ztor71rpz7xlpmMKk7tlrmd810pvBlBuxS1jbf8bDpZMGAZcszOdf8VY%2Ff9FbaX%2FF7UU%2F18xUvt%2F09cl5pa%2Fe9QVQzWw2CVtoDhQzTUbo0Uoms%2FZmged1lH6f1xR%2Bv9xJShWkPp%2FxkDtIwjvAIovV5b9vwskD8QgteesTULhBhzUUuzcryLzf5%2ByNBzvVZL6v0VB8v8iGbH%2FpUkJ%2F2fNmvU%2FwtPj%2FzZFyf%2BbgHiPulw33IBdehrVW4GKtwFtBmGQxgkqcv8rvD3%2FF3m6%2F1%2B7YsX%2FW7du%2FZ85Y%2Fr%2FMhen%2FyWuzv9ztTXWwA3Y7WJvtk5e8v86oPNAeKWSzP%2FcmOj%2Fhw4d%2Br9%2F%2F%2F7%2Fmzdv%2Fj950qT%2FO3bs%2BL9q1SowLikoeAbUKg83ZK2p%2FuIlsmL%2FlylK%2FV8IxCnurv83bNjwf%2F369f8boiL%2Bt%2Bhr%2F090c%2Fm%2FdevW%2F8uXLfvv4%2BNzAqhNFuGNuEjhBeqKN%2BbISfyfCwzADg3l%2F01NTf8nTpjwv1ZXCywWL8gHDos5c%2Bb8AGrJxojKPXFRSlMVpN72y0n%2BD3J2%2Fr8MaNOSJUv%2BRzk6%2FI8R4v%2FvqK%2F3Z%2FHixf%2BnTZv239vb%2BzZQiyaGIbPMDDUmqcg%2FiPDyBDsfZMiiRYv%2B9%2Ff3%2F587dy5Yc19f3%2F%2FExMT7KGGADFzFRfhDZSVPOhsb%2Fvexsvzf0tz8D%2Bjs%2F9XV1f%2BNjIzOWFlZXeTi4srAm7S9pCXkvYUFlrsI8q0NCQ4%2BV1lZ%2BcPU1PQKshpZWVkmgoaAMA8Pj6u0tHQBCwuLA9UzIQBlLSZyIabkGgAAAABJRU5ErkJggg%3D%3D";
+var img_save = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
+var img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
+var img_reset = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs%2B9AAABhklEQVQY0wXBT0iTcRjA8e%2Fz%2FN537%2FvamjVa7lSUhUbsEiQRQf%2BoQ3gL6hSskA5Bt%2FQSXTz0%2F2xBl7okZR6EqEgiAvFgCAW1SPLPlGluilubZsv29PmQe37SAUw2u75Swv%2F%2BeXt7R2ve3I27K8GTzoObf8RTF78kU8e4NtTrAGa9qL9GaFVhfrDzdOvibt23rMGrCtiMyABX3g7JARt3b1KZPX%2FAKoLVnI6VHTMVxJZ8ffb4fHYb514Umi58uxMArBOzNYdVBVsiqFd8yY2dOpra%2Fy6nPBg%2F67%2B%2FetkBTGzhUx3sl9Cogk3HwiMA2Q8PHY8u%2FfQApoOwpwYbNaGxBraAtwrQvbwjlh0eUd04cV8Wo3TX1r%2F12%2F8UJyAIjYiwafYmLQPJUYt3jChTiebjZbAavq2KFuckdq%2BM%2FK56NArivmLmBruGPQoufLkuWMkxlffjhwAWktGZkmq96HS072l3lJlfUT6md%2B3Ma9A%2Fp24vQC6f8TFzk4lN6ddtbS2HbUKvF2%2Fpf4cUlw8oMuVkAAAAAElFTkSuQmCC";
+var img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
+var img_info = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg%3D%3D";
+var img_conf = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAA5ElEQVR42qWTSw6CQAyGB8Jel%2BMB4DK6NeoJOADjAZR4ItyCCbDxTCywk%2FwlpYFk1CZfMulr2pnWmHXZETWwJkAiIiFinK%2FEABx0MXyipeCc6IkH8SRGRQVbD99ZEp%2B1UwENcQIvZWsRM4kvrYTxTaTqBn%2FOYPM%2BN8TMHLjsVOg3gCUT7UwXWDwYl82Gg%2FiFvbiI23H8OzVeekS%2FXraq7wY6L0foBsTOElwCEpx1Aotyvm2hkAP2yyOaf77xrr8xwYSFDlKnB4lHuUUl1coolwjO1%2FZBLpMTy1SIVheXaUlsyDp%2FAAuRYD49hpMKAAAAAElFTkSuQmCC";
+var img_up = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAASklEQVR42mNgwA8agLiDgUwA0vwfijso0UyyIdg0E20IsuZ6JHY5sYaUI2lmQNKETQ4nsEdiIxuALkcUQDeAYdSAwQ7%2Bk4ipYwAAyd1CTxfHBGwAAAAASUVORK5CYII%3D";
+var img_down = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAARUlEQVR42mNgQID%2FJGIMQLEBgxNQ7NyRaoA9HgPsCWlugGrowGIAuhxeA%2F4TYOMF5XiSbz2x4VBOiWZshtSTG40NhPwMAPJ2QjcfNuJcAAAAAElFTkSuQmCC";
+var img_button = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAIElEQVR42mOYiQcwzPyPE4Akz%2BACo5KjkoNXEm%2BKxwMAaetgI9c2CgEAAAAASUVORK5CYII%3D";
+var img_throbber = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAACGFjVEwAAAAYAAAAANndHFMAAAAaZmNUTAAAAAAAAAAQAAAAEAAAAAAAAAAAAB8D6AEAHV58pwAAAWlJREFUeNpjYMABREVFeYBgJQiD2AykAmZm5hYg9R%2BEoWz8QENDw1JRUXGPkpLSHCsrK16gpqlIBkz9%2F%2F8%2F1%2BbNmxu3bNkye9u2bXoomoGSjCDNQPwfhFVVVdO5uLgkgRqXgjBQidS%2BffuCgZpvAw25CcSzMVwAshmkWUFB4Z%2BysnIAujxQsyMQX4Ya0ojNFxxAQzKgmpnQJUGuhBoSeubMGVa4hIeHB7uLi0u5q6tre1RUlCChsAL6nw9oSAkQp69atYqNwc3NbbqTk9M3Z2fn30A8g5ABQOe3gLwBxNeBuJ5yA2BeAOJ2CwsLIZK9AAMgTlZWVmx2drY7KMCIDkQYAGruBeJ3QPwMiD1IjkagplWZmZmvgfh9RkZG7MyZM0WmTJnSCcI9PT0iQKeH4E1IeXl5xiBDoC7hmTZtWgVQ82MQnjx5ciXQ2biTMjYA1JQ9derUeyAMYpOcG3t7ezmBmltBGMTGpQ4AtqrwBlDMdgwAAAAaZmNUTAAAAAEAAAAQAAAAEAAAAAAAAAAAAB8D6AEB8Sqm5QAAAXpmZEFUAAAAAnjaY2DAAURFRXmEhYWXgTCIzUAq4OXlbeLi4voPwkB2I0ENRkZGFrq6ujv19PRmWVlZAfXwToIZwMPDM%2Fn%2F%2F%2F9cmzdvbtyyZcvsbdu26WEYANKsra39T0dH57%2B%2Bvn4qUKMkUOMSEAZKS%2B3evTsYqPk20JCbQDwbwwCQzSDNQPwTaJg%2FujxQsyMQX4YagukleXl5DqDGNENDQ7%2F6%2BnomdHmgFxihhoSeOXOGFS7h4eHBHhAQUBoYGNiSn58vQCisgP7nAxpSAsTpq1atYmMICgqa4u%2Fv%2F9HPz%2B8b0KCphAwAOr8F5A0gvg7E9ZQbAPMCELfa2NgIkuwFGABxKioqooHYDRRgRAciDJSXl3cD8SsgflRWVuZOcjQCNS4H4udAza9KS0uj161bJ7x48eI2EF64cKEw0OkheBNSVVWVEcgQoBe6srKyeJYsWVIG1HwfhEFsoLPxJ2V0ANSUAdR8C4RBbJJzIzBQOYEam0AYxMalDgDCHPiOgVAEawAAABpmY1RMAAAAAwAAABAAAAAQAAAAAAAAAAAAHwPoAQEcvHUMAAABbmZkQVQAAAAEeNpjYMABtLS0eGRlZReDMIjNQCqQkJCoFxUV%2FQ%2FCIDZBDTY2NuYWFhbbLC0tp%2Fv5%2BfGKi4tPEBMT%2Bw%2FCQEMm%2FP%2F%2Fn2vz5s2NW7Zsmb1t2zY9DANAms3NzX8B8V9ra%2BtkoCYJoCGLQJiLi0ty9%2B7dwUDNt4GG3ATi2RgGgGwGaQbir0DDfNHlgZodgfgy1JBGDAPk5eU5gBpTgLaDNDOhywO9wAg1JPTMmTOscInc3Fz22NjY4ri4uKb8%2FHwBQmEF9D8f0JASIE5ftWoVGwNQ48SYmJi3QPwJaNBkQgYAnd8C8gYQXwfiesoNQPaCt7e3IMlegAEQp7W1NQqIXUEBRnQgwgBQY0dLS8tzIL7f3NzsRnI0Ag1YAsRPQIY0NTVFAROOMMi%2FILxu3TphoNND8Cak9vZ2Q6ghHfX19TwgfwIV3gFhEHvTpk34kzI6AGpIh4b0dRCb5NwIDFROoI0NIAxi41IHAFxMAhn8b9WWAAAAGmZjVEwAAAAFAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfF2B3YAAAGfZmRBVAAAAAZ42mNgwAG0tLR41NXVF4AwiM1AKlBSUqpVUFD4D8IgNkz8%2F%2F%2F%2FjFg1uLm5mbm4uGwG4qmhoaE8QE19ioqK%2F0FYRUWlF6iEj5mZeTEQH%2BDg4LDBMACk2cnJ6buzs%2FMvoGFJ8vLyEkDNC0AY6AUJFhaWHJADQJiJiekohktANoM0A%2FEnoAE%2B6BawsbGFMjIygg0AumIJhguAzmQHuiAZpLm%2Bvp4Jiy%2BZgIaEAGmQS7jgorm5uexZWVmF2dnZDR0dHfyEAhfodIEdO3aUbNmyJX3VqlVsDECNfZmZma%2BA%2BD3QoAmEDNi8eXMLUPNtIL4OxPWUGwDzAtCABn9%2FfwFCBmzbto0PqBHhBSS%2FsU6bNi1iypQpztgSC0gMqMkRiEPPnDnDimEyUGMbED%2BePHnybaBBLujyUM2XQc4HeqMRmwELp06d%2BgBqSMTu3buFQf4F4XXr1gkDnR4C1XwTiGdjM8AAakhrd3c3N8ifQIV3QBjE3rRpExfIZiB7NtAwPYKZCaghHRrS10FsknMjMIQ5gTY2gDCIjUsdAEaa8bn5NffYAAAAGmZjVEwAAAAHAAAAEAAAABAAAAAAAAAAAAAfA%2BgBARzg1J8AAAGgZmRBVAAAAAh42p2Tv0sCYRjHr8Dk7tLzx1B%2FgJN3XiCEQ1OOBf6qXK1JuJCW8AcRFbYJDm0iBqk4OEjo4eIQNLsFSSSNLUFL0BbX96mjzFMOe%2BHLfXnv%2FX6e53nhZZgpS5Zl3u%2F3V0jkmVmXz%2Bc7EkXxg0TeNBCNRlfD4fB1JBK5UBRlEaGCJEkaibzL5bJjXdlsthun07lmAFA4FAq9Qe%2BxWGzX6%2FUuI1ghBQKBJYT3eZ7XOI7TALnVNG3uD4AqUxigV3SzOV5AEIQtApCoE0MHHo%2FHCsAeqm8Y6N9rniAsyyrw3M9uKpWyZjKZg2w2e1wqlQSzuwLc0e12D1VVTTabzQUml8sVAHiGXtLpdNEM0Ol0zhF%2BhAbQyRcAwf8DRkdIJBIOMwDatyP4O8LIbJZGoxGvVqvBSZdIewitQzv9ft9iINdqtXy9Xn%2BC7gEKjv%2FXw3fUPsY4mwS4hIYEwTfe6%2FXcNC%2Bp1Wq50fq2Hn6AygYAWl%2FRIXl4nubEwSGJfLvd5qgyfBkw2fRtIJDUb3pAfubXiBtmUfGURH7auU%2FutPojzjsHHQAAABpmY1RMAAAACQAAABAAAAAQAAAAAAAAAAAAHwPoAQHxk%2BXDAAABg2ZkQVQAAAAKeNqlU79LAmEYvgINKzQM9bzZuSlQDhwSHBqL2rxrFIVwaYmCS7xTo6FZHdoFHfS4sf6B2xpEbGsIGhraWrqeh65fenJIHzx8D%2B%2F3Ps%2F7Az5BmHPy%2BfxaNpttE%2BTCoieTyZym0%2Bk3gtxXoCjKtqqqPeC6XC6vQ3gJvBOyLDej0WhYFMWbeDx%2BK0mSPGNQKBR6MHnB%2FQoTFcIEKreJXC6XgLgEsROLxRzcd47jLP0xYGWKgWfw3ekCMNinmGAnMx2kUqkVdHBE8Yz751lOJpN7MCiBh76jmqYFDcM4rtfrZ61WK%2BK3K5hHLMs6MU2z2O12g0Kj0Wjquv4IPMHoys9gOBzqEE%2BAEaD93%2BBrhFqtdl6pVDb8DNB%2BGMKfEX7NFkDwENjxWiJjfGOObdsBr9aqbmv3TJx%2Bd8V8mzDXy6ADjJmANg%2F6%2Ff4m5yXIGXPFY%2BZ6zbaFBJpUB4PBKucEfyDIGXO77DDX929AUHQ3PSJf%2BDdiwyFUvCDI5%2BV9ABJsBKxZnW%2FPAAAAGmZjVEwAAAALAAAAEAAAABAAAAAAAAAAAAAfA%2BgBARwFNioAAAGKZmRBVAAAAAx42qWTu0%2FCUBjFW4mi2ODga%2BSdMLk4OcrLjpLgZlwJz8nEMCHx1YXFAprgbuzAAISp%2F4WDIZg4mLiY6OZiYj0nFgYKAeJNfunX755z7qOpIIwZ0Wh0ORaL3RDWwqwjEomchEKhL8J6oiGfz2%2Bn02kNlIvFogTTVTgc%2FiaoL%2F1%2Bv9Pr9d55PB49GAzuWAJoTqVS7%2BAzm80eYuVNGG9JPB7fgDkJs2GiG4YhDgeUwQd4A%2FLwAj6fb9%2Ftdv8wgDux7ECWZTtWP8pkMnuW9L8xx5BAIJDM5XL2QVfTtAVVVTPVarXQ6XScU9zvms1muwZnLpdrUYDxolKpvIDXWq2mTHLDeI%2BHQSRJevh%2FQP8IoKAoysoUR1gXRVEdHKE%2FcHHz7Xb7AOyOukT2OKfregK1wxLbarVKEPTAI4XD8%2ByZcz1qRwXUQZcCfI1Eo9FYxfs5Yc2eae5SawmAYAsChpSazaYD9THqZ8KaPXOXdWon3hQMSYifCOuZ%2F0Z8nSWseEpYj9P9AmHJ8O96azpYAAAAGmZjVEwAAAANAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfHPRFAAAAGYZmRBVAAAAA542pWTv0sCYRzGLeiHp95y5OrooJ56U2uD5ZQ%2FsKlb%2B7G41Z24mCENORW15KZW4OCgIgT%2BAQ5uDWEGQUvg1hQtXc8DKuQp6gsf%2BN73%2BzzPe%2B97nMUyZamqaovH4zeEtWXRFY1GTyORyBdhPdOQTqcVXdcfU6nUZT6ft8GYA98kFovl3G63Q5blO5%2FP96QoyqYpgGbwqWlaHyH7oVDIiZ1vCY7ghPHA6%2FUaHo%2FnlyGmAO6MgD74QMjO%2BDwQCEQQ8MMQvokpIBwOr8GsImjbMIyl8Xkmk1kOBoO7fr%2F%2FMJlMro0GlUpltVwuHwOt3W6Lc9yvJIrilcPhyLpcrnULjOelUukVvIOLWW4Y7wVBMIgkSQ8LB9jt9v8BwyMUi0UdAfMcYQMh16MjDFen01lpNBp7YGvSJbLHWavVSqC2mmLr9XoWgh54pnB8zt5g1qN2UkABdCloNpuJarUq4TlHWLM3MHepNQVAIEPAkGytVhNQn6B%2BI6zZG7xlgdqZNwXDEcQvhPXCfyO%2BjhU7nhHW03R%2FhFP4ipu3x5gAAAAaZmNUTAAAAA8AAAAQAAAAEAAAAAAAAAAAAB8D6AEBHFmXuQAAAYZmZEFUAAAAEHjapZOxSwJxFMevIEvjXOzyFvE%2FCJpOT5eG2hoEbyjUSXRyyt0uz1NwKRoa3KrJwUHlwP%2FAwa1BpKAlaGoJWoK4vl84g7yTS%2FrBBx7v977fe%2B%2FdnSAsOaVSKVQoFK4IY2HVk8%2Fnz3K53Bth7CtoNpv7jUbjHrTa7fY2hBfgnaALXVVVMZlM3iQSCSudTisuA0f8YhjGq2maJ5lMZhdPviaVSkWCsKgoyhf4pImXQYti8Fyv148W71Op1DHEHzRhJy4DTdMCMDkFh7Ztr3lMuU4TjFJER5s%2F2W63GxgOh2XLsqrj8TjstytRFCPRaPRSluVaPB7fEiCugSl4HAwGhp8BxLeSJNkkFovd%2Fd9gPgKoYozwHz6RnV8jzM9kMtmAiQYOvJbIHO9Go1EWcdBli%2FZ1jgEeWLh4z5xzx1F1L4MOmLEAo2R7vV6EOyGMmXPEM9a6DFCwhwKa6P1%2BP8SdIH4ijJlzuuyw1ndTEJSdtzNlvPLfiLcTxBPPCeNldd%2BFTAEoC6ckLQAAABpmY1RMAAAAEQAAABAAAAAQAAAAAAAAAAAAHwPoAQHwWCCpAAABqGZkQVQAAAASeNqlkz9IAnEUx%2B9Ou06jAsXFxb%2FgFk0h0pInTo0eteqgaN4Qubh0CtVYgZ4ILWlNDg4q4tgSOLg1SNgQtrUELUHL9X2QBd7JET34cI979%2F2%2B33s%2FjmEWRDqdtudyuQuCcuavAeFhNpt9JSg3FVSr1U3QUFX1tNlsrkBYAm9EPp9XIpHIaiwWU0E3Ho9vGRmQ%2BBnPl3q9vpdMJl3ofEkUi0WXKIop8BmNRj%2FIxMjgjMSVSmVSq9Vi83V03YXBO5nQSXQGkiTxEO%2FDRNQ0jZ2vK4rCkQlIybK8%2FFNotVp8r9fL9Pv9wnA4XDPbldvtdvr9%2FvNgMHjs8XgEBmIFjMGk2%2B2emBkEAoFrn8%2Bneb1eLRQKNf5vMBsBFDCG6QjhcNgBk98RZjEajZZgIoEdoyUiOJ7nE1ar9QC5TVfF8cs0Bnggk%2Fk6iVmW1ZBqFovl1sjgCjySCUZJtNttJ%2B2EmE6nDo7jZBITyO91p4RoA2IyKXc6HTvtBPkTMRgMjvDJOjrfgDtBELZN%2Fw2YZL5vZ0z57P2C%2FegDt2ND9xJB%2BaLvvgDI3vA4tCR%2FkQAAABpmY1RMAAAAEwAAABAAAAAQAAAAAAAAAAAAHwPoAQEdzvNAAAABkWZkQVQAAAAUeNqlk79LAnEYxq8g8U7u5Kw2%2FwO14KCpQaqtA3%2F1Y3YTCmko%2FEHIJbYZDa5hkDo5SKiIW9DsFiSRNDi0BC1BW1zPA%2BagJ4f0hQ%2F33r33PO%2F3fb93gjBjGYYhZbPZImEszLvS6fRJKpV6J4xtBZVKZb1ard6CQrPZlCDMQfhBMplMLhQKyZFIpBQOh%2B%2Bj0ejGlMFIPKjVam%2B4HiaTyVWYXBO0sAJhHCbf4IsmVgYFisEz4p3JPKrqEH7ShDuxGpqDldHKtmmaC5N5PovFYrsgXq%2FXHeMEb9rtdgKcdTodxW5WXq%2FXEwgErsB5MBh0ChAaoA9eW63WpZ0BhGW%2F32%2F6fL4fTdPK%2FzeYtwVd11WYFMct%2FK1er7cEkwOwZTVErEW3272nKMoRYudUFtvPsw3wRJPJPMUul8skMLmzMrgBLzRBK%2FuNRmOZMyHD4dAjiuIxxZIkmbIsP07tEqI1iGmS56fMmSAekG63e8pNsDLED6qqbtr%2BGzBJjE6nz3juvxGnI6L6BWE8671fIqf6HRySx%2B0AAAAaZmNUTAAAABUAAAAQAAAAEAAAAAAAAAAAAB8D6AEB8ASBOgAAAWxmZEFUAAAAFnjaY2DAAerr67na29s7QBjEZiAVtLa25ra0tDwGYRCboIZt27bpbdmyZfbmzZsbz5w5wwXUWA3U%2BByE29raqkNDQ3ni4uL6gXhtbGysCYYBQI0gzTeBhtwGGhYCdLYIUHM3CPf09IjExMTEAfEnoOZ3QHotNgMaQZqB%2BDIQO6LLA232BGp8BTIE5BIMA4DOZgVqDAVp%2Fv%2F%2FPyO6PEgMZAjQBfGrVq1ig0uAOEBN6UBcAnQ6H6Gw0tLSEjI3N%2B%2B0sLCo9PDwYGcAaqwH4usg5wO90ULIAKDGWUAD%2FgHxT1tb21mUG0CqF6KiogQtLS0RXiA2EIGASVJSMlBCQiITyOYgORqBGoNERUX%2FgzCQPZ9gQlq3bp0wKExA%2BNGjR0LCwsKZYmJiYAOA9H4MVyIn5U2bNnGBwgTIvgPCQLkSoBJ%2BkM1AzfukpKSsCOYNoCHp0Ni5DmKTnBuBscMJtL0BhEFsXOoAUt0FcAi6YW0AAAAaZmNUTAAAABcAAAAQAAAAEAAAAAAAAAAAAB8D6AEBHZJS0wAAAXNmZEFUAAAAGHjaY2DAAXp7ezmnTp3aCsIgNgOpYPLkydlAzfdAGMQmqGHbtm16W7Zsmb158%2BbGM2fOcAE1VU6ZMuUxCE%2BbNq0iKyuLB4h7gXhVXl6eMYYBQI0gzTeBhtwGGhbS09MjAtTcCcIzZ84UycjIiM3MzHwPxK9BhmAzoBGkGYgvA7EjujxQkwcQPwPidyCXYBgAdDYrUGMoSPP%2F%2F%2F8Z0eVBYtnZ2e5AzbGrVq1ig0uAOEBN6UBcAnQ6H6GwsrCwEHJxcWkH4nIPDw92BqDGeiC%2BDnI%2B0BsthAwAapzh7Oz828nJ6Zubm9t0kg0AakY1gFQvREVFCbq6uiK8QGwgAgGTsrJygJKSUgaQzUFyNII0Kygo%2FFNUVPwPNGQO3oS0b9%2B%2BYKCQFDMz81IQ5uLiklRVVU0HaYbiPRiuRE7KQEkuoMapoOgHYRDbysqKF2QzSLOGhoYlwbwB1NSCZEALyblRVFSUBwhWgjCIjUsdAJsS8AnByX%2BOAAAAGmZjVEwAAAAZAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfDhY48AAAF5ZmRBVAAAABp42mNgwAFWrVrFuWTJkiYQBrEZSAVAjRmLFy%2B%2BBcIgNkEN27Zt09uyZcvszZs3N545c4YLqKkMqPk%2BCIPYWVlZPBUVFV3l5eXLq6qqjDAMAGoEab4JNOQ20LCQhQsXCgM1t4HwunXrhEtLS6PLyspeAQ14DjIEmwGNIM1AfBmIHdHlgZrdgRofAfErkEswDAA6mxWoMRSk%2Bf%2F%2F%2F4zo8iAxoEY3II4GBiobcmizATWlA3EJ0Ol8hMLKxsZGMCAgoBWISz08PNgZgBrrgfg6yPlAb7QQMgCocaqfn983f3%2F%2Fj0FBQVMoN4BUL%2BTn5wsEBga2wL1AbCDW19czGRoa%2Bunq6qbJy8tzkByNQI3%2BOjo6P4H4v56e3iy8CWn37t3BQCEpHh6eJSDMxcUlqa%2BvnwrSrK2t%2FQ9o2E68SRnoBS6gxslAjf9BmJeXd5KVlRUvyGaQZiMjIwuCeQOoqRHJgCaSc6OoqCiPsLDwMhAGsXGpAwBEpviQbN5BdAAAABpmY1RMAAAAGwAAABAAAAAQAAAAAAAAAAAAHwPoAQEdd7BmAAABbmZkQVQAAAAceNpjYMABVq1axbl58%2BYGEAaxGUgFmzZtSt%2ByZct1EAaxCWrYtm2bHlDxbKCNjUANXEB2CZB9B4RB7Pr6ep7W1tYOIF7S3t5uiGEAUCFI802g4ttAw0LWrVsnDOS3gPDu3buFm5qaolpaWp4DDXgCMgSbAY0gzUB8GYgd0eWbm5vdgAbchxrSgWHAmTNnWIEaQ0Ga%2F%2F%2F%2Fz4guDxIDanQF4ihgoLIhhzYbUBMowEqATucjFFbe3t6CcXFxTbGxscW5ubnsDECN9dDQvg3yLyEDgBonx8TEfALit0CDJlJuAKleyM%2FPF0DxArGBCARM1tbWvhYWFiny8vIcJEcjUKOvubn5VyD%2Ba2lpOR1vQgImnGAuLi5JcXHxRSAsKioqAbQ9GaQZiH8BDduGNykDvcAF1DRBTEzsPwgDDZng5%2BfHC7IZpNnGxsacYN6QkJCoBxryH4RBbJJzo5aWFo%2BsrOxiEAaxcakDADqJAhkT68NIAAAAGmZjVEwAAAAdAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfC9whwAAAGhZmRBVAAAAB542qWTPUgCcRjG7049zcQEFzc%2FEASHaGpqyTucAhcPnGsIv4bANVSoEKQI%2FFhajJocHDwRwaWlza0hwoagrSVoCVqu54EiuVNE%2BsODz93%2F%2F%2FzufV%2FvBGHB6na7a7quVyh6YdXV7%2FcPB4PBI0W%2FNDAcDjdx%2BApPrCLghi%2FBP1P09Xp9vdVqnTabzWtoywLAQYafcHgKWLrX6%2FlxfUKNx2N%2Fo9HIIPgKyAsh8wBVhqEHaNe83263VUCmhEBnFsBkMnEgqDFsGIZo3uc9BBWAMvCO2WnLCHFgJZTuXTarVCrly2azlVwud1QsFp0CguWfaU%2FZ7zIAgpcAvENv%2BXz%2B4v%2BA3xZGo1EJvfmWAWq12gaCfy3MLDdUkGU5jV%2FJHCyXy1IymdxLJBIH0WjUaSHbbLZbDlsURQMQzbzPsKIoH9CXqqoty18kSdI9LWW32wvxeDwQDoc7VDAYDACwzzAq%2BARAt1Tgcrl2UMUddINLL8o8R9igIpHIhaZpHj6ZYcC25w5o9gVC6DgUChkU%2FcpfI1rwxGKxDkW%2F6Nw37k3xuSzoMScAAAAaZmNUTAAAAB8AAAAQAAAAEAAAAAAAAAAAAB8D6AEBHSsR9QAAAZ9mZEFUAAAAIHjaY2DAAVatWsW5efPmBhAGsRlIBZs2bUrfsmXLdRAGsQlq2LZtmx5Q8WygjY1ADVxAdgmQfQeEQexFixZxL168uBmI5wHZ%2BhgGABWCNN8EKr4NNCxk3bp1wkB%2BCwjv3r1bGKgxbMmSJfeA9B2QIdgMaARpBuLLQOyILr9s2TInoAHXoIY0Yxhw5swZVqDGUJDm%2F%2F%2F%2FM6LLg8SATncCGhQGZLMihzYbUBMowEqATucjFFbx8fECFRUVteXl5fm5ubnsDECN9dDQvg3yLyEDysrK%2BoCaXwPpZ5WVld2UGwDzAtD5JUC%2FCRAyYObMmfwoXkACXJycnFn8%2FPzBQDYTtkAMCgry8vPzS1RRUWHHMJmPj28hNzf3fxCGGoICAgMDvf39%2Fd8BDfgWEBAwCcN0Xl7eQ1xcXGADgIZlm5ubi%2Bvq6s4FYS0tLQmg7QkgzUD8GWjQBgwXCAoKWgMN2Q9yiZCQEB9QY7eOjs5%2FEAaxs7KyeEA2gzQDXWNKMG8ANVVra2v%2FBWEQm%2BTcqKenx21kZDQXhEFsXOoAfEH6IOWuH2wAAAAaZmNUTAAAACEAAAAQAAAAEAAAAAAAAAAAAB8D6AEB88%2BqfQAAAYJmZEFUAAAAInjapVOxSwJhHLVAwwoN40692bkpODlwSLihschNrzEUwsUlCi65OzUamrWhXdDhPBzrH7itIcK2hqChoa2l6z24QjzlkD543Lvf7733%2Fb4Pvkhkwer3%2B%2FHRaHRJkEeWXbZtnziO80SQhxrG4%2FEOxLfYsQnDOngD%2FIUgZ409aqgNBKBJ8zMEEwiOhsPhNv5Ngpw19qihdl4A0yfAI7A322fN7zGkGQhwXTeKZolCz%2FNWZvus%2BSEl8Oj0bcdQ5IU1MGYi7K7q9fqWYRgXlmWd6roe42i6f9sczQwLgPHaNM034LXdbnf%2BH%2FB7BIzfwNmSYQHdbjfZarXO%2F44wteKCIFSz2ewB%2BOq8S9Q0bb9SqRzncrm1QHImk7lDgEeAH872aS6Xy%2B%2FAJ%2FhNIF0UxQea8WVAtVgspvP5fI%2BQZTkNk0YzJvjAdxCYQJIkBeZ7TpJKpRKKonRg%2FPZxVavVNrkzMEDIbujbwM5nMH4R5Eu%2FRlVVNwqFQo8gX6T7AfzqBKx3VEm7AAAAGmZjVEwAAAAjAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAR5ZeZQAAAGNZmRBVAAAACR42qWTvUsCYRzH75Ky7LCht1E9FZxamhp9ObsxobZoFT11CqLJpLdbWjq1oPboBgcVp%2FsvGiIMGoKWoLaWoOv7BS3qlEt64APf5%2Fn9ft%2Ff88IjCEOGaZpTrVZrj1ALo45ms5ltt9u3hNq1oNPpLCH5Ah0rKPBBb0PfE2quMcYc5joMEGTxHRK6SFhvNBqzmB8Qaq4xxhzmDjKgexfcgPjvONd6MZpUHAa2bfssy2KXOLQ4IC72TDagx78CgUBg0uPx7IuiaGA673ZXuq7PGIaxCzS8zoQgSZLJBgRGV24G9Xpdr1arj%2BChVqsd0uD6Xwb9I4BTxOf%2B8Nx%2BFH4foT%2BKxaI3Go1mw%2BHwGqZjgy5R07TVXC63paqq1%2BEsy%2FJlKBSyg8HgR8%2Fkx8jn8yp4Ai%2FgxOGOYosGBGbZTCazkEqlzkkikVgsFAqb6P4KnmFgOnYQi8VWaMKdRCIRPwqPksnkO4E%2BLpfLEjuzuFQqLbv%2BDRTtoPMboR75NyqKMp1Op88I9bC8T5%2BU8PAz88iaAAAAGmZjVEwAAAAlAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfOTC%2B4AAAGWZmRBVAAAACZ42qWTu0%2FCUBjFwcQHhXZpZGVkAMpjcmVAmSwQnezqY2FTSlgQQxxk0uiiG6AmDAxASEz4AxjYHIxiYuJiwuZkXKznJMBAIZV4k5Oce8%2F3%2FW7vba7NNmPUajVHs9k8puht845Go7HfarWeKHrLhna7raD4BjsW0CDAH8K%2FUvRcY8Ya1poACNn8jII%2BCrbq9bqMeZGi5xoz1rB2GoD0PvQIRSdzrg0zQgomgGEYjk6nw12i8PYpuX0I2e71eovjwOPxrIiiWHC5XBeYrlrdVaVSkcrlsl6tVg%2Fwd5ZssizfCYJgUIDc%2FgFwCr1BL4Cc%2FB8wOoIkSefIZStAt9uV0JgZH2E00un0cjAY3AuHw5v5fH5h2iVms9l1Xde1eDy%2BbCIrinLt9%2FsN6DsUCqmTeSaT2UDzOzQA6MwECAQCDz6f74cQ%2BF1N09yJROKKisVibjTtADIA4AO6NwEikcgaIfwSr9crJpPJoqqqX0MVS6WSkzuzOZfLRSzfBnY%2BQuMnRT%2F3a8QRnKlU6pKin1X3C2Zv%2BIepEdLNAAAAGmZjVEwAAAAnAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAR4F2AcAAAGGZmRBVAAAACh42mNgwAFWrVrFuXnz5gYQBrEZSAWbNm1K37Jly3UQBrEJati2bZseUPFsoI2NQA1cQHYJkH0HhEFskBhIDqQGpBbDAKAkSPNNoILbQAUh69atEwbyW0AYxAaJgeRAakBqsRkAMv02EF8GYkd0eZAYVA5kSCOGAf%2F%2F%2F%2BfcuXMnyBZHIJsRizwj1JDQM2fOsMIl5OXlOSQkJOpFRUUnALkiRIQVHyhMgDgdGDtsDLKysouBmv%2BDsLi4%2BCJCBoDCBOpVUAzVU24AzAtAzRN4eXmFCRlw4sQJPqA3EF6AgdzcXHYrK6sUa2trXyCXCVsgtra2ugJxVGhoKBuGyZaWltPNzc3%2FAvFXqCEooLm52a2lpeU%2BED8HGtKBYYCFhcU2oOZfIEOA7BSgi0RjY2Mng3BgYKBYW1tbJFTzEyBegmGAjY2NOcgQkEuAXuGNi4trjImJ%2BQTFTd3d3dwgm0Ga29vbDQnmDaDNxUCNb0EYxCY5N6alpXEBXTERhEFsXOoALlABImtNWOoAAAAaZmNUTAAAACkAAAAQAAAAEAAAAAAAAAAAAB8D6AEB83bpWwAAAaRmZEFUAAAAKnjaY2DAAVatWsW5efPmBhAGsRmIAf%2F%2F%2F2eEsTdt2pS%2BZcuW6yAMYhPUzMHBYcPMzHwAiBcDufw7duwoBtp%2BB4SBhpQADeECshuB7Nnbtm3Tw7CZiYnpKIgJwkB27qNHj4SAGlpAeN26dcJATSFAzbeB%2FJtAPBvDBUCbl4A0MzIy%2FmdjYwtBlwdqdgTiy1BDGrH5gpOFhSUbqpkJW%2FhADQk9c%2BYMK1xCXl6eQ0VFpU5ZWbnPwsJCiFBYAb3CBwoTIE4Hxg4bg7q6%2BkIFBYX%2FioqK%2F4GGLCBkAChMQN6AxlA95QbAvKCkpNQnJSUlTMiAEydO8AG9gfACDOTm5rK7ubklAbFPfX091kCcMmWK8%2BTJkyNCQ0PZMEx2cXGZ6uzs%2FAuIP4EMQZefNm2aC1DzbaAhj4G4DZsBm52cnL5DDUmqrKwUzcrKmgDCiYmJojNmzAgHaZ46deoDIL0QwwCgrWYgQ0AusbKy4s3JyanPzMx8D8UNixYt4gZqbgVpBmIDgnkDaHMhUOMrEAaxGUgFaWlpXECN%2FSAMYuNSBwBOIvA4wVgLqgAAABpmY1RMAAAAKwAAABAAAAAQAAAAAAAAAAAAHwPoAQEe4DqyAAABkWZkQVQAAAAseNpjYMABVq1axbl58%2BYGEAaxGUgFmzZtSt%2ByZct1EAaxCWoQFBS05uXl3c%2FHx7cQyOXfsWNHMdD2OyAMNKQEaAgXkN0IZM%2Fetm2bHorm%2F%2F%2F%2FMwI1H%2BLi4vrPzc39n5OTM%2FvRo0dCQA0tILxu3TphoKYQoObbQP5NIJ6N4QKQzSDNIMzPzx%2BMLg%2FU7AjEl6GGNGLzBQfQkCyoZiZ0SZAroYaEnjlzhhUuYW9vz6Grq1sNxN3e3t6ChMIK6BU%2BUJgAcTowdtgYjIyM5mpra%2F%2FV0dH5DzRkLiEDQGEC8gY0huopNwDJCz0yMjJCJHsBKeWxBQUFJQCxFyjAsAXiokWLnBYvXhxWX1%2FPhmFyQEDAJD8%2Fv2%2F%2B%2Fv7vAgMDvdHlgRqdlyxZcg2I7wHZzRgGADVuABrwGWpIAtAWkbKysj4Qzs3NFQXZDNV8B4jnYRgAtNUUZAjUJbwVFRW15eXlr0EYaEgtKCmDbAZpBnpFn2DeAGrMB2p8BsIgNsm5EegFrsrKym4QBrFxqQMANXn6HYPJ7D8AAAAaZmNUTAAAAC0AAAAQAAAAEAAAAAAAAAAAAB8D6AEB8ypIyAAAAWtmZEFUAAAALnjaY2DAAVatWsW5efPmBhAGsRlIBZs2bUrfsmXLdRAGsQlqkJKSshITE9snISExH8jl37ZtWwnQ9jsgDDSkBGgIF5DdCGTPBsrpoWj%2B%2F%2F8%2FI1DzflFR0f9A%2Br%2BwsHDmo0ePhIAaWkB43bp1wkBNIUDNt4H8m0A8G8MFIJtBBoAwkB2ELg%2FU7AjEl6GGNGLzBQdQY6akpGQgkM2ELglyJdSQ0DNnzrDCJTw8PNgtLCwqLS0tO6OiogQJhRXQK3ygMAHidGDssDHY2trOMjc3%2FwnE%2F4AGzSJkAChMQN6AxlA95QbAvAA0oFNLS0uIZC8gpTy22NjY%2BLi4OE9QgBEdiDAA1NgfExPzCYhfgQwhORqBGtcCXfAOakhcT0%2BPSGtrazcI19fXixBMSEDNJkCb14JcEhoaytPW1lYN1PwchFtaWqqBzsadlLEBoMZcoMbHIAxik5wbgc7mam9v7wBhEBuXOgDZvgVwR0IA4QAAAABJRU5ErkJggg%3D%3D";
 
-  if(!sm_include_fav) {
-    // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
-    // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
-  } else {
-    // Mise à jour du smiley dans l'onglet top
-    ChangeFavoriteStatus_InUI(smiley, favorite_img_src, key_prefix_top);
-    // Mise à jour du smiley dans l'onglet historique
-    ChangeFavoriteStatus_InUI(smiley, favorite_img_src, key_prefix_hist);
-  }
+/* ------------------------- */
+/* les paramètres par défaut */
+/* ------------------------- */
 
-  // Mise à jour du smiley dans la fenêtre de choix des favoris
-  ChangeFavoriteStatus_InUI(smiley, favorite_img_src, key_prefix_favwin);
-}
+// global
+var vsf_smileys_number_default = 100;
+var vsf_alert_new_smiley_default = false;
+var vsf_confirm_delete_default = true;
+var vsf_include_fav_default = true;
+var vsf_sort_fav_by_name_default = false;
+var vsf_no_space_default = false;
+var vsf_smileys_last_tab_default = "top"; // "top", "historique", "favoris"
+var vsf_preferences_last_tab_default = "pref1"; // "pref1", "pref2"
+var vsf_add_button_default = true;
+var vsf_add_button_img_default = img_fav_plus;
+var vsf_panel_img_default = img_fav;
+var vsf_panel_settings_img_default = img_fav_conf;
+var vsf_smileys_default = "{}";
+// réponse rapide
+var vsf_quick_panel_default = true;
+var vsf_quick_panel_closed_default = false;
+var vsf_quick_panel_start_closed_default = false;
+var vsf_quick_panel_top_default = true;
+var vsf_quick_panel_width_default = "500px"; // correspond à la largeur de la réponse rapide par défaut
+var vsf_quick_panel_height_default = "108px"; // correspond à la hauteurs de 2 smileys (2 x 54px)
+// réponse normale
+var vsf_normal_tabs_default = true;
+var vsf_normal_tabs_top_default = false;
+var vsf_normal_tabs_last_tab_default = "top"; // "top", "historique", "favoris"
+var vsf_normal_tabs_width_default = "283px"; // largeur minimale pour les onglets et les boutons
+var vsf_normal_tabs_height_default = "238px"; // hauteur pour 3 lignes de smileys et le texte
+var vsf_hide_smileys_forum_default = false;
+var vsf_normal_panel_default = false;
+var vsf_normal_panel_closed_default = false;
+var vsf_normal_panel_start_closed_default = false;
+var vsf_normal_panel_top_default = true;
+var vsf_normal_panel_height_default = "108px"; // correspond à la hauteurs de 2 smileys (2 x 54px)
 
-/*
-  Changer le status favoris du smiley dans le panneau indiqué par la key
-*/
-function ChangeFavoriteStatus_InUI(smiley, favorite_img_src, key) {
-  var tiny_code = ConvertFullCodeToTinyCode(smiley.c);
-  var favorite_img = null;
+/* ---------------------- */
+/* les variables globales */
+/* ---------------------- */
 
-  // gestion de la fenêtre de choix des favoris
-  if(key === key_prefix_favwin) {
-    // change le tooltip de l'étoile et l'image de l'etoile dans la fenêtre de choix des favoris
-    favorite_img = document.getElementById(key + key_prefix_fav_img + tiny_code);
-    if(favorite_img != null) {
-      favorite_img.src = favorite_img_src;
-      favorite_img.title = GetFavoriteTooltip(smiley);
-    }
-    // change le tooltip du smiley dans la fenêtre de choix des favoris
-    var favorite_smiley = document.getElementById(key + key_prefix_smiley_img + tiny_code);
-    if(favorite_smiley != null) {
-      favorite_smiley.title = GetFavoriteTooltip(smiley);
-    }
-  }
+// global
+var vsf_smileys_number;
+var vsf_alert_new_smiley;
+var vsf_confirm_delete;
+var vsf_include_fav;
+var vsf_sort_fav_by_name;
+var vsf_no_space;
+var vsf_smileys_last_tab;
+var vsf_preferences_last_tab;
+var vsf_add_button;
+var vsf_add_button_img;
+var vsf_panel_img;
+var vsf_panel_settings_img;
+var vsf_smileys;
+// réponse rapide
+var vsf_quick_panel;
+var vsf_quick_panel_closed;
+var vsf_quick_panel_start_closed;
+var vsf_quick_panel_top;
+var vsf_quick_panel_width;
+var vsf_quick_panel_height;
+// réponse normale
+var vsf_normal_tabs;
+var vsf_normal_tabs_top;
+var vsf_normal_tabs_last_tab;
+var vsf_normal_tabs_width;
+var vsf_normal_tabs_height;
+var vsf_hide_smileys_forum;
+var vsf_normal_panel;
+var vsf_normal_panel_closed;
+var vsf_normal_panel_start_closed;
+var vsf_normal_panel_top;
+var vsf_normal_panel_height;
+// elements html
+var top_tab_conf;
+var historique_tab_conf;
+var favoris_tab_conf;
+var top_tab_normal;
+var historique_tab_normal;
+var favoris_tab_normal;
+var quick_panel;
+var quick_link;
+var quick_br;
+var quick_buttons;
+var normal_panel;
+var normal_br;
+var normal_button;
+var normal_top_down;
+var normal_row;
+// divers
+var all_tabs = {};
+var add_fav_close;
+var panel_size_timer;
+var last_quick_panel_width;
+var last_quick_panel_height;
+var last_normal_panel_height;
+var last_content_width;
+var last_content_height;
+var access_keywords_last_call = 0;
+var access_keywords_timer;
+var click_smiley_last_call = 0;
+var click_smiley_timer;
+var keywords_tooltip_timer;
+var tooltip_canceled = false;
+var initial_message = "";
+var initial_message_rapide = {};
 
-  // gestion de l'onglets correspondant dans la réponse normale et dans la fenêtre de conf
-  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
-    var context = null;
-    favorite_img = null;
-    context = document.getElementById(id_context);
-    if(context !== null) {
-      favorite_img = context.querySelector("img[id=\"" + key + key_prefix_fav_img + tiny_code + "\"]");
-      if(favorite_img !== null) {
-        // change le tooltip de l'étoile et l'image de l'etoile dans l'onglet correspondant
-        favorite_img.src = favorite_img_src;
-        favorite_img.title = GetFavoriteTooltip(favorite_img);
-      }
-    }
-  }
-}
+/* -------------- */
+/* les constantes */
+/* -------------- */
 
-/*
-  Ajouter un favori au panneau
-*/
-function AddFavoriteToPanel(smiley_full_code) {
-  var smiley = smileyStats[smiley_full_code];
-
-  for(var id_context of [key_smiley_panel, key_tab_yoursmileys]) {
-    var context = null;
-    context = document.getElementById(id_context);
-    if(context !== null) {
-      var smileys_table = context.querySelector("div[id=\"" + key_tab_favorite_content + "\"]");
-      if(smileys_table !== null) {
-        var favorite_panel = smileys_table.parentNode;
-
-        if(favorite_panel.childNodes.length == 4) {
-          favorite_panel.removeChild(favorite_panel.childNodes[3]);
-          favorite_panel.removeChild(favorite_panel.childNodes[2]);
-          favorite_panel.removeChild(favorite_panel.childNodes[1]);
-        }
-
-        if(id_context === key_smiley_panel) { // reponse normale -> clickable
-          AddSmileyToPanel(smiley, key_tab_favorite, smileys_table, 0, key_prefix_fav, true);
-        } else if(id_context === key_tab_yoursmileys) { // fenêtre de conf -> non clickable
-          AddSmileyToPanel(smiley, key_tab_favorite, smileys_table, 0, key_prefix_fav, false);
-        }
-      }
-    }
-  }
-}
-
-/*
-  Convertit le tableau associatif (objet) des stats des smileys en un
-  tableau normal et trié par stat décroissante pour l'onglet Top
-*/
-function sortSmileysByStat(o) {
-  // Conversion en array
-  var a = Object.values(o);
-
-  // Tri par stat décroissante
-  a.sort(function(x, y) {
-    return y.s - x.s;
-  });
-
-  return a;
-}
-
-/*
-  Convertit le tableau associatif (objet) des stats des smileys en un
-  tableau normal et trié par date décroissante pour l'onglet Historique
-*/
-function sortSmileysByHistory(o) {
-  // Conversion en array
-  var a = Object.values(o);
-
-  // Tri par date décroissante
-  a.sort(function(x, y) {
-    return new Date(y.d) - new Date(x.d);
-  });
-
-  return a;
-}
-
-/*
-  Convertit le tableau associatif (objet) des stats des smileys en un
-  tableau normal et trié par code de smiley pour l'onglet et le panneau des Favoris
-*/
-function sortSmileysByName(o) {
-  // Tri par stat décroissante par défaut
-  if(!sm_sort_fav) {
-    return sortSmileysByStat(o);
-  }
-
-  // Conversion en array
-  var a = Object.values(o);
-
-  // Tri par code de smiley
-  a.sort(function(x, y) {
-    return (x.c > y.c) ? 1 : ((x.c < y.c) ? -1 : 0);
-  });
-
-  return a;
-}
-
-/*
-  Retire les citations en code BB du message HFR
-*/
-function RemoveBBQuotes(msg) {
-  return msg.replace(/\[quotemsg[\s\S]*?\[\/quotemsg\]/g, "").replace(/\[citation[\s\S]*?\[\/citation\]/g, "");
-}
-
-/*
-  Construit une liste de smileys avec leur nombre d'occurence associé.
-
-  En sortie, la liste contient chaque smiley de façon unique
-*/
-function BuildSmileyListFromMessage(msg) {
-  var smileysListExt = {};
-
-  if(msg != null) {
-
-    // Suppression des blocs de citation
-    msg = RemoveBBQuotes(msg);
-
-    // Récupération de la liste complète des smileys présents dans le message
-    var smileysList = GetSmileysList(msg);
-
-    if(smileysList != null) {
-
-      // Comptage des occurences
-      for(var i = 0; i < smileysList.length; ++i) {
-        var smiley_full_code = smileysList[i];
-        if(!smileysListExt[smiley_full_code]) {
-          smileysListExt[smiley_full_code] = {};
-          smileysListExt[smiley_full_code].code = smiley_full_code;
-          smileysListExt[smiley_full_code].count = 1;
-        } else {
-          smileysListExt[smiley_full_code].count += 1;
-        }
-      }
-
-    }
-
-  }
-
-  return smileysListExt;
-}
-
-/*
-  Fonctions du forum pour l'insertion de smiley dans un post
-*/
-function countInstances(open, closed) {
-  var opening = document.hop.content_form.value.split(open);
-  var closing = document.hop.content_form.value.split(closed);
-  return opening.length + closing.length - 2;
-}
-
-function TAinsert(text1, text2) {
-  var ta = document.getElementById("content_form");
-  if(document.selection) {
-    var str = document.selection.createRange().text;
-    ta.focus();
-    var sel = document.selection.createRange();
-    if(text2 != "") {
-      if(str == "") {
-        var instances = countInstances(text1, text2);
-        if(instances % 2 != 0) {
-          sel.text = sel.text + text2;
-        } else {
-          sel.text = sel.text + text1;
-        }
-      } else {
-        sel.text = text1 + sel.text + text2;
-      }
-    } else {
-      sel.text = sel.text + text1;
-    }
-  } else if(ta.selectionStart || ta.selectionStart == 0) {
-    if(ta.selectionEnd > ta.value.length) {
-      ta.selectionEnd = ta.value.length;
-    }
-    var firstPos = ta.selectionStart;
-    var secondPos = ta.selectionEnd + text1.length;
-    var contenuScrollTop = ta.scrollTop;
-    ta.value = ta.value.slice(0, firstPos) + text1 + ta.value.slice(firstPos);
-    ta.value = ta.value.slice(0, secondPos) + text2 + ta.value.slice(secondPos);
-    ta.selectionStart = firstPos + text1.length;
-    ta.selectionEnd = secondPos;
-    ta.focus();
-    ta.scrollTop = contenuScrollTop;
-  } else {
-    var sel2 = document.hop.content_form;
-    var instances2 = countInstances(text1, text2);
-    if(instances2 % 2 != 0 && text2 != "") {
-      sel2.value = sel2.value + text2;
-    } else {
-      sel2.value = sel2.value + text1;
-    }
-  }
-}
-
-/*
-  Insère un smiley dans le post via TAinsert
-*/
-function putSmiley(tt) {
-  if(sm_no_space_insert) {
-    TAinsert(tt, "");
-  } else {
-    TAinsert(" " + tt + " ", "");
-  }
-}
-
-/*
-  Protège les caractères spéciaux éventuellement présents dans la chaine de caractère du code de smiley,
-  dans le but d'être utilisé dans une RegEx
-*/
-function ParseSpecialCharFromSmileyCode(smiley_code) {
-  return smiley_code.replace("[", "\\[").replace(")", "\\)").replace("(", "\\(").replace("?", "\\?", "g");
-}
-
-/*
-  Détermine si c'est un smiley de base ou un smiley utilisateur
-*/
-function IsBaseSmiley(smiley_code) {
-  return smiley_code.indexOf("[") == -1;
-}
-
-/*
-  Convertit le code d'un smiley de base en chaine de caractères HFR
-*/
-function ConvertBaseSmileyCodeToString(smiley_code) {
-  var hfr_string = null;
-
-  switch (smiley_code) {
-    case ":)":
-      hfr_string = "smile";
-      break;
-    case ":(":
-      hfr_string = "frown";
-      break;
-    case ":D":
-      hfr_string = "biggrin";
-      break;
-    case ";)":
-      hfr_string = "wink";
-      break;
-    case ":o":
-      hfr_string = "redface";
-      break;
-    case ":??:":
-      hfr_string = "confused";
-      break;
-    case ":p":
-      hfr_string = "tongue";
-      break;
-    case ":'(":
-      hfr_string = "ohill";
-      break;
-    case ":/":
-      hfr_string = "ohwell";
-      break;
-    default:
-      hfr_string = smiley_code.substring(1, smiley_code.length - 1);
-      break;
-  }
-
-  return hfr_string;
-}
-
-/*
-  Obtient l'adresse internet de l'image correspondant au smiley de base dont le code est fourni.
-*/
-function GetUrlForBaseSmiley(smiley_code) {
-  var url = null;
-  var hfr_string = ConvertBaseSmileyCodeToString(smiley_code);
-
-  switch (smiley_code) {
-    case ":)":
-    case ":(":
-    case ":D":
-    case ";)":
-    case ":o":
-    case ":??:":
-    case ":p":
-    case ":'(":
-    case ":/":
-      url = image_general_url + hfr_string;
-      break;
-    default:
-      url = image_base_url + hfr_string;
-      break;
-  }
-
-  url = url + ".gif";
-
-  return url;
-}
-
-/*
-  Création d'un objet smiley
-*/
-function CreateSmileyObject(full_code, count, date) {
-  var smiley = {};
-  smiley.c = full_code;
-  smiley.s = count;
-  smiley.d = date;
-
-  return smiley;
-}
-
-/*
-  Création d'un objet smiley, avec un compteur à 1 et une date à celle de maintenant
-*/
-function CreateSmileyDefaultObject(full_code) {
-  return CreateSmileyObject(full_code, 1, GetCurrentFormatedDate());
-}
-
-// =============================================================== //
-// Outils génériques
-// =============================================================== //
-
-/*
-  Obtenir un élément HTML à partir de son XPath
-
-  Exemples de documentation XPath :
-  http://fr.wikipedia.org/wiki/XPath
-*/
-var getElementByXpath = function(path, element) {
-  var arr = Array();
-  var xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
-  var item = xpr.iterateNext();
-  while(item) {
-    arr.push(item);
-    item = xpr.iterateNext();
-  }
-  return arr;
+const script_name = "[HFR] Vos smileys favoris";
+const base_smileys = {
+  ":)": "smile",
+  ":(": "frown",
+  ":D": "biggrin",
+  ";)": "wink",
+  ":o": "redface",
+  ":??:": "confused",
+  ":p": "tongue",
+  ":'(": "ohill",
+  ":/": "ohwell",
 };
+const base_smileys_url = "https://forum-images.hardware.fr/icones/";
+const extended_smileys_url = "https://forum-images.hardware.fr/icones/smilies/";
+const smileys_persos_url = "https://forum-images.hardware.fr/images/perso/";
+const panel_size_time = 500;
+const hash_check_input = document.querySelector("input[type=\"hidden\"][name=\"hash_check\"]");
+const hash_check = hash_check_input ? hash_check_input.value.trim() : "";
+const get_keywords_url = "https://forum.hardware.fr/wikismilies.php?config=hfr.inc&detail=";
+const smileys_keywords_regexp = /name="keywords0" value="(.*?)" onkeyup/;
+const set_keywords_url = "https://forum.hardware.fr/wikismilies.php?config=hfr.inc&option_wiki=0&withouttag=0";
+const set_keywords_arg_modif = "modif0";
+const set_keywords_arg_smiley = "smiley0";
+const set_keywords_arg_keywords = "keywords0";
+const set_keywords_arg_hash_check = "hash_check";
+const access_keywords_time = 250;
+const click_smiley_time = 300;
+const set_keywords_time = 1500;
+const keywords_tooltip_time = 450;
+const edition_rapide_time = 75;
+const quotemsg_regexp = /\[quotemsg=[0-9,]+\](?![^]*?\[quotemsg=[0-9,]+\])[^]*?\[\/quotemsg\]/;
+const citation_regexp = /\[citation=[0-9,]+\](?![^]*?\[citation=[0-9,]+\])[^]*?\[\/citation\]/;
+const base_smiley_regexps = [
+  /:\)/g,
+  /:\(/g,
+  /:D/g,
+  /;\)/g,
+  /:o/g,
+  /:\?\?:/g,
+  /:p/g,
+  /:'\(/g, // '/,
+  /:\//g,
+];
+const extended_smiley_regexps = [
+  /:lol:/g,
+  /:foudtag:/g,
+  /:crazy:/g,
+  /:hebe:/g,
+  /:na:/g,
+  /:ange:/g,
+  /:hello:/g,
+  /:mouais:/g,
+  /:sol:/g,
+  /:dtc:/g,
+  /:fouyaya:/g,
+  /:mmmfff:/g,
+  /:fou:/g,
+  /:love:/g,
+  /:ouch:/g,
+  /:eek2:/g,
+  /:bounce:/g,
+  /:sum:/g,
+  /:hap:/g,
+  /:eek:/g,
+  /:calimero:/g,
+  /:mad:/g,
+  /:benetton:/g,
+  /:cry:/g,
+  /:pfff:/g,
+  /:ouimaitre:/g,
+  /:24:/g,
+  /:sweat:/g,
+  /:hot:/g,
+  /:evil:/g,
+  /:vomi:/g,
+  /:wahoo:/g,
+  /:spamafote:/g,
+  /:heink:/g,
+  /:fuck:/g,
+  /:int:/g,
+  /:non:/g,
+  /:whistle:/g,
+  /:gun:/g,
+  /:spookie:/g,
+  /:sleep:/g,
+  /:jap:/g,
+  /:kaola:/g,
+  /:gratgrat:/g,
+  /:sarcastic:/g,
+  /:pouah:/g,
+  /:bug:/g,
+  /:bic:/g,
+  /:miam:/g,
+  /:pt1cable:/g,
+];
+const smileys_persos_regexp = /\[:[^\]\n\r\t\v\f\\\0\/]{1,28}\]/g; // n'importe quels caractères mais pas trop
 
-/*
-  Construit un objet JSON à partir d'une string
-*/
-function BuildJsonObjectFromString(JSON_string) {
-  var JSON_object = JSON.parse(JSON_string);
-  return JSON_object;
+/* -------------- */
+/* les styles css */
+/* -------------- */
+
+var style = document.createElement("style");
+style.setAttribute("type", "text/css");
+style.textContent =
+  // style pour les boutons d'ajout de favoris sur les posts
+  "img.gm_hfr_vsf_r21_add_button{cursor:pointer;width:16px;height:16px;}" +
+  // styles pour la fenêtre d'aide
+  "#gm_hfr_vsf_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
+  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;z-index:1003;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;text-align:justify;}" +
+  "img.gm_hfr_vsf_r21_help_button{cursor:help;vertical-align:text-bottom;}" +
+  // styles pour la fenêtre de configuration
+  "#gm_hfr_vsf_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
+  "#gm_hfr_vsf_r21_config_window{position:fixed;width:700px;height:auto;background-color:#e0e0e0;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;z-index:1002;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;color:#000000;}" +
+  "#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_main_title{font-size:16px;text-align:center;" +
+  "font-weight:bold;margin:0 0 16px;position:relative;cursor:default;}" +
+  /*
+  "#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_main_title img{position:absolute;right:0;" +
+  "top:calc(50% - 8px);cursor:pointer;}" +
+  */
+  "#gm_hfr_vsf_r21_config_window fieldset{margin:0 0 14px;border:1px solid #888888;padding:6px 10px 10px;}" +
+  "#gm_hfr_vsf_r21_config_window fieldset:last-child{margin:0;}" +
+  "#gm_hfr_vsf_r21_config_window legend{font-size:14px;cursor:default;}" +
+  // -- styles pour les elements des formulaires
+  "#gm_hfr_vsf_r21_config_window input[type=\"radio\"]{margin:0 0 2px;vertical-align:text-bottom;}" +
+  "#gm_hfr_vsf_r21_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+  "#gm_hfr_vsf_r21_config_window input.gm_hfr_vsf_r21_right[type=\"text\"]{text-align:right;}" +
+  "#gm_hfr_vsf_r21_config_window input[type=\"checkbox\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
+  // -- styles pour les p et les div
+  "#gm_hfr_vsf_r21_config_window p{margin:0 0 0 4px;cursor:default;}" +
+  "#gm_hfr_vsf_r21_config_window p:not(:last-child){margin-bottom:4px;}" +
+  "#gm_hfr_vsf_r21_config_window img.gm_hfr_vsf_r21_test{margin:0 3px 0 0;width:16px;" +
+  "height:16px;vertical-align:text-bottom;}" +
+  "#gm_hfr_vsf_r21_config_window img.gm_hfr_vsf_r21_reset{cursor:pointer;margin:0 0 0 3px;}" +
+  "div.gm_hfr_vsf_r21_save_close_div{text-align:right;margin:16px 0 0;cursor:default;}" +
+  "div.gm_hfr_vsf_r21_save_close_div div.gm_hfr_vsf_r21_info_reload_div{float:left;}" +
+  "div.gm_hfr_vsf_r21_save_close_div div.gm_hfr_vsf_r21_info_reload_div " +
+  "img{vertical-align:text-bottom;}" +
+  "div.gm_hfr_vsf_r21_save_close_div > img{margin-left:8px;cursor:pointer;}" +
+  "#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_action_save{height:150px;display:flex;" +
+  "justify-content:space-evenly;flex-direction:column;align-items:center;border:1px solid #888888;" +
+  "background-color:#ffffff;}" +
+  "#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_action_smileys{display:flex;font-size:10px;" +
+  "justify-content:space-between;margin:4px 0 0 0;}" +
+  "#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_action{display:block;cursor:pointer;}" +
+  "#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_action:hover{text-decoration:underline;}" +
+  // style des panneaux
+  ".gm_hfr_vsf_r21_panel{position:relative;padding:2px;border:1px solid #888888;text-align:center;" +
+  "overflow:auto;min-height:54px;}" +
+  // -- quick panel
+  "span.gm_hfr_vsf_r21_quick_panel{display:none;resize:both;background-color:#f0f0f0;min-width:100px;}" +
+  ".gm_hfr_vsf_r21_quick_panel_top{margin-top:2px;}" +
+  ".gm_hfr_vsf_r21_quick_panel_bottom{margin-bottom:2px;}" +
+  "br.gm_hfr_vsf_r21_quick_br{display:none;}" +
+  "span.gm_hfr_vsf_r21_quick_link{display:none;cursor:pointer;}" +
+  "div#mesdiscussions img.gm_hfr_vsf_r21_quick_link_img{vertical-align:text-bottom;margin:0 4px 0 0;" +
+  "width:16px;height:16px;}" +
+  "span.gm_hfr_vsf_r21_quick_link:hover span.gm_hfr_vsf_r21_quick_link_span{text-decoration:underline;}" +
+  "div.gm_hfr_vsf_r21_quick_buttons{position:absolute;display:inline-flex;flex-direction:column;" +
+  "margin-left:2px;}" +
+  "img.gm_hfr_vsf_r21_quick_buttons_img{width:16px;height:16px;display:block;cursor:pointer;opacity:0.3;}" +
+  "img.gm_hfr_vsf_r21_quick_buttons_img:hover{opacity:1;}" +
+  "div#mesdiscussions img.gm_hfr_vsf_r21_quick_buttons_img_top{margin-top:-2px;}" +
+  "div#mesdiscussions img.gm_hfr_vsf_r21_quick_buttons_img_bottom{margin-top:auto;margin-bottom:-1px;}" +
+  // -- normal panel
+  "span.gm_hfr_vsf_r21_normal_panel{display:none;width:calc(100% - 6px);margin-bottom:2px;resize:vertical;" +
+  "background-color:#f0f0f0;}" +
+  "br.gm_hfr_vsf_r21_normal_br{display:none;}" +
+  "div.gm_hfr_vsf_r21_normal_button{margin:0 0 0 -2px;background-image:url(" + img_button + ");" +
+  "width:28px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;}" +
+  "img.gm_hfr_vsf_r21_normal_button_img{width:16px;height:16px;display:block;}" +
+  // -- fake padding
+  "div.gm_hfr_vsf_r21_fake_padding{position:absolute;opacity:0;width:1px;height:2px;}" +
+  // styles pour les smileys
+  "div.gm_hfr_vsf_r21_smiley{display:inline-block;margin:2px;}" +
+  "#gm_hfr_vsf_r21 div.gm_hfr_vsf_r21_smiley > img{display:block;margin:0 auto;}" +
+  "div.gm_hfr_vsf_r21_smiley > img[data-clickable=\"true\"]{cursor:pointer;}" +
+  "div.gm_hfr_vsf_r21_smiley > img[data-clickable=\"true\"]:hover{opacity:0.4;}" +
+  "div.gm_hfr_vsf_r21_smiley > div.gm_hfr_vsf_r21_smiley_buttons{display:flex;margin:2px 0 0 0;" +
+  "justify-content:space-evenly;align-items:center;}" +
+  "div.gm_hfr_vsf_r21_smiley > div.gm_hfr_vsf_r21_smiley_buttons > img{display:block;cursor:pointer;}" +
+  // -- le nombre (de fois ou ordre)
+  "div.gm_hfr_vsf_r21_smiley > div.gm_hfr_vsf_r21_smiley_buttons > " +
+  "div.gm_hfr_vsf_r21_smiley_number{font-size:10px;cursor:default;}" +
+  // -- les boutons
+  "div#gm_hfr_vsf_r21 div.gm_hfr_vsf_r21_smiley > div.gm_hfr_vsf_r21_smiley_buttons > " +
+  "img.gm_hfr_vsf_r21_button_favori{width:16px;height:16px;object-position:-16px 0;object-fit:none;" +
+  "margin:0 2px;}" +
+  "div#gm_hfr_vsf_r21 div.gm_hfr_vsf_r21_smiley > div.gm_hfr_vsf_r21_smiley_buttons > " +
+  "img.gm_hfr_vsf_r21_button_favori.gm_hfr_vsf_r21_favori{object-position:0 0;}" +
+  "div.gm_hfr_vsf_r21_smiley > div.gm_hfr_vsf_r21_smiley_buttons > img:hover{opacity:0.4;}" +
+  // styles pour la fenêtre d'ajout de favoris
+  "#gm_hfr_vsf_r21_add_fav_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
+  "#gm_hfr_vsf_r21_add_fav_window{position:fixed;resize:both;overflow:hidden;background-color:#f0f0f0;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;z-index:1002;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;min-width:343px;width:343px;" +
+  "min-height:142px;height:142px;color:#000000;}" +
+  "#gm_hfr_vsf_r21_add_fav_window.gm_hfr_vsf_r21_no_smiley{cursor:pointer;min-height:18px;height:18px;" +
+  "resize:none;}" +
+  "#gm_hfr_vsf_r21_add_fav_window.gm_hfr_vsf_r21_no_smiley *{cursor:pointer;}" +
+  "#gm_hfr_vsf_r21_add_fav_window div.gm_hfr_vsf_r21_add_fav_title{font-size:14px;" +
+  "font-weight:bold;text-align:center;line-height:18px;}" +
+  "#gm_hfr_vsf_r21_add_fav_window div.gm_hfr_vsf_r21_add_fav_panel{margin:14px 0 0 0;" +
+  "width:clalc(100% - 6px);height:calc(100% - 70px);overflow:auto;background-color:#ffffff;}" +
+  // styles pour les onlets et leur contenu
+  "div.gm_hfr_vsf_r21_vos_smileys_normal{min-width:285px;}" +
+  "div.gm_hfr_vsf_r21_div_tabs{display:flex;justify-content:center;align-items:center;" +
+  "border-bottom:1px solid #888888;}" +
+  "div#mesdiscussions img.gm_hfr_vsf_r21_img_tab{display:block;margin:0 4px -1px;cursor:pointer;" +
+  "opacity:0.3;}" +
+  "div#mesdiscussions img.gm_hfr_vsf_r21_img_tab:hover{opacity:1;}" +
+  "span.gm_hfr_vsf_r21_span_tab{display:block;margin:0 4px -1px;cursor:pointer;border:1px solid #888888;" +
+  "font-size:12px;padding:4px 8px;border-radius:0.1px 0.1px 0 0;font-weight:normal;" +
+  "background-color:#d7d7d7;color:#000000;}" +
+  "span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover{background-color:#f0f0f0;" +
+  "color:#000000;}" +
+  "span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active{background-color:#f0f0f0;" +
+  "border-bottom:1px solid #f0f0f0;color:#000000;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_general " +
+  "span.gm_hfr_vsf_r21_span_tab{background-color:#e7e7e7;color:#000000;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_general " +
+  "span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover{background-color:#ffffff;" +
+  "color:#000000;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_general " +
+  "span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active{background-color:#ffffff;" +
+  "border-bottom:1px solid #ffffff;color:#000000;}" +
+  "div.gm_hfr_vsf_r21_div_content{overflow:auto;border:1px solid #888888;border-top:0;" +
+  "background-color:#f0f0f0;color:#000000;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_general div.gm_hfr_vsf_r21_div_content{background-color:#ffffff;}" +
+  "div.gm_hfr_vsf_r21_div_content.gm_hfr_vsf_r21_div_content_normal{resize:both;" +
+  "min-width:283px;min-height:238px;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab{display:none;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_general{padding:16px;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_preferences{padding:16px;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_smileys{position:relative;padding:2px;text-align:center;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_general " +
+  "div.gm_hfr_vsf_r21_div_content_tab_smileys{max-height:250px;}" +
+  "div.gm_hfr_vsf_r21_div_content_tab_text{font-weight:bold;font-size:10px;padding:2px;cursor:default;}" +
+  // styles pour la tooltip d'affichage des mots-clés
+  "div#gm_hfr_vsf_r21_keywords_tooltip{position:absolute;max-width:350px;height:auto;padding:4px 8px 5px;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border-radius:10px;font-size:11px;border:1px solid;" +
+  "background:linear-gradient(#ffffff, #f7f7ff);left:0;top:0;text-align:justify;color:#000000;display:none;" +
+  "z-index:1005;cursor:default;}" +
+  // styles pour la popup d'édition des mots-clés
+  "div#gm_hfr_vsf_r21_keywords_popup{display:none;position:absolute;left:0;top:0;width:auto;height:auto;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;padding:4px;overflow:auto;" +
+  "resize:both;min-width:356px;min-height:70px;background:linear-gradient(#ffffff, #f7f7ff);color:#000000;" +
+  "z-index:1006;}" +
+  "div#gm_hfr_vsf_r21_keywords_popup.gm_hfr_vsf_r21_keywords_no_edit" +
+  "{resize:none;width:416px;min-height:30px;height:30px;}" +
+  "div.gm_hfr_vsf_r21_keywords_nothing{display:flex;justify-content:center;align-items:center;" +
+  "cursor:pointer;width:auto;height:100%;}" +
+  "span.gm_hfr_vsf_r21_keywords_text{display:block;font-size:14px;}" +
+  "textarea.gm_hfr_vsf_r21_keywords_textarea{margin:0;padding:1px 2px;border:1px solid #c0c0c0;" +
+  "font-size:11px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;width:calc(100% - 6px);" +
+  "height:calc(100% - 24px);background-color:transparent;resize:none;overflow:auto;}" +
+  "div.gm_hfr_vsf_r21_keywords_div{margin-top:4px;height:16px;}" +
+  "span.gm_hfr_vsf_r21_keywords_span{font-size:11px;color:#707070;padding:0 0 0 1px;cursor:default;" +
+  "display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:auto;}" +
+  "span.gm_hfr_vsf_r21_keywords_span_link{cursor:pointer;}" +
+  "img.gm_hfr_vsf_r21_keywords_throbber{display:none;float:right;padding:0 15px 0 0;cursor:default;}" +
+  "div.gm_hfr_vsf_r21_keywords_answer{display:none;float:right;text-align:right;font-size:11px;" +
+  "color:#ff0000;font-weight:bold;padding:0 15px 0 0;cursor:default;}" +
+  "div.gm_hfr_vsf_r21_keywords_answer.gm_hfr_vsf_r21_success{color:#007f00;}" +
+  "div.gm_hfr_vsf_r21_keywords_answer.gm_hfr_vsf_r21_wait{color:#ff7f00;}" +
+  "div.gm_hfr_vsf_r21_keywords_buttons{float:right;text-align:right;padding:0 15px 0 0;}" +
+  "div.gm_hfr_vsf_r21_keywords_buttons > img{margin-left:8px;cursor:pointer;}";
+if(box_shadow) {
+  style.textContent += "div#gm_hfr_vsf_r21_keywords_tooltip, div#gm_hfr_vsf_r21_keywords_popup" +
+    "{box-shadow:4px 4px 4px 0 rgba(0, 0, 0, 0.4);}";
+}
+document.getElementsByTagName("head")[0].appendChild(style);
+
+/* --------------------------------------- */
+/* création de la fenêtre de configuration */
+/* --------------------------------------- */
+
+// fonction de désactivation de l'action par défaut sur un événement
+function prevent_default(p_event) {
+  p_event.preventDefault();
 }
 
-/*
-  Construit une string à partir d'un format JSON
-*/
-function BuildJsonString(JSON_object) {
-  var JSON_string = JSON.stringify(JSON_object);
-  return JSON_string;
-}
+// création de la fenêtre d'aide
+var help_window = document.createElement("div");
+help_window.setAttribute("id", "gm_hfr_vsf_r21_help_window");
+document.body.appendChild(help_window);
 
-// Génère une string représentant la date et l'heure à partir de la date fournie, en format destiné à l'affichage
-function getDateTimeStringForDisplay(dateString) {
-  var d = new Date(dateString);
-  var y = d.getFullYear() + "";
-  var m = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : (d.getMonth() + 1) + "";
-  var a = d.getDate() < 10 ? "0" + d.getDate() : d.getDate() + "";
-  var h = d.getHours() < 10 ? "0" + d.getHours() : d.getHours() + "";
-  var i = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes() + "";
-  return y + "/" + m + "/" + a + " à " + h + ":" + i;
-}
-
-// Génère une string représentant la date et l'heure à partir de la date fournie
-function getDateTimeString(dateString) {
-  var d = new Date(dateString);
-  return d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate() + " " +
-    d.getHours() + ":" + d.getMinutes().toString() + ":" + d.getSeconds().toString();
-}
-
-// Génère une string représentant la date et l'heure, en format destiné à la sauvegarde
-function getDateTimeStringForSave() {
-  var d = new Date();
-  var y = d.getFullYear() + "";
-  //var y = (d.getFullYear() + "").substring(2);
-  var m = (d.getMonth() + 1) < 10 ? "0" + (d.getMonth() + 1) : (d.getMonth() + 1) + "";
-  var a = d.getDate() < 10 ? "0" + d.getDate() : d.getDate() + "";
-  var h = d.getHours() < 10 ? "0" + d.getHours() : d.getHours() + "";
-  var i = d.getMinutes() < 10 ? "0" + d.getMinutes() : d.getMinutes() + "";
-  var s = d.getSeconds() < 10 ? "0" + d.getSeconds() : d.getSeconds() + "";
-  return y + m + a + "_" + h + i + s;
-}
-
-/*
-  Obtient la date courante, formatée pour le script
-*/
-function GetCurrentFormatedDate() {
-  return getDateTimeString(new Date().toString());
-}
-
-// Fin de ligne
-function getLineBreak() {
-  return document.createElement('br');
-}
-
-// Fin de ligne et ligne vide
-function getLineBreakBlankLine() {
-  return document.createElement("p");
-}
-
-/*
-  Obtient la boîte d'édition de message
-*/
-function GetMessageEditingBox() {
-  return document.getElementById("content_form");
-}
-
-/*
-  Compter le nombre d'occurences du pattern donné
-*/
-String.prototype.count = function(pattern) {
-  return (this.length - this.replace(new RegExp(pattern, "g"), "").length) / pattern.length;
-};
-
-/*
-  Teste si l'objet est vide, objet Json notamment. Basé sur l'implémentation "isEmptyObject" de JQuery.
-*/
-function isEmptyObject(obj) {
-  for(var name in obj) {
-    return false;
-  }
-  return true;
-}
-
-/*
-  Filtre le tableau en éliminant les doublons.
-
-  Exemple : array.getUnique());
-*/
-Array.prototype.getUnique = function(fieldNameCompare) {
-  var sMatchedItems = "";
-  var foundCounter = 0;
-  var newArray = [];
-
-  for(var i = 0; i < this.length; ++i) {
-    var item = eval("this[i]." + fieldNameCompare);
-    var match = "|" + item.toLowerCase() + "|";
-
-    if(sMatchedItems.indexOf(match) == -1) {
-      sMatchedItems += match;
-      newArray[foundCounter++] = item;
-    }
-  }
-
-  return newArray;
-};
-
-// =============================================================== //
-// Outils d'enregistrement, backup et reset
-// =============================================================== //
-
-/*
-  Enregistrement des statistiques de smiley
-*/
-function saveUserStats() {
-  // Construction de la string Json
-  var JSON_string = BuildJsonString(smileyStats);
-  saveUserStatsFromJsonString(JSON_string);
-  // Force la relecture des stats pour avoir la version triée
-  LoadSmileyStats(true);
-  // Mise à jour du panneau des favoris en reponse rapide si une fenêtre (conf ou favoris) est ouverte
-  if(cmScript.isOpened) {
-    ReloadSmileysFullPanel();
-  }
-}
-
-/*
-  Enregistrement des statistiques de smiley, à partir de la string JSON
-*/
-function saveUserStatsFromJsonString(JSON_string) {
-  // Mise à jour de la configuration GreaseMonkey
-  GM_setValue(key_sm_smiley_stats, JSON_string);
-}
-
-/*
-  Charge la configuration utilisateur
-*/
-function loadUserConfig() {
-  sm_count = GM_getValue(key_sm_count, sm_count);
-  sm_confirm_delete = GM_getValue(key_sm_confirm_delete, sm_confirm_delete);
-  sm_include_fav = GM_getValue(key_sm_include_fav, sm_include_fav);
-  sm_sort_fav = GM_getValue(key_sm_sort_fav, sm_sort_fav);
-  sm_fast_reply = GM_getValue(key_sm_fast_reply, sm_fast_reply);
-  sm_fast_reply_position = GM_getValue(key_sm_fast_reply_position, sm_fast_reply_position);
-  sm_notify_new = GM_getValue(key_sm_notify_new, sm_notify_new);
-  sm_hide_forum_smileys = GM_getValue(key_sm_hide_forum_smileys, sm_hide_forum_smileys);
-  sm_no_space_insert = GM_getValue(key_sm_no_space_insert, sm_no_space_insert);
-  sm_fav_world = GM_getValue(key_sm_fav_world, sm_fav_world);
-  sm_fav_world_icon = GM_getValue(key_sm_fav_world_icon, icon_scan_smileys);
-  sm_current_tab = GM_getValue(key_sm_current_tab, sm_current_tab);
-  sm_fav_panel_width = GM_getValue(key_sm_fav_panel_width, sm_fav_panel_width);
-  sm_fav_panel_height = GM_getValue(key_sm_fav_panel_height, sm_fav_panel_height);
-  sm_first_start = GM_getValue(key_sm_first_start, sm_first_start);
-}
-
-/*
-  Recharge les réglages enregistrés précédemment
-*/
-function reloadUserConfig() {
-  loadUserConfig();
-  if(document.getElementById(key_sm_count)) {
-    document.getElementById(key_sm_count).value = sm_count;
-  }
-  if(document.getElementById(key_sm_confirm_delete)) {
-    document.getElementById(key_sm_confirm_delete).checked = sm_confirm_delete;
-  }
-  if(document.getElementById(key_sm_include_fav)) {
-    document.getElementById(key_sm_include_fav).checked = sm_include_fav;
-  }
-  if(document.getElementById(key_sm_sort_fav)) {
-    document.getElementById(key_sm_sort_fav).checked = sm_sort_fav;
-  }
-  if(document.getElementById(key_sm_fast_reply)) {
-    document.getElementById(key_sm_fast_reply).checked = sm_fast_reply;
-  }
-  for(var i = 0; i < 4; ++i) {
-    if(i === sm_fast_reply_position) {
-      if(document.getElementById(key_sm_fast_reply_position + "_" + i)) {
-        document.getElementById(key_sm_fast_reply_position + "_" + i).checked = true;
-      }
-    }
-  }
-  if(document.getElementById(key_sm_notify_new)) {
-    document.getElementById(key_sm_notify_new).checked = sm_notify_new;
-  }
-  if(document.getElementById(key_sm_hide_forum_smileys)) {
-    document.getElementById(key_sm_hide_forum_smileys).checked = sm_hide_forum_smileys;
-  }
-  if(document.getElementById(key_sm_no_space_insert)) {
-    document.getElementById(key_sm_no_space_insert).checked = sm_no_space_insert;
-  }
-  if(document.getElementById(key_sm_fav_world)) {
-    document.getElementById(key_sm_fav_world).checked = sm_fav_world;
-  }
-  if(document.getElementById(key_sm_fav_world_icon)) {
-    document.getElementById(key_sm_fav_world_icon).value = sm_fav_world_icon;
-  }
-  if(document.getElementById(key_fav_world_icon_preview)) {
-    document.getElementById(key_fav_world_icon_preview).src = sm_fav_world_icon;
-  }
-}
-
-/*
-  Importe les smileys favoris et personnels du forums dans "vos smileys favoris"
-*/
-function ImportFavPersoForum(firstStart) {
-  // Requête Ajax
-  var request = new XMLHttpRequest();
-
-  // Traitement de la reponse de la requête Ajax
-  request.addEventListener("load", function(e) {
-    // Recupération de la page de gestion des images du forum sous la form d'un DOM document object
-    var answer = e.target.responseXML;
-
-    // La table contenant les smileys favoris et personnels
-    var table = answer.querySelector("div#mesdiscussions form table.main");
-
-    var imgs = new Array;
-    var img = null;
-    var code = null;
-    var smiley = null;
-
-    // Récupération du code des smileys favoris
-    var favsCpt = 0;
-    var favs = table.rows[3].querySelectorAll("img[src^=\"" + image_utilisateur_url + "\"]");
-    for(img of favs) {
-      code = img.getAttribute("alt");
-      imgs.push(code);
-      ++favsCpt;
-    }
-
-    // Récupération du code des smileys personnels
-    var persosCpt = 0;
-    var persos = table.rows[2].querySelectorAll("img[src^=\"" + image_utilisateur_url + "\"]");
-    for(img of persos) {
-      code = "[:" + img.getAttribute("alt") + "]";
-      imgs.push(code);
-      ++persosCpt;
-    }
-
-    // Import des smileys et sauvegarde
-    LoadSmileyStats();
-    for(code of imgs) {
-      smiley = smileyStats[code];
-      if(smiley === undefined) {
-        // Ajout de ce smiley dans la liste
-        smiley = CreateSmileyDefaultObject(code);
-        smileyStats[code] = smiley;
-      }
-      // Marquage en favoris
-      smiley.fav = true;
-    }
-    saveUserStats();
-
-    // Mise à jour du panneau des favoris en reponse rapide
-    ReloadSmileysFullPanel();
-    // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
-    // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
-    // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
-
-    // Message d'information avec le nombre des smileys importés
-    var favsSmileyTxt = "smiley favori";
-    if(favsCpt > 1) {
-      favsSmileyTxt = "smileys favoris";
-    }
-    var persosSmileyTxt = "smiley personnel";
-    if(persosCpt > 1) {
-      persosSmileyTxt = "smileys personnels";
-    }
-    var importeTxt = "du forum ont été importés";
-    if(favsCpt + persosCpt === 0) {
-      importeTxt = "du forum n'a été importé";
-    }
-    if(favsCpt + persosCpt === 1) {
-      importeTxt = "du forum a été importé";
-    }
-    alert(favsCpt + " " + favsSmileyTxt + " et " + persosCpt + " " + persosSmileyTxt +
-      importeTxt + " dans vos favoris.");
-
-    // En cas de premier lancement, propose aussi le masquage du bloc des smileys favoris et personnels du forum
-    if(firstStart !== undefined && firstStart === true) {
-      if(confirm("Souhaitez-vous masquer le bloc des smileys favoris et personnels du forum ?") == true) {
-        sm_hide_forum_smileys = true;
-        GM_setValue(key_sm_hide_forum_smileys, sm_hide_forum_smileys);
-      } else {
-        sm_hide_forum_smileys = false;
-        GM_setValue(key_sm_hide_forum_smileys, sm_hide_forum_smileys);
-      }
-      reloadUserConfig();
-    }
-
+// fonction de création du bouton d'aide
+function create_help_button(p_width, p_text) {
+  let l_help_button = document.createElement("img");
+  l_help_button.setAttribute("src", img_help);
+  l_help_button.setAttribute("class", "gm_hfr_vsf_r21_help_button");
+  l_help_button.addEventListener("mouseover", function(e) {
+    help_window.style.width = p_width + "px";
+    help_window.textContent = p_text;
+    help_window.style.left = (e.clientX + 32) + "px";
+    help_window.style.top = (e.clientY - 16) + "px";
+    help_window.style.visibility = "visible";
   }, false);
-
-  // construction et appel de la requête Ajax
-  request.open("GET", "https://forum.hardware.fr/user/editprofil.php?config=hfr.inc&page=5");
-  request.responseType = "document";
-  request.send();
+  l_help_button.addEventListener("mouseout", function(e) {
+    help_window.style.visibility = "hidden";
+  }, false);
+  return l_help_button;
 }
 
+// création du voile de fond pour la fenêtre de configuration
+var config_background = document.createElement("div");
+config_background.setAttribute("id", "gm_hfr_vsf_r21_config_background");
+config_background.addEventListener("click", hide_config_window, false);
+config_background.addEventListener("transitionend", background_transitionend, false);
+document.body.appendChild(config_background);
+
+// création de la fenêtre de configuration
+var config_window = document.createElement("div");
+config_window.setAttribute("id", "gm_hfr_vsf_r21_config_window");
+document.body.appendChild(config_window);
+
+// titre de la fenêtre de configuration
+var main_title = document.createElement("div");
+main_title.setAttribute("class", "gm_hfr_vsf_r21_main_title");
+main_title.textContent = "Configuration du script " + script_name;
 /*
-  Supprimer toutes les statistiques de smileys
+var main_title_close_button = document.createElement("img");
+main_title_close_button.setAttribute("src", img_close);
+main_title_close_button.setAttribute("title", "Fermer");
+main_title_close_button.addEventListener("click", hide_config_window, false);
+main_title.appendChild(main_title_close_button);
 */
-function ResetAllStats() {
-  if(confirm("Cette réinitialisation va effacer toutes vos données actuelles de smiley, voulez-vous continuer ?") ==
-    true) {
-    GM_setValue(key_sm_smiley_stats, ""); // Suppression des stats
-    LoadSmileyStats(true);
-    // Mise à jour du panneau des favoris en reponse rapide
-    ReloadSmileysFullPanel();
-    // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
-    // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
-    // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
-    alert("Vos données de smileys ont été réinitialisées.");
+config_window.appendChild(main_title);
+
+// les onglets généraux
+var general = document.createElement("div");
+all_tabs.general = {};
+// -- les onglets
+var general_tabs = document.createElement("div");
+general_tabs.setAttribute("class", "gm_hfr_vsf_r21_div_tabs");
+// -- -- l'onglet préférences
+var tab_pref = document.createElement("span");
+tab_pref.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+tab_pref.dataset.parent = "general";
+tab_pref.dataset.tab = "pref";
+tab_pref.textContent = "Préférences";
+tab_pref.addEventListener("click", show_tab, false);
+all_tabs.general.pref = {
+  tab: tab_pref,
+};
+general_tabs.appendChild(tab_pref);
+// -- -- l'onglet sauvegarde
+var tab_save = document.createElement("span");
+tab_save.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+tab_save.dataset.parent = "general";
+tab_save.dataset.tab = "save";
+tab_save.textContent = "Sauvegarde";
+tab_save.addEventListener("click", show_tab, false);
+all_tabs.general.save = {
+  tab: tab_save,
+};
+general_tabs.appendChild(tab_save);
+// -- -- l'onglet vos smileys
+var tab_smileys = document.createElement("span");
+tab_smileys.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+tab_smileys.dataset.parent = "general";
+tab_smileys.dataset.tab = "smileys";
+tab_smileys.textContent = "Vos smileys";
+tab_smileys.addEventListener("click", show_tab, false);
+all_tabs.general.smileys = {
+  tab: tab_smileys,
+};
+general_tabs.appendChild(tab_smileys);
+general.appendChild(general_tabs);
+// -- les contenus
+var general_content = document.createElement("div");
+general_content.setAttribute("id", "gm_hfr_vsf_r21"); // pour avoir un selecteur CSS de plus haut niveau
+general_content.setAttribute("class", "gm_hfr_vsf_r21_div_content");
+// -- -- le contenu préférences
+var content_pref = document.createElement("div");
+content_pref.setAttribute("class",
+  "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_general");
+all_tabs.general.pref.content = content_pref;
+general_content.appendChild(content_pref);
+// -- -- le contenu sauvegarde
+var content_save = document.createElement("div");
+content_save.setAttribute("class",
+  "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_general");
+all_tabs.general.save.content = content_save;
+general_content.appendChild(content_save);
+// -- -- le contenu vos smileys
+var content_smileys = document.createElement("div");
+content_smileys.setAttribute("class",
+  "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_general");
+all_tabs.general.smileys.content = content_smileys;
+general_content.appendChild(content_smileys);
+general.appendChild(general_content);
+config_window.appendChild(general);
+
+// les onglets préférences
+var preferences = document.createElement("div");
+all_tabs.preferences = {};
+// -- les onglets
+var preferences_tabs = document.createElement("div");
+preferences_tabs.setAttribute("class", "gm_hfr_vsf_r21_div_tabs");
+// -- -- l'onglet 1
+var tab_pref1 = document.createElement("span");
+tab_pref1.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+tab_pref1.dataset.parent = "preferences";
+tab_pref1.dataset.tab = "pref1";
+tab_pref1.textContent = "Générales";
+tab_pref1.addEventListener("click", show_tab, false);
+all_tabs.preferences.pref1 = {
+  tab: tab_pref1,
+};
+preferences_tabs.appendChild(tab_pref1);
+// -- -- l'onglet 2
+var tab_pref2 = document.createElement("span");
+tab_pref2.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+tab_pref2.dataset.parent = "preferences";
+tab_pref2.dataset.tab = "pref2";
+tab_pref2.textContent = "Réponses";
+tab_pref2.addEventListener("click", show_tab, false);
+all_tabs.preferences.pref2 = {
+  tab: tab_pref2,
+};
+preferences_tabs.appendChild(tab_pref2);
+preferences.appendChild(preferences_tabs);
+// -- les contenus
+var preferences_content = document.createElement("div");
+preferences_content.setAttribute("class", "gm_hfr_vsf_r21_div_content");
+// -- -- le contenu 1
+var content_pref1 = document.createElement("div");
+content_pref1.setAttribute("class",
+  "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_preferences");
+all_tabs.preferences.pref1.content = content_pref1;
+preferences_content.appendChild(content_pref1);
+// -- -- le contenu 2
+var content_pref2 = document.createElement("div");
+content_pref2.setAttribute("class",
+  "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_preferences");
+all_tabs.preferences.pref2.content = content_pref2;
+preferences_content.appendChild(content_pref2);
+preferences.appendChild(preferences_content);
+content_pref.appendChild(preferences);
+
+// préférences 1 générales
+// -- smileys_number
+var smileys_number_p = document.createElement("p");
+var smileys_number_label = document.createElement("label");
+smileys_number_label.textContent = "nombre de smileys dans les onglets \u00ab\u202fTop\u202f\u00bb et " +
+  "\u00ab\u202fHistorique\u202f\u00bb : ";
+smileys_number_label.setAttribute("for", "gm_hfr_tdi_r21_smileys_number_input");
+smileys_number_p.appendChild(smileys_number_label);
+var smileys_number_input = document.createElement("input");
+smileys_number_input.setAttribute("type", "text");
+smileys_number_input.setAttribute("id", "gm_hfr_tdi_r21_smileys_number_input");
+smileys_number_input.setAttribute("class", "gm_hfr_vsf_r21_right");
+smileys_number_input.setAttribute("size", "4");
+smileys_number_input.setAttribute("maxLength", "5");
+smileys_number_input.setAttribute("pattern", "[0-9]+");
+smileys_number_input.setAttribute("title", "au moins 10");
+smileys_number_input.setAttribute("placeholder", "10");
+smileys_number_p.appendChild(smileys_number_input);
+content_pref1.appendChild(smileys_number_p);
+// -- alert_new_smiley
+var alert_new_smiley_p = document.createElement("p");
+var alert_new_smiley_checkbox = document.createElement("input");
+alert_new_smiley_checkbox.setAttribute("type", "checkbox");
+alert_new_smiley_checkbox.setAttribute("id", "gm_hfr_vsf_r21_alert_new_smiley_checkbox");
+alert_new_smiley_p.appendChild(alert_new_smiley_checkbox);
+var alert_new_smiley_label = document.createElement("label");
+alert_new_smiley_label.textContent = " signaler lorsque de nouveaux smileys sont trouvés dans vos messages";
+alert_new_smiley_label.setAttribute("for", "gm_hfr_vsf_r21_alert_new_smiley_checkbox");
+alert_new_smiley_p.appendChild(alert_new_smiley_label);
+content_pref1.appendChild(alert_new_smiley_p);
+// -- confirm_delete
+var confirm_delete_p = document.createElement("p");
+var confirm_delete_checkbox = document.createElement("input");
+confirm_delete_checkbox.setAttribute("type", "checkbox");
+confirm_delete_checkbox.setAttribute("id", "gm_hfr_vsf_r21_confirm_delete_checkbox");
+confirm_delete_p.appendChild(confirm_delete_checkbox);
+var confirm_delete_label = document.createElement("label");
+confirm_delete_label.textContent = " confirmer la supppression des smileys";
+confirm_delete_label.setAttribute("for", "gm_hfr_vsf_r21_confirm_delete_checkbox");
+confirm_delete_p.appendChild(confirm_delete_label);
+content_pref1.appendChild(confirm_delete_p);
+// -- include_fav
+var include_fav_p = document.createElement("p");
+var include_fav_checkbox = document.createElement("input");
+include_fav_checkbox.setAttribute("type", "checkbox");
+include_fav_checkbox.setAttribute("id", "gm_hfr_vsf_r21_include_fav_checkbox");
+include_fav_p.appendChild(include_fav_checkbox);
+var include_fav_label = document.createElement("label");
+include_fav_label.textContent = " inclure les smileys favoris dans les onglets \u00ab\u202fTop\u202f\u00bb et " +
+  "\u00ab\u202fHistorique\u202f\u00bb";
+include_fav_label.setAttribute("for", "gm_hfr_vsf_r21_include_fav_checkbox");
+include_fav_p.appendChild(include_fav_label);
+content_pref1.appendChild(include_fav_p);
+// -- sort_fav_by_name
+var sort_fav_by_name_p = document.createElement("p");
+var sort_fav_by_name_checkbox = document.createElement("input");
+sort_fav_by_name_checkbox.setAttribute("type", "checkbox");
+sort_fav_by_name_checkbox.setAttribute("id", "gm_hfr_vsf_r21_sort_fav_by_name_checkbox");
+sort_fav_by_name_p.appendChild(sort_fav_by_name_checkbox);
+var sort_fav_by_name_label = document.createElement("label");
+sort_fav_by_name_label.textContent = " trier les smileys favoris par nom au lieu de les trier par " +
+  "\u00ab\u202fTop\u202f\u00bb";
+sort_fav_by_name_label.setAttribute("for", "gm_hfr_vsf_r21_sort_fav_by_name_checkbox");
+sort_fav_by_name_p.appendChild(sort_fav_by_name_label);
+content_pref1.appendChild(sort_fav_by_name_p);
+// -- no_space
+var no_space_p = document.createElement("p");
+var no_space_checkbox = document.createElement("input");
+no_space_checkbox.setAttribute("type", "checkbox");
+no_space_checkbox.setAttribute("id", "gm_hfr_vsf_r21_no_space_checkbox");
+no_space_p.appendChild(no_space_checkbox);
+var no_space_label = document.createElement("label");
+no_space_label.textContent = " ne pas rajouter d'espaces autour des smileys lors de leur insertion " +
+  "dans les messages";
+no_space_label.setAttribute("for", "gm_hfr_vsf_r21_no_space_checkbox");
+no_space_p.appendChild(no_space_label);
+content_pref1.appendChild(no_space_p);
+// -- add_button
+var add_button_p = document.createElement("p");
+var add_button_checkbox = document.createElement("input");
+add_button_checkbox.setAttribute("type", "checkbox");
+add_button_checkbox.setAttribute("id", "gm_hfr_vsf_r21_add_button_checkbox");
+add_button_p.appendChild(add_button_checkbox);
+var add_button_label = document.createElement("label");
+add_button_label.textContent = " permettre l'ajout de smileys favoris depuis les messages existants";
+add_button_label.setAttribute("for", "gm_hfr_vsf_r21_add_button_checkbox");
+add_button_p.appendChild(add_button_label);
+content_pref1.appendChild(add_button_p);
+// -- add_button_img
+var add_button_img_p = document.createElement("p");
+var add_button_img_label = document.createElement("label");
+add_button_img_label.textContent = "icône du bouton d'ajout de smileys favoris : ";
+add_button_img_label.setAttribute("for", "gm_hfr_vsf_r21_add_button_img_input");
+add_button_img_p.appendChild(add_button_img_label);
+var add_button_img_test_img = document.createElement("img");
+add_button_img_test_img.setAttribute("class", "gm_hfr_vsf_r21_test");
+add_button_img_p.appendChild(add_button_img_test_img);
+var add_button_img_input = document.createElement("input");
+add_button_img_input.setAttribute("id", "gm_hfr_vsf_r21_add_button_img_input");
+add_button_img_input.setAttribute("type", "text");
+add_button_img_input.setAttribute("spellcheck", "false");
+add_button_img_input.setAttribute("size", "23");
+add_button_img_input.setAttribute("title", "url de l'icône (http ou data)");
+add_button_img_input.addEventListener("click", function() {
+  add_button_img_input.select();
+}, false);
+
+function add_button_img_do_test_img() {
+  add_button_img_test_img.setAttribute("src", add_button_img_input.value.trim());
+  add_button_img_input.setSelectionRange(0, 0);
+  add_button_img_input.blur();
+}
+add_button_img_input.addEventListener("input", add_button_img_do_test_img, false);
+add_button_img_p.appendChild(add_button_img_input);
+var add_button_img_reset_img = document.createElement("img");
+add_button_img_reset_img.setAttribute("src", img_reset);
+add_button_img_reset_img.setAttribute("class", "gm_hfr_vsf_r21_reset");
+add_button_img_reset_img.setAttribute("title", "remettre l'icône par défaut");
+
+function add_button_img_do_reset_img() {
+  add_button_img_input.value = vsf_add_button_img_default;
+  add_button_img_do_test_img();
+}
+add_button_img_reset_img.addEventListener("click", add_button_img_do_reset_img, false);
+add_button_img_p.appendChild(add_button_img_reset_img);
+content_pref1.appendChild(add_button_img_p);
+// -- panel_img
+var panel_img_p = document.createElement("p");
+var panel_img_label = document.createElement("label");
+panel_img_label.textContent = "icône du bouton d'ouverture des panneaux des favoris : ";
+panel_img_label.setAttribute("for", "gm_hfr_vsf_r21_panel_img_input");
+panel_img_p.appendChild(panel_img_label);
+var panel_img_test_img = document.createElement("img");
+panel_img_test_img.setAttribute("class", "gm_hfr_vsf_r21_test");
+panel_img_p.appendChild(panel_img_test_img);
+var panel_img_input = document.createElement("input");
+panel_img_input.setAttribute("id", "gm_hfr_vsf_r21_panel_img_input");
+panel_img_input.setAttribute("type", "text");
+panel_img_input.setAttribute("spellcheck", "false");
+panel_img_input.setAttribute("size", "23");
+panel_img_input.setAttribute("title", "url de l'icône (http ou data)");
+panel_img_input.addEventListener("click", function() {
+  panel_img_input.select();
+}, false);
+
+function panel_img_do_test_img() {
+  panel_img_test_img.setAttribute("src", panel_img_input.value.trim());
+  panel_img_input.setSelectionRange(0, 0);
+  panel_img_input.blur();
+}
+panel_img_input.addEventListener("input", panel_img_do_test_img, false);
+panel_img_p.appendChild(panel_img_input);
+var panel_img_reset_img = document.createElement("img");
+panel_img_reset_img.setAttribute("src", img_reset);
+panel_img_reset_img.setAttribute("class", "gm_hfr_vsf_r21_reset");
+panel_img_reset_img.setAttribute("title", "remettre l'icône par défaut");
+
+function panel_img_do_reset_img() {
+  panel_img_input.value = vsf_panel_img_default;
+  panel_img_do_test_img();
+}
+panel_img_reset_img.addEventListener("click", panel_img_do_reset_img, false);
+panel_img_p.appendChild(panel_img_reset_img);
+content_pref1.appendChild(panel_img_p);
+// -- panel_settings_img
+var panel_settings_img_p = document.createElement("p");
+var panel_settings_img_label = document.createElement("label");
+panel_settings_img_label.textContent = "icône du bouton de configuration pour les panneaux des favoris : ";
+panel_settings_img_label.setAttribute("for", "gm_hfr_vsf_r21_panel_settings_img_input");
+panel_settings_img_p.appendChild(panel_settings_img_label);
+var panel_settings_img_test_img = document.createElement("img");
+panel_settings_img_test_img.setAttribute("class", "gm_hfr_vsf_r21_test");
+panel_settings_img_p.appendChild(panel_settings_img_test_img);
+var panel_settings_img_input = document.createElement("input");
+panel_settings_img_input.setAttribute("id", "gm_hfr_vsf_r21_panel_settings_img_input");
+panel_settings_img_input.setAttribute("type", "text");
+panel_settings_img_input.setAttribute("spellcheck", "false");
+panel_settings_img_input.setAttribute("size", "23");
+panel_settings_img_input.setAttribute("title", "url de l'icône (http ou data)");
+panel_settings_img_input.addEventListener("click", function() {
+  panel_settings_img_input.select();
+}, false);
+
+function panel_settings_img_do_test_img() {
+  panel_settings_img_test_img.setAttribute("src", panel_settings_img_input.value.trim());
+  panel_settings_img_input.setSelectionRange(0, 0);
+  panel_settings_img_input.blur();
+}
+panel_settings_img_input.addEventListener("input", panel_settings_img_do_test_img, false);
+panel_settings_img_p.appendChild(panel_settings_img_input);
+var panel_settings_img_reset_img = document.createElement("img");
+panel_settings_img_reset_img.setAttribute("src", img_reset);
+panel_settings_img_reset_img.setAttribute("class", "gm_hfr_vsf_r21_reset");
+panel_settings_img_reset_img.setAttribute("title", "remettre l'icône par défaut");
+
+function panel_settings_img_do_reset_img() {
+  panel_settings_img_input.value = vsf_panel_settings_img_default;
+  panel_settings_img_do_test_img();
+}
+panel_settings_img_reset_img.addEventListener("click", panel_settings_img_do_reset_img, false);
+panel_settings_img_p.appendChild(panel_settings_img_reset_img);
+content_pref1.appendChild(panel_settings_img_p);
+
+// préférences 2 réponses
+// -- section réponse rapide
+var quick_fieldset = document.createElement("fieldset");
+var quick_legend = document.createElement("legend");
+quick_legend.textContent = "Réponse rapide";
+quick_fieldset.appendChild(quick_legend);
+content_pref2.appendChild(quick_fieldset);
+// -- -- quick_panel
+var quick_panel_p = document.createElement("p");
+var quick_panel_checkbox = document.createElement("input");
+quick_panel_checkbox.setAttribute("type", "checkbox");
+quick_panel_checkbox.setAttribute("id", "gm_hfr_vsf_r21_quick_panel_checkbox");
+quick_panel_p.appendChild(quick_panel_checkbox);
+var quick_panel_label = document.createElement("label");
+quick_panel_label.textContent = " afficher le panneau des favoris à côté de la réponse rapide";
+quick_panel_label.setAttribute("for", "gm_hfr_vsf_r21_quick_panel_checkbox");
+quick_panel_p.appendChild(quick_panel_label);
+quick_fieldset.appendChild(quick_panel_p);
+// -- -- quick_panel_start_closed
+var quick_panel_start_closed_p = document.createElement("p");
+var quick_panel_start_closed_checkbox = document.createElement("input");
+quick_panel_start_closed_checkbox.setAttribute("type", "checkbox");
+quick_panel_start_closed_checkbox.setAttribute("id", "gm_hfr_vsf_r21_quick_panel_start_closed_checkbox");
+quick_panel_start_closed_p.appendChild(quick_panel_start_closed_checkbox);
+var quick_panel_start_closed_label = document.createElement("label");
+quick_panel_start_closed_label.textContent = " toujours afficher le panneau des favoris initialement fermé";
+quick_panel_start_closed_label.setAttribute("for", "gm_hfr_vsf_r21_quick_panel_start_closed_checkbox");
+quick_panel_start_closed_p.appendChild(quick_panel_start_closed_label);
+quick_fieldset.appendChild(quick_panel_start_closed_p);
+// -- -- quick_panel_position
+var quick_panel_position_p = document.createElement("p");
+quick_panel_position_p.appendChild(document.createTextNode("position du panneau des favoris : "));
+var quick_panel_position_dessus_label = document.createElement("label");
+quick_panel_position_dessus_label.textContent = "dessus ";
+quick_panel_position_dessus_label.setAttribute("for", "gm_hfr_vsf_r21_quick_panel_position_dessus_radio");
+quick_panel_position_p.appendChild(quick_panel_position_dessus_label);
+var quick_panel_position_dessus_radio = document.createElement("input");
+quick_panel_position_dessus_radio.setAttribute("type", "radio");
+quick_panel_position_dessus_radio.setAttribute("id", "gm_hfr_vsf_r21_quick_panel_position_dessus_radio");
+quick_panel_position_dessus_radio.setAttribute("name", "gm_hfr_vsf_r21_quick_panel_position_radio");
+quick_panel_position_p.appendChild(quick_panel_position_dessus_radio);
+quick_panel_position_p.appendChild(document.createTextNode(" "));
+var quick_panel_position_dessous_radio = document.createElement("input");
+quick_panel_position_dessous_radio.setAttribute("type", "radio");
+quick_panel_position_dessous_radio.setAttribute("id", "gm_hfr_vsf_r21_quick_panel_position_dessous_radio");
+quick_panel_position_dessous_radio.setAttribute("name", "gm_hfr_vsf_r21_quick_panel_position_radio");
+quick_panel_position_p.appendChild(quick_panel_position_dessous_radio);
+var quick_panel_position_dessous_label = document.createElement("label");
+quick_panel_position_dessous_label.textContent = " dessous";
+quick_panel_position_dessous_label.setAttribute("for", "gm_hfr_vsf_r21_quick_panel_position_dessous_radio");
+quick_panel_position_p.appendChild(quick_panel_position_dessous_label);
+quick_fieldset.appendChild(quick_panel_position_p);
+// -- section réponse normale
+var normal_fieldset = document.createElement("fieldset");
+var normal_legend = document.createElement("legend");
+normal_legend.textContent = "Réponse normale";
+normal_fieldset.appendChild(normal_legend);
+content_pref2.appendChild(normal_fieldset);
+// -- -- normal_tabs
+var normal_tabs_p = document.createElement("p");
+var normal_tabs_checkbox = document.createElement("input");
+normal_tabs_checkbox.setAttribute("type", "checkbox");
+normal_tabs_checkbox.setAttribute("id", "gm_hfr_vsf_r21_normal_tabs_checkbox");
+normal_tabs_p.appendChild(normal_tabs_checkbox);
+var normal_tabs_label = document.createElement("label");
+normal_tabs_label.textContent =
+  " afficher les onglets \u00ab\u202fVos smileys\u202f\u00bb sur la réponse normale";
+normal_tabs_label.setAttribute("for", "gm_hfr_vsf_r21_normal_tabs_checkbox");
+normal_tabs_p.appendChild(normal_tabs_label);
+normal_fieldset.appendChild(normal_tabs_p);
+// -- -- hide_smileys_forum
+var hide_smileys_forum_p = document.createElement("p");
+var hide_smileys_forum_checkbox = document.createElement("input");
+hide_smileys_forum_checkbox.setAttribute("type", "checkbox");
+hide_smileys_forum_checkbox.setAttribute("id", "gm_hfr_vsf_r21_hide_smileys_forum_checkbox");
+hide_smileys_forum_p.appendChild(hide_smileys_forum_checkbox);
+var hide_smileys_forum_label = document.createElement("label");
+hide_smileys_forum_label.textContent =
+  " enlever les smileys personnels et favoris de la réponse normale";
+hide_smileys_forum_label.setAttribute("for", "gm_hfr_vsf_r21_hide_smileys_forum_checkbox");
+hide_smileys_forum_p.appendChild(hide_smileys_forum_label);
+normal_fieldset.appendChild(hide_smileys_forum_p);
+// -- -- normal_panel
+var normal_panel_p = document.createElement("p");
+var normal_panel_checkbox = document.createElement("input");
+normal_panel_checkbox.setAttribute("type", "checkbox");
+normal_panel_checkbox.setAttribute("id", "gm_hfr_vsf_r21_normal_panel_checkbox");
+normal_panel_p.appendChild(normal_panel_checkbox);
+var normal_panel_label = document.createElement("label");
+normal_panel_label.textContent = " afficher le panneau des favoris à côté de la réponse normale";
+normal_panel_label.setAttribute("for", "gm_hfr_vsf_r21_normal_panel_checkbox");
+normal_panel_p.appendChild(normal_panel_label);
+normal_fieldset.appendChild(normal_panel_p);
+// -- -- normal_panel_start_closed
+var normal_panel_start_closed_p = document.createElement("p");
+var normal_panel_start_closed_checkbox = document.createElement("input");
+normal_panel_start_closed_checkbox.setAttribute("type", "checkbox");
+normal_panel_start_closed_checkbox.setAttribute("id", "gm_hfr_vsf_r21_normal_panel_start_closed_checkbox");
+normal_panel_start_closed_p.appendChild(normal_panel_start_closed_checkbox);
+var normal_panel_start_closed_label = document.createElement("label");
+normal_panel_start_closed_label.textContent = " toujours afficher le panneau des favoris initialement fermé";
+normal_panel_start_closed_label.setAttribute("for", "gm_hfr_vsf_r21_normal_panel_start_closed_checkbox");
+normal_panel_start_closed_p.appendChild(normal_panel_start_closed_label);
+normal_fieldset.appendChild(normal_panel_start_closed_p);
+// -- -- normal_panel_position
+var normal_panel_position_p = document.createElement("p");
+normal_panel_position_p.appendChild(document.createTextNode("position du panneau des favoris : "));
+var normal_panel_position_dessus_label = document.createElement("label");
+normal_panel_position_dessus_label.textContent = "dessus ";
+normal_panel_position_dessus_label.setAttribute("for", "gm_hfr_vsf_r21_normal_panel_position_dessus_radio");
+normal_panel_position_p.appendChild(normal_panel_position_dessus_label);
+var normal_panel_position_dessus_radio = document.createElement("input");
+normal_panel_position_dessus_radio.setAttribute("type", "radio");
+normal_panel_position_dessus_radio.setAttribute("id", "gm_hfr_vsf_r21_normal_panel_position_dessus_radio");
+normal_panel_position_dessus_radio.setAttribute("name", "gm_hfr_vsf_r21_normal_panel_position_radio");
+normal_panel_position_p.appendChild(normal_panel_position_dessus_radio);
+normal_panel_position_p.appendChild(document.createTextNode(" "));
+var normal_panel_position_dessous_radio = document.createElement("input");
+normal_panel_position_dessous_radio.setAttribute("type", "radio");
+normal_panel_position_dessous_radio.setAttribute("id", "gm_hfr_vsf_r21_normal_panel_position_dessous_radio");
+normal_panel_position_dessous_radio.setAttribute("name", "gm_hfr_vsf_r21_normal_panel_position_radio");
+normal_panel_position_p.appendChild(normal_panel_position_dessous_radio);
+var normal_panel_position_dessous_label = document.createElement("label");
+normal_panel_position_dessous_label.textContent = " dessous";
+normal_panel_position_dessous_label.setAttribute("for", "gm_hfr_vsf_r21_normal_panel_position_dessous_radio");
+normal_panel_position_p.appendChild(normal_panel_position_dessous_label);
+normal_fieldset.appendChild(normal_panel_position_p);
+
+// rechargement de la page et boutons de validation et de fermeture pour les préférences
+var save_close_div = document.createElement("div");
+save_close_div.setAttribute("class", "gm_hfr_vsf_r21_save_close_div");
+var info_reload_div = document.createElement("div");
+info_reload_div.setAttribute("class", "gm_hfr_vsf_r21_info_reload_div");
+var info_reload_checkbox = document.createElement("input");
+info_reload_checkbox.setAttribute("type", "checkbox");
+info_reload_checkbox.setAttribute("id", "gm_hfr_vsf_r21_info_reload_checkbox");
+info_reload_div.appendChild(info_reload_checkbox);
+var info_reload_label = document.createElement("label");
+info_reload_label.textContent = " recharger la page ";
+info_reload_label.setAttribute("for", "gm_hfr_vsf_r21_info_reload_checkbox");
+info_reload_div.appendChild(info_reload_label);
+info_reload_div.appendChild(create_help_button(255,
+  "La modification des préférences n'est visible que sur les nouvelles pages ou après le rechargement " +
+  "de la page courante. Cette option permet de recharger automatiquement la page courante lors de la " +
+  "validation."));
+save_close_div.appendChild(info_reload_div);
+var save_button = document.createElement("img");
+save_button.setAttribute("src", img_save);
+save_button.setAttribute("title", "Valider");
+save_button.addEventListener("click", save_config_window, false);
+save_close_div.appendChild(save_button);
+var close_button = document.createElement("img");
+close_button.setAttribute("src", img_close);
+close_button.setAttribute("title", "Annuler / Fermer");
+close_button.addEventListener("click", hide_config_window, false);
+save_close_div.appendChild(close_button);
+content_pref.appendChild(save_close_div);
+
+// sauvegarde
+// -- actions de sauvegarde
+var action_save_div = document.createElement("div");
+action_save_div.setAttribute("class", "gm_hfr_vsf_r21_action_save");
+// -- -- sauvegarde
+var save_backup_span = document.createElement("span");
+save_backup_span.setAttribute("class", "gm_hfr_vsf_r21_action");
+save_backup_span.textContent = "Sauvegarder vos smileys";
+save_backup_span.addEventListener("click", save_backup, false);
+action_save_div.appendChild(save_backup_span);
+var fake_link = document.createElement("a");
+fake_link.style.display = "none";
+action_save_div.appendChild(fake_link);
+// -- -- restauration
+var restore_backup_span = document.createElement("span");
+restore_backup_span.setAttribute("class", "gm_hfr_vsf_r21_action");
+restore_backup_span.textContent = "Restaurer une sauvegarde";
+restore_backup_span.addEventListener("click", restore_backup, false);
+action_save_div.appendChild(restore_backup_span);
+var fake_input = document.createElement("input");
+fake_input.setAttribute("type", "file");
+fake_input.addEventListener("change", read_backup, false);
+fake_input.style.display = "none";
+action_save_div.appendChild(fake_input);
+content_save.appendChild(action_save_div);
+// -- info "sans rechargement" et bouton de fermeture pour la sauvegarde
+var save_save_close_div = document.createElement("div");
+save_save_close_div.setAttribute("class", "gm_hfr_vsf_r21_save_close_div");
+var save_info_reload_div = document.createElement("div");
+save_info_reload_div.setAttribute("class", "gm_hfr_vsf_r21_info_reload_div");
+var save_info_reload_img = document.createElement("img");
+save_info_reload_img.setAttribute("src", img_info);
+save_info_reload_div.appendChild(save_info_reload_img);
+save_info_reload_div.appendChild(document.createTextNode(" sans rechargement "));
+save_info_reload_div.appendChild(create_help_button(255,
+  "Les actions sur vos smileys sont prises en compte immédiatement, " +
+  "il n'est pas nécessaire de recharger la page."));
+save_save_close_div.appendChild(save_info_reload_div);
+var save_close_button = document.createElement("img");
+save_close_button.setAttribute("src", img_close);
+save_close_button.setAttribute("title", "Fermer");
+save_close_button.addEventListener("click", hide_config_window, false);
+save_save_close_div.appendChild(save_close_button);
+content_save.appendChild(save_save_close_div);
+
+// vos smileys
+// -- actions sur les smileys
+var action_smileys_div = document.createElement("div");
+action_smileys_div.setAttribute("class", "gm_hfr_vsf_r21_action_smileys");
+// -- -- importer vos smileys personnels et favoris
+var import_smileys_span = document.createElement("span");
+import_smileys_span.setAttribute("class", "gm_hfr_vsf_r21_action");
+import_smileys_span.textContent = "Importer vos smileys personnels et favoris";
+import_smileys_span.addEventListener("click", import_smileys, false);
+action_smileys_div.appendChild(import_smileys_span);
+// -- -- supprimer tous vos smileys
+var reset_smileys_span = document.createElement("span");
+reset_smileys_span.setAttribute("class", "gm_hfr_vsf_r21_action");
+reset_smileys_span.textContent = "Supprimer tous vos smileys";
+reset_smileys_span.addEventListener("click", reset_smileys, false);
+action_smileys_div.appendChild(reset_smileys_span);
+content_smileys.appendChild(action_smileys_div);
+// -- info "sans rechargement" et bouton de fermeture pour vos smileys
+var smileys_save_close_div = document.createElement("div");
+smileys_save_close_div.setAttribute("class", "gm_hfr_vsf_r21_save_close_div");
+var smileys_info_reload_div = document.createElement("div");
+smileys_info_reload_div.setAttribute("class", "gm_hfr_vsf_r21_info_reload_div");
+var smileys_info_reload_img = document.createElement("img");
+smileys_info_reload_img.setAttribute("src", img_info);
+smileys_info_reload_div.appendChild(smileys_info_reload_img);
+smileys_info_reload_div.appendChild(document.createTextNode(" sans rechargement "));
+smileys_info_reload_div.appendChild(create_help_button(255,
+  "Les actions sur vos smileys sont prises en compte immédiatement, " +
+  "il n'est pas nécessaire de recharger la page."));
+smileys_save_close_div.appendChild(smileys_info_reload_div);
+var smileys_close_button = document.createElement("img");
+smileys_close_button.setAttribute("src", img_close);
+smileys_close_button.setAttribute("title", "Fermer");
+smileys_close_button.addEventListener("click", hide_config_window, false);
+smileys_save_close_div.appendChild(smileys_close_button);
+content_smileys.appendChild(smileys_save_close_div);
+
+// fonction de validation de la fenêtre de configuration
+function save_config_window() {
+  // récupération des paramètres
+  // -- préférences 1 générales
+  let vsf_smileys_number = parseInt(smileys_number_input.value.trim(), 10);
+  vsf_smileys_number = Math.max(vsf_smileys_number, 10);
+  if(isNaN(vsf_smileys_number)) {
+    vsf_smileys_number = vsf_smileys_number_default;
   }
-}
-
-/*
-  Réinitialise l'icône placée à côté de chaque message.
-*/
-function ResetIconFavWorld() {
-  // Rafraichissement inputBox
-  document.getElementById(key_sm_fav_world_icon).value = icon_scan_smileys;
-  // Rafraichissement icône
-  document.getElementById(key_fav_world_icon_preview).src = icon_scan_smileys;
-}
-
-/*
-  Rechargement de l'icône associée à chaque message, affichée pour exemple.
-*/
-function ReloadIconFavWorld() {
-  // Rafraichissement de l'icône
-  document.getElementById(key_fav_world_icon_preview).src = document.getElementById(key_sm_fav_world_icon).value;
-}
-
-/*
-  Construire un fichier de backup des statistiques de smiley
-*/
-function DoBackupFile() {
-  LoadSmileyStats();
-  var blob = new Blob([BuildJsonString(smileyStats)], {
-    type: "application/json"
+  vsf_alert_new_smiley = alert_new_smiley_checkbox.checked;
+  vsf_confirm_delete = confirm_delete_checkbox.checked;
+  vsf_include_fav = include_fav_checkbox.checked;
+  vsf_sort_fav_by_name = sort_fav_by_name_checkbox.checked;
+  vsf_no_space = no_space_checkbox.checked;
+  vsf_add_button = add_button_checkbox.checked;
+  vsf_add_button_img = add_button_img_input.value.trim();
+  if(vsf_add_button_img === "") {
+    vsf_add_button_img = vsf_add_button_img_default;
+  }
+  vsf_panel_img = panel_img_input.value.trim();
+  if(vsf_panel_img === "") {
+    vsf_panel_img = vsf_panel_img_default;
+  }
+  vsf_panel_settings_img = panel_settings_img_input.value.trim();
+  if(vsf_panel_settings_img === "") {
+    vsf_panel_settings_img = vsf_panel_settings_img_default;
+  }
+  // -- préférences 2 réponses
+  vsf_quick_panel = quick_panel_checkbox.checked;
+  vsf_quick_panel_start_closed = quick_panel_start_closed_checkbox.checked;
+  vsf_quick_panel_top = quick_panel_position_dessus_radio.checked;
+  vsf_normal_tabs = normal_tabs_checkbox.checked;
+  vsf_hide_smileys_forum = hide_smileys_forum_checkbox.checked;
+  vsf_normal_panel = normal_panel_checkbox.checked;
+  vsf_normal_panel_start_closed = normal_panel_start_closed_checkbox.checked;
+  vsf_normal_panel_top = normal_panel_position_dessus_radio.checked;
+  // fermeture de la fenêtre
+  hide_config_window();
+  // enregistrement des paramètres
+  Promise.all([
+    // préférences 1 générales
+    GM.setValue("vsf_smileys_number", vsf_smileys_number),
+    GM.setValue("vsf_alert_new_smiley", vsf_alert_new_smiley),
+    GM.setValue("vsf_confirm_delete", vsf_confirm_delete),
+    GM.setValue("vsf_include_fav", vsf_include_fav),
+    GM.setValue("vsf_sort_fav_by_name", vsf_sort_fav_by_name),
+    GM.setValue("vsf_no_space", vsf_no_space),
+    GM.setValue("vsf_add_button", vsf_add_button),
+    GM.setValue("vsf_add_button_img", vsf_add_button_img),
+    GM.setValue("vsf_panel_img", vsf_panel_img),
+    GM.setValue("vsf_panel_settings_img", vsf_panel_settings_img),
+    // préférences 2 réponses
+    GM.setValue("vsf_quick_panel", vsf_quick_panel),
+    GM.setValue("vsf_quick_panel_start_closed", vsf_quick_panel_start_closed),
+    GM.setValue("vsf_quick_panel_top", vsf_quick_panel_top),
+    GM.setValue("vsf_normal_tabs", vsf_normal_tabs),
+    GM.setValue("vsf_hide_smileys_forum", vsf_hide_smileys_forum),
+    GM.setValue("vsf_normal_panel", vsf_normal_panel),
+    GM.setValue("vsf_normal_panel_start_closed", vsf_normal_panel_start_closed),
+    GM.setValue("vsf_normal_panel_top", vsf_normal_panel_top),
+  ]).then(function() {
+    if(info_reload_checkbox.checked) {
+      window.location.reload(true);
+    }
   });
-  var url = window.URL.createObjectURL(blob);
-  var fakeLink = document.createElement("a");
-  fakeLink.style.display = "none";
-  fakeLink.setAttribute("href", url);
-  fakeLink.setAttribute("download", "hfr_vos_smileys_favoris_" + getDateTimeStringForSave() + ".json");
-  document.body.appendChild(fakeLink);
-  var fakeClick = document.createEvent("MouseEvents");
-  fakeClick.initMouseEvent("click", true, false, null, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-  fakeLink.dispatchEvent(fakeClick);
-  // pas de revokeObjectURL sinon ça marche pas :o (mais osef, il meurt à la fermeture de la page)
 }
 
-/*
-  Charge un fichier de backup des statistiques de smiley
-*/
-function LoadBackupFile(evt) {
-  var file = evt.target.files[0];
-  fileReader = new FileReader();
-  fileReader.addEventListener("loadend", readBackupFile, false);
-  fileReader.readAsText(file);
+// fonction de fermeture de la fenêtre de configuration
+function hide_config_window() {
+  config_window.style.opacity = "0";
+  config_background.style.opacity = "0";
 }
 
-/*
-  Lit le fichier de backup
-*/
-function readBackupFile() {
-  var JSON_string = fileReader.result;
-  if(!CheckFormatBackupFile(JSON_string)) {
-    alert("Format du fichier non reconnu.");
-  } else if(confirm("Cet import va écraser toutes vos données actuelles de smiley, voulez-vous continuer ?") == true) {
-    saveUserStatsFromJsonString(JSON_string);
-    LoadSmileyStats(true);
-    // Mise à jour du panneau des favoris en reponse rapide
-    ReloadSmileysFullPanel();
-    // Mise à jour complete de l'onglet top
-    RefreshTab_FromUI(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top);
-    // Mise à jour complete de l'onglet historique
-    RefreshTab_FromUI(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist);
-    // Mise à jour complete de l'onglet favoris
-    RefreshTab_FromUI(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav);
-    alert("Vos données de smileys ont été mises à jour.");
+// fonction de fermeture de la fenêtre de configuration par la touche echap
+function esc_config_window(p_event) {
+  if(p_event.key === "Escape") {
+    hide_config_window();
   }
 }
 
-/*
-  Vérification du format de fichier de backup
-*/
-function CheckFormatBackupFile(JSON_string) {
-  try {
-    var jsonObj = BuildJsonObjectFromString(JSON_string);
-    return true;
-  } catch (err) {
-    return false;
+// fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
+function background_transitionend() {
+  if(config_background.style.opacity === "0") {
+    config_window.style.visibility = "hidden";
+    config_background.style.visibility = "hidden";
+    document.removeEventListener("keydown", esc_config_window, false);
+  }
+  if(config_background.style.opacity === "0.8") {
+    document.addEventListener("keydown", esc_config_window, false);
   }
 }
 
-// =============================================================== //
-// Modifications de l'interface HFR
-// =============================================================== //
-
-/*
-  Point d'entrée du script Greasemonkey
-*/
-function Main() {
-  // Chargement de la configuration utilisateur
-  loadUserConfig();
-
-  // Premier lancement
-  if(sm_first_start) {
-    if(confirm("Souhaitez-vous importer vos smileys favoris et personnels du forum dans " + script_name + " ?") ==
-      true) {
-      ImportFavPersoForum(sm_first_start);
-    }
-    sm_first_start = false;
-    GM_setValue(key_sm_first_start, sm_first_start);
-  }
-
-  // Préparation de la fenêtre de configuration
-  cmScript.setUp();
-  cmScript.createConfigMenu();
-
-  // Obtient l'élément HTML racine de la page HFR
-  root = document.getElementById("mesdiscussions");
-
-  var current_url = document.URL;
-
-  // Switch suivant la page affichée
-  if(current_url.match("https://forum.hardware.fr/message.php*") ||
-    current_url.match("https://forum.hardware.fr/hfr/.*/nouveau_sujet.htm") ||
-    current_url.match("https://forum.hardware.fr/hfr/.*/nouveau_sondage.htm") ||
-    current_url.match("https://forum.hardware.fr/hfr/.*/repondre.*")) {
-    // Page édition de message
-    HandleEditingMessagePage();
+// fonction d'affichage de la fenêtre de configuration
+function show_config_window(p_event) {
+  // initialisation des paramètres
+  info_reload_checkbox.checked = false;
+  // -- préférences 1 générales
+  smileys_number_input.value = vsf_smileys_number;
+  alert_new_smiley_checkbox.checked = vsf_alert_new_smiley;
+  confirm_delete_checkbox.checked = vsf_confirm_delete;
+  include_fav_checkbox.checked = vsf_include_fav;
+  sort_fav_by_name_checkbox.checked = vsf_sort_fav_by_name;
+  no_space_checkbox.checked = vsf_no_space;
+  add_button_checkbox.checked = vsf_add_button;
+  add_button_img_input.value = vsf_add_button_img;
+  add_button_img_do_test_img();
+  panel_img_input.value = vsf_panel_img;
+  panel_img_do_test_img();
+  panel_settings_img_input.value = vsf_panel_settings_img;
+  panel_settings_img_do_test_img();
+  // -- préférences 2 réponses
+  quick_panel_checkbox.checked = vsf_quick_panel;
+  quick_panel_start_closed_checkbox.checked = vsf_quick_panel_start_closed;
+  quick_panel_position_dessus_radio.checked = vsf_quick_panel_top;
+  quick_panel_position_dessous_radio.checked = !vsf_quick_panel_top;
+  normal_tabs_checkbox.checked = vsf_normal_tabs;
+  hide_smileys_forum_checkbox.checked = vsf_hide_smileys_forum;
+  normal_panel_checkbox.checked = vsf_normal_panel;
+  normal_panel_start_closed_checkbox.checked = vsf_normal_panel_start_closed;
+  normal_panel_position_dessus_radio.checked = vsf_normal_panel_top;
+  normal_panel_position_dessous_radio.checked = !vsf_normal_panel_top;
+  // affichage d'un onglet en fonction du contexte
+  if(typeof p_event !== "undefined" &&
+    typeof p_event.currentTarget.dataset.onglet !== "undefined" &&
+    p_event.currentTarget.dataset.onglet === "smileys") {
+    // affichage de l'onglet vos smileys
+    display_tab("general", "smileys");
   } else {
-    // Autres pages, notamment les pages de topic, contenant un "fast answer".
-    HandleTopicPage();
+    // affichage de l'onglet préférences
+    display_tab("general", "pref");
   }
-
-  // Initialisation du système d'onglets du panneau des smileys
-  InitTabSystem_ForFullAnswer();
+  // affichage de la fenêtre
+  config_window.style.visibility = "visible";
+  config_background.style.visibility = "visible";
+  config_window.style.left =
+    parseInt((document.documentElement.clientWidth - config_window.offsetWidth) / 2, 10) + "px";
+  config_window.style.top =
+    parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) + "px";
+  config_background.style.width = document.documentElement.scrollWidth + "px";
+  config_background.style.height = document.documentElement.scrollHeight + "px";
+  config_window.style.opacity = "1";
+  config_background.style.opacity = "0.8";
 }
 
-/*
-  Traitement des pages de topic. Change l'action du bouton "Valider votre message".
-*/
-function HandleTopicPage() {
-  var textarea = GetMessageEditingBox();
-
-  if(textarea == null) {
-    // Il n'y a pas de "fast answer" sur cette page
-  } else {
-    // Pages de topic
-
-    // Mémorisation de la fonction HFR "edit_in", qui est appelée quand l'utilisateur clique sur l'icône "fast edit".
-    var fred82vsf_function_old_edit_in = unsafeWindow.edit_in;
-    exportFunction(fred82vsf_function_old_edit_in, unsafeWindow, {
-      defineAs: "fred82vsf_function_old_edit_in"
-    });
-
-    var fred82vsf_object_fastEditDict = createObjectIn(unsafeWindow, {
-      defineAs: "fred82vsf_object_fastEditDict"
-    });
-
-    LoadSmileyStats();
-
-    ChangeFastAnswerValidationButtonAction();
-
-    if(sm_fast_reply) {
-      ShowFavoriteSmileysPanel(true);
-    }
-
-    if(sm_fav_world) {
-      AddScanSmileysFeature();
-    }
-
-    ModifyValidateFastEdit();
+// fonction d'ouverture de la fenêtre de configuration sur un clic droit
+function mouseup_config(p_event) {
+  p_event.preventDefault();
+  if(p_event.button === 2) {
+    show_config_window(p_event);
   }
 }
 
-/*
-  Change le comportement du bouton "Valider votre message"
-  Ajoute une action qui analyse le message, extrait les smileys, et met à jour les statistiques dans GreaseMonkey
-*/
-function ChangeFastAnswerValidationButtonAction() {
-  var validate_button_fast_answer = document.getElementById("submitreprap");
-  validate_button_fast_answer.addEventListener("click", function() {
-    ValidateFunction();
-  }, true);
+// ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
+if(typeof GM_registerMenuCommand !== "undefined") {
+  GM_registerMenuCommand(script_name + " -> Configuration", show_config_window);
 }
 
-/*
-  Afficher le panneau des favoris à côté du "fast reply"
+/* ----------------------------------------- */
+/* création de la fenêtre d'ajout de favoris */
+/* ----------------------------------------- */
 
-  create (bool) : true indique qu'il faut créer le panneau. false indique qu'il faut le rafraichir.
-*/
-function ShowFavoriteSmileysPanel(create) {
-  var textarea = GetMessageEditingBox();
+// création du voile de fond pour la fenêtre d'ajout de favoris
+var add_fav_background = document.createElement("div");
+add_fav_background.setAttribute("id", "gm_hfr_vsf_r21_add_fav_background");
+add_fav_background.addEventListener("click", hide_add_fav_window, false);
+add_fav_background.addEventListener("transitionend", add_fav_background_transitionend, false);
+document.body.appendChild(add_fav_background);
 
-  var container = null;
+// création de la fenêtre d'ajout de favoris
+var add_fav_window = document.createElement("div");
+add_fav_window.setAttribute("id", "gm_hfr_vsf_r21_add_fav_window");
+document.body.appendChild(add_fav_window);
 
-  if(create) {
-    // Création du panneau
+// titre de la fenêtre d'ajout de favoris
+var add_fav_title = document.createElement("div");
+add_fav_title.setAttribute("class", "gm_hfr_vsf_r21_add_fav_title");
+add_fav_window.appendChild(add_fav_title);
 
-    container = document.createElement("span");
-    container.id = key_favorite_panel;
+// panneau des favoris de la fenêtre d'ajout de favoris
+var add_fav_panel = document.createElement("div");
+add_fav_panel.setAttribute("id", "gm_hfr_vsf_r21"); // pour avoir un selecteur CSS de plus haut niveau
+add_fav_panel.setAttribute("class", "gm_hfr_vsf_r21_panel gm_hfr_vsf_r21_add_fav_panel");
+add_fav_panel.setAttribute("data-type", "add_fav");
+var add_fav_panel_fake_padding = document.createElement("div");
+add_fav_panel_fake_padding.setAttribute("class", "gm_hfr_vsf_r21_fake_padding");
+add_fav_panel.appendChild(add_fav_panel_fake_padding);
+add_fav_window.appendChild(add_fav_panel);
 
-    // Styles : taille et position
-    container.className = "reponserapide cBackCouleurTab1";
-    container.style.display = "inline-block";
-    container.style.overflow = "auto";
-    container.style.position = "relative";
-    container.style.padding = "4px";
+// info "sans rechargement" et bouton de fermeture
+var add_fav_save_close_div = document.createElement("div");
+add_fav_save_close_div.setAttribute("class", "gm_hfr_vsf_r21_save_close_div");
+var add_fav_info_reload_div = document.createElement("div");
+add_fav_info_reload_div.setAttribute("class", "gm_hfr_vsf_r21_info_reload_div");
+var add_fav_info_reload_img = document.createElement("img");
+add_fav_info_reload_img.setAttribute("src", img_info);
+add_fav_info_reload_div.appendChild(add_fav_info_reload_img);
+add_fav_info_reload_div.appendChild(document.createTextNode(" sans rechargement "));
+add_fav_info_reload_div.appendChild(create_help_button(255,
+  "Les actions sur vos smileys sont prises en compte immédiatement, " +
+  "il n'est pas nécessaire de recharger la page."));
+add_fav_save_close_div.appendChild(add_fav_info_reload_div);
+var add_fav_close_button = document.createElement("img");
+add_fav_close_button.setAttribute("src", img_close);
+add_fav_close_button.setAttribute("title", "Fermer");
+add_fav_close_button.addEventListener("click", hide_add_fav_window, false);
+add_fav_save_close_div.appendChild(add_fav_close_button);
+add_fav_window.appendChild(add_fav_save_close_div);
 
-    // Styles : bordure et couleurs
-    container.style.border = "1px dotted #778";
-    container.style.width = sm_fav_panel_width;
-    container.style.height = sm_fav_panel_height;
-    container.style.resize = "both";
+// fonction de nettoyage de la fenêtre d'ajout de favoris
+function clean_add_fav_window() {
+  add_fav_title.textContent = "Il n'y a pas de smiley dans ce message";
+  add_fav_window.setAttribute("class", "gm_hfr_vsf_r21_no_smiley");
+  add_fav_window.style.width = "343px";
+  add_fav_window.style.height = "18px";
+  add_fav_panel.style.display = "none";
+  add_fav_save_close_div.style.display = "none";
+  add_fav_close = true;
+  // nettoyage des favoris
+  let l_smileys = add_fav_panel.querySelectorAll(":scope > div.gm_hfr_vsf_r21_smiley");
+  for(let l_smiley of l_smileys) {
+    add_fav_panel.removeChild(l_smiley);
+  }
+}
 
-    // Mémorisation des nouvelles dimensions en cas de resize
-    function savePanelPosition() {
-      var height = staticImgMarginTop + container.offsetHeight;
-      if(sm_fast_reply_position === 1 || sm_fast_reply_position === 3) { // à droite ou à gauche
-        var height2 = 1 + textarea.offsetHeight;
-        height = Math.max(height, height2);
+// fonction de fermeture de la fenêtre d'ajout de favoris
+function hide_add_fav_window() {
+  add_fav_window.style.opacity = "0";
+  add_fav_background.style.opacity = "0";
+}
+
+// fonction de fermeture de la fenêtre d'ajout de favoris par la touche echap
+function esc_add_fav_window(p_event) {
+  if(p_event.key === "Escape") {
+    hide_add_fav_window();
+  }
+}
+
+// fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre d'ajout de favoris
+function add_fav_background_transitionend() {
+  if(add_fav_window.style.opacity === "0") {
+    add_fav_window.style.visibility = "hidden";
+    add_fav_background.style.visibility = "hidden";
+    document.removeEventListener("keydown", esc_add_fav_window, false);
+    if(add_fav_close) {
+      add_fav_window.removeEventListener("click", hide_add_fav_window, false);
+    }
+  }
+  if(add_fav_window.style.opacity === "1") {
+    document.addEventListener("keydown", esc_add_fav_window, false);
+    if(add_fav_close) {
+      add_fav_window.addEventListener("click", hide_add_fav_window, false);
+    }
+  }
+}
+
+// fonction d'affichage de la fenêtre d'ajout de favoris
+function show_add_fav_window(p_list) {
+  // nettoyage de la fenêtre d'ajout de favoris
+  clean_add_fav_window();
+  // affichage du titre, du bouton de fermeture et des favoris
+  if(p_list.length !== 0) {
+    add_fav_title.textContent = "Ajouter des favoris";
+    add_fav_window.removeAttribute("class");
+    add_fav_window.style.height = "142px";
+    add_fav_panel.style.display = "block";
+    add_fav_save_close_div.style.display = "block";
+    add_fav_close = false;
+    // ajout des favoris
+    for(let l_smiley of p_list) {
+      add_fav_panel.insertBefore(build_smiley({
+          c: l_smiley,
+          s: 0,
+          d: 0,
+          f: typeof vsf_smileys[l_smiley] !== "undefined" && vsf_smileys[l_smiley].f,
+        }, "favoris add", 0, false),
+        add_fav_panel_fake_padding);
+    }
+  }
+  // affichage de la fenêtre
+  add_fav_window.style.visibility = "visible";
+  add_fav_background.style.visibility = "visible";
+  add_fav_window.style.left =
+    parseInt((document.documentElement.clientWidth - add_fav_window.offsetWidth) / 2, 10) + "px";
+  add_fav_window.style.top =
+    parseInt((document.documentElement.clientHeight - add_fav_window.offsetHeight) / 2, 10) + "px";
+  add_fav_background.style.width = document.documentElement.scrollWidth + "px";
+  add_fav_background.style.height = document.documentElement.scrollHeight + "px";
+  add_fav_window.style.opacity = "1";
+  add_fav_background.style.opacity = "0.8";
+}
+
+// fonction de gestion du clic sur le bouton d'ajout de favoris
+function add_fav(p_event) {
+  p_event.preventDefault();
+  let l_list = [];
+  let l_imgs = this.parentElement.parentElement.nextElementSibling.querySelectorAll(
+    "img[alt][src^=\"" + base_smileys_url + "\"]:not([src*=\"/message/\"]):not([onload]), " +
+    "img[alt][src^=\"" + smileys_persos_url + "\"]:not([src*=\"/tempo/\"]):not([onload])");
+  for(let l_img of l_imgs) {
+    let l_alt = l_img.getAttribute("alt").toLowerCase().replace(/^:d$/, ":D");
+    if(!l_list.includes(l_alt) && (l_alt.startsWith("[:") || l_alt.startsWith(":") || l_alt === ";)")) {
+      l_list.push(l_alt);
+    }
+  }
+  show_add_fav_window(l_list);
+}
+
+/* ------------------------------------------------ */
+/* création de la tooltip d'affichage des mots-clés */
+/* ------------------------------------------------ */
+
+// création de la tooltip d'affichage des mots-clés
+var keywords_tooltip = document.createElement("div");
+keywords_tooltip.setAttribute("id", "gm_hfr_vsf_r21_keywords_tooltip");
+document.body.appendChild(keywords_tooltip);
+
+// fonction d'affichage de la tooltip d'affichage des mots-clés
+function show_tooltip(p_event) {
+  // fermeture de la tooltip (si elle est ouverte ailleurs)
+  hide_tooltip();
+  tooltip_canceled = false;
+  // récupération du smiley
+  let l_smiley_img = p_event.currentTarget;
+  // récupération des mots-clés et affichage de la tooltip
+  keywords_tooltip_timer = window.setTimeout(function() {
+    access_keywords(get_keywords, function(p_smiley_img, p_keywords) {
+      if(tooltip_canceled) {
+        return;
       }
-      document.getElementById(key_favorite_panel_img).style.marginTop = (height - 16) + "px";
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(function() {
-        var panel = document.getElementById(key_favorite_panel);
-        GM_setValue(key_sm_fav_panel_width, panel.style.width);
-        GM_setValue(key_sm_fav_panel_height, panel.style.height);
-      }, 250);
+      // ajout du texte (smiley et mots-clés)
+      keywords_tooltip.textContent = p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}";
+      // affichage de la tooltip
+      keywords_tooltip.style.display = "block";
+      // positionnement de la tooltip
+      let l_page_width = document.documentElement.scrollWidth;
+      let l_tooltip_width = 368;
+      let l_tooltip_height = keywords_tooltip.offsetHeight;
+      if(window.scrollX + p_event.clientX + 8 + l_tooltip_width < l_page_width) {
+        keywords_tooltip.style.left = (window.scrollX + p_event.clientX + 8) + "px";
+      } else {
+        keywords_tooltip.style.left = (window.scrollX + p_event.clientX - 8 - l_tooltip_width) + "px";
+      }
+      if(window.scrollY + p_event.clientY - 8 - l_tooltip_height > 0) {
+        keywords_tooltip.style.top = (window.scrollY + p_event.clientY - 8 - l_tooltip_height) + "px";
+      } else {
+        keywords_tooltip.style.top = (window.scrollY + p_event.clientY + 8) + "px";
+      }
+    }, l_smiley_img);
+  }, keywords_tooltip_time);
+}
+
+// fonction de fermeture de la tooltip d'affichage des mots-clés
+function hide_tooltip(p_event) {
+  tooltip_canceled = true;
+  window.clearTimeout(keywords_tooltip_timer);
+  keywords_tooltip.style.display = "none";
+}
+
+// gestion de la fermeture de la tooltip avec un clic n'importe où
+document.addEventListener("mousedown", hide_tooltip, false);
+
+// gestion de la fermeture de la tooltip en passant la sourris dessus
+keywords_tooltip.addEventListener("mouseover", hide_tooltip, false);
+
+/* -------------------------------------------- */
+/* création de la popup d'édition des mots-clés */
+/* -------------------------------------------- */
+
+// création de la popup d'édition des mots-clés
+var keywords_popup = document.createElement("div");
+keywords_popup.setAttribute("id", "gm_hfr_vsf_r21_keywords_popup");
+var keywords_nothing = document.createElement("div");
+keywords_nothing.setAttribute("class", "gm_hfr_vsf_r21_keywords_nothing");
+keywords_nothing.setAttribute("title", script_name);
+keywords_nothing.addEventListener("click", hide_popup, false);
+var keywords_text = document.createElement("span");
+keywords_text.setAttribute("class", "gm_hfr_vsf_r21_keywords_text");
+keywords_text.textContent = "Vous devez vous identifier pour modifier les mots-clés.";
+keywords_nothing.appendChild(keywords_text);
+keywords_popup.appendChild(keywords_nothing);
+var keywords_textarea = document.createElement("textarea");
+keywords_textarea.setAttribute("class", "gm_hfr_vsf_r21_keywords_textarea");
+keywords_textarea.setAttribute("type", "text");
+keywords_textarea.setAttribute("spellcheck", "false");
+keywords_popup.appendChild(keywords_textarea);
+var keywords_div = document.createElement("div");
+keywords_div.setAttribute("class", "gm_hfr_vsf_r21_keywords_div");
+var keywords_span = document.createElement("span");
+keywords_span.setAttribute("class", "gm_hfr_vsf_r21_keywords_span");
+keywords_span.textContent = "Mots-clés de ";
+keywords_span.setAttribute("title", script_name);
+var keywords_span_link = document.createElement("span");
+keywords_span_link.setAttribute("class", "gm_hfr_vsf_r21_keywords_span_link");
+keywords_span_link.setAttribute("title", "Page du smiley sur le wiki");
+keywords_span_link.addEventListener("mousedown", prevent_default, false);
+keywords_span_link.addEventListener("mouseup", open_wiki, false);
+keywords_span.appendChild(keywords_span_link);
+keywords_div.appendChild(keywords_span);
+var keywords_throbber = document.createElement("img");
+keywords_throbber.setAttribute("class", "gm_hfr_vsf_r21_keywords_throbber");
+keywords_throbber.setAttribute("src", img_throbber);
+keywords_div.appendChild(keywords_throbber);
+var keywords_answer = document.createElement("div");
+keywords_answer.setAttribute("class", "gm_hfr_vsf_r21_keywords_answer");
+keywords_div.appendChild(keywords_answer);
+var keywords_buttons = document.createElement("div");
+keywords_buttons.setAttribute("class", "gm_hfr_vsf_r21_keywords_buttons");
+var keywords_save = document.createElement("img");
+keywords_save.setAttribute("src", img_save);
+keywords_save.setAttribute("title", "Valider");
+keywords_save.addEventListener("click", save_keywords, false);
+keywords_buttons.appendChild(keywords_save);
+var keywords_close = document.createElement("img");
+keywords_close.setAttribute("src", img_close);
+keywords_close.setAttribute("title", "Annuler");
+keywords_close.addEventListener("click", hide_popup, false);
+keywords_buttons.appendChild(keywords_close);
+keywords_div.appendChild(keywords_buttons);
+keywords_popup.appendChild(keywords_div);
+document.body.appendChild(keywords_popup);
+
+// fonction d'ouverture de la page du smiley sur le wiki dans un nouvel onglet
+function open_wiki(p_event) {
+  if(p_event.button === 0 || p_event.button === 1) {
+    GM.openInTab(get_keywords_url + encodeURIComponent(this.textContent), p_event.button === 1);
+  }
+}
+
+// fonction d'enregistrement des mots-clés
+function save_keywords() {
+  keywords_buttons.style.display = "none";
+  keywords_throbber.style.display = "block";
+  access_keywords(set_keywords, function(p_answer) {
+    keywords_answer.textContent = p_answer;
+    if(p_answer === "done!") {
+      keywords_answer.classList.add("gm_hfr_vsf_r21_success");
+    } else if(p_answer === "attendez 5 min") {
+      keywords_answer.classList.add("gm_hfr_vsf_r21_wait");
     }
-    var observer1 = new MutationObserver(savePanelPosition);
-    observer1.observe(container, {
+    keywords_throbber.style.display = "none";
+    keywords_answer.style.display = "block";
+    keywords_span.style.width = "calc(100% - " + (keywords_answer.clientWidth + 10) + "px)";
+    window.setTimeout(hide_popup, set_keywords_time);
+  }, keywords_popup.dataset.smiley, keywords_textarea.value.trim());
+}
+
+// fonction d'affichage de la popup d'édition des mots-clés
+function show_popup(p_event) {
+  // fermeture de la popup (si elle est ouverte ailleurs)
+  hide_popup();
+  // positionnement de la popup
+  let l_page_width = document.documentElement.scrollWidth;
+  let l_page_height = document.documentElement.scrollHeight;
+  let l_popup_width = 366;
+  let l_popup_height = 80;
+  if(hash_check === "") {
+    l_popup_width = 426;
+    l_popup_height = 40;
+  }
+  if(window.scrollX + p_event.clientX + 8 + l_popup_width < l_page_width) {
+    keywords_popup.style.left = (window.scrollX + p_event.clientX + 8) + "px";
+  } else {
+    keywords_popup.style.left = (window.scrollX + p_event.clientX - 8 - l_popup_width) + "px";
+  }
+  if(window.scrollY + p_event.clientY + 8 + l_popup_height < l_page_height) {
+    keywords_popup.style.top = (window.scrollY + p_event.clientY + 8) + "px";
+  } else {
+    keywords_popup.style.top = (window.scrollY + p_event.clientY - 8 - l_popup_height) + "px";
+  }
+  // vérification de la possibilité d'éditer les mots-clés
+  if(hash_check !== "") {
+    // récupération du smiley
+    let l_smiley_img = p_event.currentTarget;
+    let l_code = l_smiley_img.getAttribute("alt");
+    // initialisation de la popup
+    keywords_popup.dataset.smiley = l_code;
+    keywords_popup.classList.remove("gm_hfr_vsf_r21_keywords_no_edit");
+    keywords_popup.style.width = "356px";
+    keywords_popup.style.height = "70px";
+    keywords_nothing.style.display = "none";
+    keywords_textarea.value = "";
+    keywords_textarea.style.display = "block";
+    keywords_span_link.textContent = l_code;
+    keywords_span.style.width = "auto";
+    keywords_throbber.style.display = "none";
+    keywords_answer.textContent = "";
+    keywords_answer.classList.remove("gm_hfr_vsf_r21_success");
+    keywords_answer.classList.remove("gm_hfr_vsf_r21_wait");
+    keywords_answer.style.display = "none";
+    keywords_buttons.style.display = "block";
+    keywords_div.style.display = "block";
+    // récupération des mots-clés et affichage de la popup
+    access_keywords(get_keywords, function(p_smiley_img, p_keywords) {
+      keywords_textarea.value = add_final_space ? p_keywords + " " : p_keywords;
+      keywords_textarea.selectionStart = 0;
+      keywords_textarea.selectionEnd = 0;
+      // fermeture de la tooltip (pour plus de clareté)
+      hide_tooltip();
+      // affichage de la popup
+      keywords_popup.style.display = "block";
+    }, l_smiley_img);
+  }
+  // l'édition des mots-clés n'est pas possible ici (affichage du texte idoine)
+  else {
+    // initialisation de la popup
+    keywords_popup.classList.add("gm_hfr_vsf_r21_keywords_no_edit");
+    keywords_textarea.style.display = "none";
+    keywords_div.style.display = "none";
+    keywords_nothing.style.display = "flex";
+    // fermeture de la tooltip (pour plus de clareté)
+    hide_tooltip();
+    // affichage de la popup
+    keywords_popup.style.display = "block";
+  }
+}
+
+// fonction de fermeture de la popup d'édition des mots-clés
+function hide_popup(p_event) {
+  keywords_popup.style.display = "none";
+}
+
+/* ------------------ */
+/* fonctions globales */
+/* ------------------ */
+
+// fonction de conversion du code d'un smiley en son url
+function code_to_url(p_code) {
+  if(p_code.startsWith("[:")) {
+    p_code = p_code.substring(2, p_code.length - 1).split(":");
+    if(p_code.length === 1) {
+      return smileys_persos_url + p_code[0] + ".gif";
+    } else {
+      return smileys_persos_url + p_code[1] + "/" + p_code[0] + ".gif";
+    }
+  } else {
+    if(typeof base_smileys[p_code] !== "undefined") {
+      return base_smileys_url + base_smileys[p_code] + ".gif";
+    } else {
+      return extended_smileys_url + p_code.substring(1, p_code.length - 1) + ".gif";
+    }
+  }
+}
+
+// fonction de conversion de la date numérique (YYYYMMJJHHMMSS) en date lisible (DD/MM/YYYY à HH:MM:SS)
+function date_to_display(p_date) {
+  if(p_date) {
+    let l_string = p_date.toString(10);
+    return l_string.substring(6, 8) + "/" + l_string.substring(4, 6) + "/" + l_string.substring(0, 4) + " à " +
+      l_string.substring(8, 10) + ":" + l_string.substring(10, 12) + ":" + l_string.substring(12);
+  } else {
+    return p_date;
+  }
+}
+
+// fonction de fermeture de le tooltip d'affichage et de la popup d'édition des mots-clés par la touche echap
+function esc_popup(p_event) {
+  if(p_event.key === "Escape") {
+    hide_tooltip();
+    hide_popup();
+  }
+}
+document.addEventListener("keydown", esc_popup, false);
+
+// fonction d'insertion d'un smiley dans un message
+function insert_smiley(p_smiley_img) {
+  if(p_smiley_img.dataset.clickable === "true") {
+    let l_area = document.querySelector("textarea[id^=\"rep_editin_\"], textarea#content_form");
+    if(l_area) {
+      let l_smiley = p_smiley_img.getAttribute("alt");
+      if(!vsf_no_space) {
+        l_smiley = " " + l_smiley + " ";
+      }
+      let l_start_pos = l_area.selectionStart;
+      let l_end_pos = l_area.selectionEnd;
+      l_area.value = l_area.value.substring(0, l_start_pos) + l_smiley + l_area.value.substring(l_end_pos);
+      l_area.selectionStart = l_start_pos + l_smiley.length;
+      l_area.selectionEnd = l_start_pos + l_smiley.length;
+      l_area.focus();
+    }
+  }
+}
+
+// fonction de gestion du (double-)clic sur les smileys (insertion dans le message ou édition des mots-clés)
+function click_smiley(p_event) {
+  window.clearTimeout(click_smiley_timer);
+  let l_click_smiley_last_call = Date.now();
+  if((l_click_smiley_last_call - click_smiley_last_call) < click_smiley_time) {
+    if(this.dataset.editable === "true") {
+      show_popup(p_event);
+    }
+  } else {
+    click_smiley_timer = window.setTimeout(insert_smiley, click_smiley_time, this);
+  }
+  click_smiley_last_call = l_click_smiley_last_call;
+}
+
+// fonction de gestion du mouseover sur les smileys (affichage des mots-clés dans le title)
+function update_title(p_event) {
+  access_keywords(get_keywords, function(p_smiley_img, p_keywords) {
+    p_smiley_img.setAttribute("title", p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}");
+  }, this);
+}
+
+// fonction générique d'édition des mots-clés des smileys
+function set_keywords(p_callback, p_smiley_code, p_keywords) {
+  let l_url_params = new URLSearchParams();
+  l_url_params.append(set_keywords_arg_modif, "1");
+  l_url_params.append(set_keywords_arg_smiley, p_smiley_code);
+  l_url_params.append(set_keywords_arg_keywords, p_keywords);
+  l_url_params.append(set_keywords_arg_hash_check, hash_check);
+  fetch(set_keywords_url, {
+    method: "POST",
+    mode: "same-origin",
+    credentials: "same-origin",
+    body: l_url_params,
+    cache: "reload",
+    referrer: "",
+    referrerPolicy: "no-referrer",
+  }).then(function(p_response) {
+    return p_response.text();
+  }).then(function(p_text) {
+    if(p_text.includes("Vos modifications sur les mots clés ont été enregistrés avec succès")) {
+      p_callback("done!");
+    } else if(p_text.includes(
+        "Vous ne pouvez pas modifier plusieurs fois le même smiley dans un intervale de 5 minutes")) {
+      p_callback("attendez 5 min");
+    } else if(p_text.includes(
+        "Vous devez être identifié pour modifier les mots clés d'un smiley")) {
+      p_callback("vous devez vous identifier");
+    } else {
+      console.log(script_name + " ERROR set_keywords : ", p_text);
+      p_callback("error");
+    }
+  }).catch(function(e) {
+    console.log(script_name + " ERROR fetch set_keywords : ", e);
+    p_callback("fetch error");
+  });
+}
+
+// fonction générique de récupération des mots-clés des smileys
+function get_keywords(p_callback, p_smiley_img) {
+  fetch(get_keywords_url + encodeURIComponent(p_smiley_img.getAttribute("alt")), {
+    method: "GET",
+    mode: "same-origin",
+    credentials: "omit",
+    cache: "reload",
+    referrer: "",
+    referrerPolicy: "no-referrer",
+  }).then(function(p_response) {
+    return p_response.text();
+  }).then(function(p_text) {
+    let l_keywords = p_text.match(smileys_keywords_regexp).pop().trim();
+    p_callback(p_smiley_img, l_keywords);
+  }).catch(function(e) {
+    console.log(script_name + " ERROR fetch get_keywords : ", e);
+    p_callback(p_smiley_img, "error");
+  });
+}
+
+// fonction générique et temporisée d'accès aux mots-clés des smileys
+function access_keywords(p_access_function, p_callback, p_param_1, p_param_2) {
+  window.clearTimeout(access_keywords_timer);
+  let l_last_call = Date.now();
+  let l_wait_time = Math.max(access_keywords_time - (l_last_call - access_keywords_last_call), 0);
+  access_keywords_last_call = l_last_call;
+  access_keywords_timer = window.setTimeout(p_access_function, l_wait_time, p_callback, p_param_1, p_param_2);
+}
+
+// fonction pour l'ajout / suppression d'un favori
+function switch_favori(p_event) {
+  let l_smiley = this.dataset.smiley;
+  // favoris -> pas favoris
+  if(this.classList.contains("gm_hfr_vsf_r21_favori")) {
+    vsf_smileys[l_smiley].f = false;
+    GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
+    // smileys à supprimer
+    let l_smileys_to_delete = document.querySelectorAll(
+      ".gm_hfr_vsf_r21_panel[data-type=\"panneau\"] > " +
+      "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]," +
+      ".gm_hfr_vsf_r21_div_content_tab[data-type=\"favoris\"] > " +
+      "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]");
+    for(let l_delete of l_smileys_to_delete) {
+      l_delete.parentNode.removeChild(l_delete);
+    }
+    // smileys à inverser
+    let l_smileys_to_switch = document.querySelectorAll(
+      ".gm_hfr_vsf_r21_panel[data-type=\"add_fav\"] > " +
+      "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]," +
+      ".gm_hfr_vsf_r21_div_content_tab[data-type=\"top\"] > " +
+      "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]," +
+      ".gm_hfr_vsf_r21_div_content_tab[data-type=\"historique\"] > " +
+      "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]");
+    for(let l_switch of l_smileys_to_switch) {
+      let l_favori = l_switch.querySelector("div.gm_hfr_vsf_r21_smiley_buttons > " +
+        "img.gm_hfr_vsf_r21_button_favori");
+      l_favori.classList.remove("gm_hfr_vsf_r21_favori");
+      l_favori.setAttribute("title", "Ajouter " + l_smiley + " à vos favoris");
+    }
+    // panneaux à reconstruire (ajout de smileys)
+    if(!vsf_include_fav) {
+      let l_list = Object.values(vsf_smileys).filter(p_smiley => !p_smiley.f);
+      let l_list_top = Array.from(l_list).sort(sort_by_top);
+      let l_list_historique = Array.from(l_list).sort(sort_by_historique);
+      populate_panel(l_list_top, top_tab_conf, "top", false);
+      populate_panel(l_list_top, top_tab_normal, "top", true);
+      populate_panel(l_list_historique, historique_tab_conf, "historique", false);
+      populate_panel(l_list_historique, historique_tab_normal, "historique", true);
+    }
+  }
+  // pas favoris -> favoris
+  else {
+    if(typeof vsf_smileys[l_smiley] !== "undefined") {
+      vsf_smileys[l_smiley].f = true;
+    } else {
+      vsf_smileys[l_smiley] = {
+        c: l_smiley,
+        s: 0,
+        d: 0,
+        f: true,
+      };
+    }
+    GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
+    // smileys à supprimer
+    if(!vsf_include_fav) {
+      let l_smileys_to_delete = document.querySelectorAll(
+        ".gm_hfr_vsf_r21_div_content_tab[data-type=\"top\"] > " +
+        "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]," +
+        ".gm_hfr_vsf_r21_div_content_tab[data-type=\"historique\"] > " +
+        "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]");
+      for(let l_delete of l_smileys_to_delete) {
+        l_delete.parentNode.removeChild(l_delete);
+      }
+    }
+    // smileys à inverser
+    let l_smileys_to_switch = document.querySelectorAll(
+      ".gm_hfr_vsf_r21_panel[data-type=\"add_fav\"] > " +
+      "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]");
+    for(let l_switch of l_smileys_to_switch) {
+      let l_favori = l_switch.querySelector("div.gm_hfr_vsf_r21_smiley_buttons > " +
+        "img.gm_hfr_vsf_r21_button_favori");
+      l_favori.classList.add("gm_hfr_vsf_r21_favori");
+      l_favori.setAttribute("title", "Enlever " + l_smiley + " de vos favoris");
+    }
+    // panneaux à reconstruire (ajout de smileys)
+    if(vsf_include_fav) {
+      let l_list = Object.values(vsf_smileys);
+      let l_list_top = Array.from(l_list).sort(sort_by_top);
+      let l_list_historique = Array.from(l_list).sort(sort_by_historique);
+      populate_panel(l_list_top, top_tab_conf, "top", false);
+      populate_panel(l_list_top, top_tab_normal, "top", true);
+      populate_panel(l_list_historique, historique_tab_conf, "historique", false);
+      populate_panel(l_list_historique, historique_tab_normal, "historique", true);
+    }
+    let l_list_fav = Object.values(vsf_smileys).filter(p_smiley => p_smiley.f).sort(sort_by_favoris);
+    populate_panel(l_list_fav, quick_panel, "panneau", true);
+    populate_panel(l_list_fav, normal_panel, "panneau", true);
+    populate_panel(l_list_fav, favoris_tab_conf, "favoris", false);
+    populate_panel(l_list_fav, favoris_tab_normal, "favoris", true);
+  }
+}
+
+// fonction pour la suppression d'un smiley
+function delete_smiley(p_event) {
+  let l_smiley = this.dataset.smiley;
+  if(!vsf_confirm_delete ||
+    (vsf_confirm_delete && window.confirm(script_name + " :\n\nVoulez-vous supprimer " + l_smiley +
+      " de vos smileys ?") === true)) {
+    delete vsf_smileys[l_smiley];
+    GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
+    // smileys à supprimer
+    let l_smileys_to_delete = document.querySelectorAll(
+      "div.gm_hfr_vsf_r21_smiley[data-smiley=\"" + l_smiley + "\"]");
+    for(let l_delete of l_smileys_to_delete) {
+      l_delete.parentNode.removeChild(l_delete);
+    }
+  }
+}
+
+// fonction de tri des smileys par top
+function sort_by_top(p_s1, p_s2) {
+  return p_s2.s - p_s1.s || p_s2.d - p_s1.d || p_s1.c.localeCompare(p_s2.c);
+}
+
+// fonction de tri des smileys par historique
+function sort_by_historique(p_s1, p_s2) {
+  return p_s2.d - p_s1.d || p_s2.s - p_s1.s || p_s1.c.localeCompare(p_s2.c);
+}
+
+// fonction de tri des smileys par favoris
+function sort_by_favoris(p_s1, p_s2) {
+  if(vsf_sort_fav_by_name) {
+    return p_s1.c.localeCompare(p_s2.c);
+  } else {
+    return sort_by_top(p_s1, p_s2);
+  }
+}
+
+// fonction de nettoyage / remplissage des panneaux et des onglets avec les smileys correspondants
+function populate_panel(p_list, p_panel, p_type, p_click) {
+  if(p_panel) {
+    // nettoyage des smileys existants
+    let l_smileys_to_delete = p_panel.querySelectorAll("div.gm_hfr_vsf_r21_smiley");
+    for(let l_delete of l_smileys_to_delete) {
+      p_panel.removeChild(l_delete);
+    }
+    // tri des smileys si non fournis
+    if(p_list === null) {
+      p_list = Object.values(vsf_smileys);
+      if(p_type === "favoris" || p_type === "panneau") {
+        p_list = p_list.filter(p_smiley => p_smiley.f);
+        p_list.sort(sort_by_favoris);
+      } else {
+        if(!vsf_include_fav) {
+          p_list = p_list.filter(p_smiley => !p_smiley.f);
+        }
+        if(p_type === "top") {
+          p_list.sort(sort_by_top);
+        } else {
+          p_list.sort(sort_by_historique);
+        }
+      }
+    }
+    // ajout des smileys
+    let l_limit = p_type === "favoris" ? p_list.length : Math.min(vsf_smileys_number, p_list.length);
+    for(let l_item = 0; l_item < l_limit; ++l_item) {
+      let l_number = p_type === "historique" ? l_item + 1 : p_list[l_item].s;
+      p_panel.insertBefore(build_smiley(p_list[l_item], p_type, l_number, p_click), p_panel.lastElementChild);
+    }
+  }
+}
+
+// fonction de création des smileys dans les panneaux et onglets
+// p_type : "top", "historique", "favoris", "panneau", "favoris add"
+function build_smiley(p_smiley, p_type, p_number, p_click) {
+  // div du smiley
+  let l_smiley = document.createElement("div");
+  l_smiley.setAttribute("class", "gm_hfr_vsf_r21_smiley");
+  l_smiley.setAttribute("data-smiley", p_smiley.c);
+  // img du smiley
+  let l_img = document.createElement("img");
+  l_img.setAttribute("src", code_to_url(p_smiley.c));
+  l_img.setAttribute("title", p_smiley.c);
+  l_img.setAttribute("alt", p_smiley.c);
+  if(p_click) {
+    l_img.dataset.clickable = "true";
+  } else {
+    l_img.dataset.clickable = "false";
+  }
+  if(p_smiley.c.startsWith("[:")) {
+    if(in_title) {
+      l_img.addEventListener("mouseover", update_title, false);
+    } else {
+      l_img.removeAttribute("title");
+      l_img.addEventListener("mouseover", show_tooltip, false);
+      l_img.addEventListener("mouseout", hide_tooltip, false);
+    }
+    l_img.dataset.editable = "true";
+  } else {
+    l_img.dataset.editable = "false";
+  }
+  if(p_click || p_smiley.c.startsWith("[:")) {
+    l_img.addEventListener("click", click_smiley, false);
+  }
+  l_smiley.appendChild(l_img);
+  if(p_type !== "panneau") {
+    // div des boutons
+    let l_buttons = document.createElement("div");
+    l_buttons.setAttribute("class", "gm_hfr_vsf_r21_smiley_buttons");
+    // le nombre (de fois ou ordre)
+    if(p_type !== "favoris add") {
+      let l_number = document.createElement("div");
+      l_number.setAttribute("class", "gm_hfr_vsf_r21_smiley_number");
+      l_number.textContent = p_number;
+      if(p_type === "historique") {
+        l_number.setAttribute("title", p_smiley.d ?
+          "Utilisé le " + date_to_display(p_smiley.d) : "Jamais utilisé");
+      } else {
+        l_number.setAttribute("title", p_smiley.s ?
+          "Utilisé " + p_smiley.s + " fois" : "Jamais utilisé");
+      }
+      l_buttons.appendChild(l_number);
+    }
+    // le bouton favori
+    let l_favori = document.createElement("img");
+    l_favori.setAttribute("src", img_star);
+    if(p_smiley.f) {
+      l_favori.setAttribute("class", "gm_hfr_vsf_r21_button_favori gm_hfr_vsf_r21_favori");
+      l_favori.setAttribute("title", "Enlever " + p_smiley.c + " de vos favoris");
+    } else {
+      l_favori.setAttribute("class", "gm_hfr_vsf_r21_button_favori");
+      l_favori.setAttribute("title", "Ajouter " + p_smiley.c + " à vos favoris");
+    }
+    l_favori.dataset.smiley = p_smiley.c;
+    l_favori.addEventListener("click", switch_favori, false);
+    l_buttons.appendChild(l_favori);
+    // le bouton supprimer
+    if(p_type !== "favoris add") {
+      let l_delete = document.createElement("img");
+      l_delete.setAttribute("class", "gm_hfr_vsf_r21_button_delete");
+      l_delete.setAttribute("src", img_reset);
+      l_delete.setAttribute("title", "Supprimer " + p_smiley.c + " de vos smileys");
+      l_delete.dataset.smiley = p_smiley.c;
+      l_delete.addEventListener("click", delete_smiley, false);
+      l_buttons.appendChild(l_delete);
+    }
+    l_smiley.appendChild(l_buttons);
+  }
+  return l_smiley;
+}
+
+// fonction d'affichage d'un onglet en cliquant
+function show_tab(p_event) {
+  // sauvegarde de l'onglet sélectionné pour vos smileys
+  if(this.dataset.parent === "normal") {
+    GM.setValue("vsf_normal_tabs_last_tab", this.dataset.tab)
+  }
+  if(this.dataset.parent === "conf") {
+    GM.setValue("vsf_smileys_last_tab", this.dataset.tab)
+  }
+  // sauvegarde de l'onglet sélectionné pour les préférences
+  if(this.dataset.parent === "preferences") {
+    GM.setValue("vsf_preferences_last_tab", this.dataset.tab)
+  }
+  // affichage de l'onglet sélectionné
+  display_tab(this.dataset.parent, this.dataset.tab);
+}
+
+// fonction d'affichage d'un onglet spécifique
+function display_tab(p_parent, p_tab) {
+  for(let l_tab in all_tabs[p_parent]) {
+    all_tabs[p_parent][l_tab].tab.removeEventListener("click", show_tab, false);
+    all_tabs[p_parent][l_tab].tab.addEventListener("click", show_tab, false);
+    all_tabs[p_parent][l_tab].tab.classList.remove("gm_hfr_vsf_r21_tab_active");
+    all_tabs[p_parent][l_tab].content.style.display = "none";
+  }
+  all_tabs[p_parent][p_tab].tab.removeEventListener("click", show_tab, false);
+  all_tabs[p_parent][p_tab].tab.classList.add("gm_hfr_vsf_r21_tab_active");
+  all_tabs[p_parent][p_tab].content.style.display = "block";
+  all_tabs[p_parent][p_tab].content.parentElement.scrollTop = 0;
+  all_tabs[p_parent][p_tab].content.parentElement.scrollLeft = 0;
+}
+
+// fonction de déplacement (monter <-> descendre) des onglets vos smileys sur la réponse normale
+function top_down() {
+  let l_go_top = normal_top_down.dataset.status === "down";
+  GM.setValue("vsf_normal_tabs_top", l_go_top);
+  normal_top_down.dataset.status = l_go_top ? "top" : "down";
+  normal_top_down.setAttribute("title", l_go_top ? "Descendre" : "Monter");
+  normal_top_down.setAttribute("src", l_go_top ? img_down : img_up);
+  normal_row.querySelector("th.repCase1 > div:first-of-type").style.display = l_go_top ? "none" : "block";
+}
+
+// fonction de création des onglets vos smileys et leur contenu
+function create_vos_smileys(normal) {
+  // div principale
+  let l_vos_smileys = document.createElement("div");
+  if(normal) {
+    l_vos_smileys.setAttribute("class", "gm_hfr_vsf_r21_vos_smileys_normal");
+    l_vos_smileys.appendChild(document.createElement("br"));
+  }
+  all_tabs[normal ? "normal" : "conf"] = {};
+  // div des onglets
+  let l_tabs = document.createElement("div");
+  l_tabs.setAttribute("class", "gm_hfr_vsf_r21_div_tabs");
+  // -- le bouton monter <-> descendre
+  if(normal) {
+    normal_top_down = document.createElement("img");
+    normal_top_down.setAttribute("class", "gm_hfr_vsf_r21_img_tab");
+    normal_top_down.dataset.status = "down";
+    normal_top_down.setAttribute("title", "Monter");
+    normal_top_down.setAttribute("src", img_up);
+    normal_top_down.setAttribute("alt", "VSF");
+    normal_top_down.addEventListener("click", top_down, false);
+    if(vsf_normal_tabs_top) {
+      top_down();
+    }
+    l_tabs.appendChild(normal_top_down);
+  }
+  // -- l'onglet top
+  let l_span_top = document.createElement("span");
+  l_span_top.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+  l_span_top.dataset.parent = normal ? "normal" : "conf";
+  l_span_top.dataset.tab = "top";
+  l_span_top.textContent = "Top";
+  l_span_top.addEventListener("click", show_tab, false);
+  all_tabs[normal ? "normal" : "conf"].top = {
+    tab: l_span_top,
+  };
+  l_tabs.appendChild(l_span_top);
+  // -- l'onglet historique
+  let l_span_historique = document.createElement("span");
+  l_span_historique.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+  l_span_historique.dataset.parent = normal ? "normal" : "conf";
+  l_span_historique.dataset.tab = "historique";
+  l_span_historique.textContent = "Historique";
+  l_span_historique.addEventListener("click", show_tab, false);
+  all_tabs[normal ? "normal" : "conf"].historique = {
+    tab: l_span_historique,
+  };
+  l_tabs.appendChild(l_span_historique);
+  // -- l'onglet favoris
+  let l_span_favoris = document.createElement("span");
+  l_span_favoris.setAttribute("class", "gm_hfr_vsf_r21_span_tab");
+  l_span_favoris.dataset.parent = normal ? "normal" : "conf";
+  l_span_favoris.dataset.tab = "favoris";
+  l_span_favoris.textContent = "Favoris";
+  l_span_favoris.addEventListener("click", show_tab, false);
+  all_tabs[normal ? "normal" : "conf"].favoris = {
+    tab: l_span_favoris,
+  };
+  l_tabs.appendChild(l_span_favoris);
+  // -- le bouton configuration
+  if(normal) {
+    let l_conf_button = document.createElement("img");
+    l_conf_button.setAttribute("class", "gm_hfr_vsf_r21_img_tab");
+    l_conf_button.setAttribute("title", "Configuration");
+    l_conf_button.setAttribute("src", img_conf);
+    l_conf_button.setAttribute("alt", "VSF");
+    l_conf_button.addEventListener("contextmenu", prevent_default, false);
+    l_conf_button.addEventListener("click", show_config_window, false);
+    l_conf_button.addEventListener("mouseup", mouseup_config, false);
+    l_tabs.appendChild(l_conf_button);
+  }
+  l_vos_smileys.appendChild(l_tabs);
+  // la div du contenu
+  let l_content = document.createElement("div");
+  l_content.setAttribute("id", "gm_hfr_vsf_r21"); // pour avoir un selecteur CSS de plus haut niveau
+  l_content.setAttribute("class", "gm_hfr_vsf_r21_div_content");
+  if(normal) {
+    l_content.setAttribute("class", "gm_hfr_vsf_r21_div_content gm_hfr_vsf_r21_div_content_normal");
+  }
+  // -- la div top
+  let l_content_top = document.createElement("div");
+  l_content_top.setAttribute("class",
+    "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_smileys");
+  l_content_top.setAttribute("data-type", "top");
+  let l_content_top_text = document.createElement("div");
+  l_content_top_text.setAttribute("class", "gm_hfr_vsf_r21_div_content_tab_text");
+  l_content_top_text.textContent = "Vos " + vsf_smileys_number + " smileys les plus utilisés";
+  l_content_top.appendChild(l_content_top_text);
+  let l_fake_padding_top = document.createElement("div");
+  l_fake_padding_top.setAttribute("class", "gm_hfr_vsf_r21_fake_padding");
+  l_content_top.appendChild(l_fake_padding_top);
+  // -- -- ajout des smileys top
+  populate_panel(null, l_content_top, "top", normal ? true : false);
+  if(normal) {
+    top_tab_normal = l_content_top;
+  } else {
+    top_tab_conf = l_content_top;
+  }
+  all_tabs[normal ? "normal" : "conf"].top.content = l_content_top;
+  l_content.appendChild(l_content_top);
+  // -- la div historique
+  let l_content_historique = document.createElement("div");
+  l_content_historique.setAttribute("class",
+    "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_smileys");
+  l_content_historique.setAttribute("data-type", "historique");
+  let l_content_historique_text = document.createElement("div");
+  l_content_historique_text.setAttribute("class", "gm_hfr_vsf_r21_div_content_tab_text");
+  l_content_historique_text.textContent = "Vos " + vsf_smileys_number + " smileys les plus récents";
+  l_content_historique.appendChild(l_content_historique_text);
+  let l_fake_padding_historique = document.createElement("div");
+  l_fake_padding_historique.setAttribute("class", "gm_hfr_vsf_r21_fake_padding");
+  l_content_historique.appendChild(l_fake_padding_historique);
+  // -- -- ajout des smileys historique
+  populate_panel(null, l_content_historique, "historique", normal ? true : false);
+  if(normal) {
+    historique_tab_normal = l_content_historique;
+  } else {
+    historique_tab_conf = l_content_historique;
+  }
+  all_tabs[normal ? "normal" : "conf"].historique.content = l_content_historique;
+  l_content.appendChild(l_content_historique);
+  // -- la div favoris
+  let l_content_favoris = document.createElement("div");
+  l_content_favoris.setAttribute("class",
+    "gm_hfr_vsf_r21_div_content_tab gm_hfr_vsf_r21_div_content_tab_smileys");
+  l_content_favoris.setAttribute("data-type", "favoris");
+  let l_content_favoris_text = document.createElement("div");
+  l_content_favoris_text.setAttribute("class", "gm_hfr_vsf_r21_div_content_tab_text");
+  l_content_favoris_text.textContent = "Tous vos smileys favoris";
+  l_content_favoris.appendChild(l_content_favoris_text);
+  let l_fake_padding_favoris = document.createElement("div");
+  l_fake_padding_favoris.setAttribute("class", "gm_hfr_vsf_r21_fake_padding");
+  l_content_favoris.appendChild(l_fake_padding_favoris);
+  // -- -- ajout des smileys favoris
+  populate_panel(null, l_content_favoris, "favoris", normal ? true : false);
+  if(normal) {
+    favoris_tab_normal = l_content_favoris;
+  } else {
+    favoris_tab_conf = l_content_favoris;
+  }
+  all_tabs[normal ? "normal" : "conf"].favoris.content = l_content_favoris;
+  l_content.appendChild(l_content_favoris);
+  l_vos_smileys.appendChild(l_content);
+  // ajout de la div principal dans le document
+  if(normal) {
+    l_content.style.width = vsf_normal_tabs_width;
+    l_content.style.height = vsf_normal_tabs_height;
+    // gestion de la mémorisation des dimensions du contenu
+    function save_content_sizes() {
+      window.clearTimeout(panel_size_timer);
+      panel_size_timer = window.setTimeout(function() {
+        let l_content_width = Math.max(parseInt(l_content.style.width), 283) + "px";
+        let l_content_height = Math.max(parseInt(l_content.style.height), 238) + "px";
+        if(l_content_width === last_content_width && l_content_height === last_content_height) {
+          return;
+        }
+        last_content_width = l_content_width;
+        last_content_height = l_content_height;
+        l_content.style.width = l_content_width;
+        l_content.style.height = l_content_height;
+        GM.setValue("vsf_normal_tabs_width", l_content_width);
+        GM.setValue("vsf_normal_tabs_height", l_content_height);
+      }, panel_size_time);
+    }
+    let l_observer_content = new MutationObserver(save_content_sizes);
+    l_observer_content.observe(l_content, {
       attributes: true,
       childList: false,
       characterData: false,
       subtree: false,
-      attributeFilter: ["style"]
+      attributeFilter: ["style"],
     });
-    if(sm_fast_reply_position === 1 || sm_fast_reply_position === 3) { // à droite ou à gauche
-      var observer2 = new MutationObserver(savePanelPosition);
-      observer2.observe(textarea, {
+    normal_row.querySelector("th.repCase1").appendChild(l_vos_smileys);
+  } else {
+    content_smileys.insertBefore(l_vos_smileys, action_smileys_div);
+  }
+  // affichage du dernier onglet sélectionné
+  display_tab(normal ? "normal" : "conf", normal ? vsf_normal_tabs_last_tab : vsf_smileys_last_tab);
+}
+
+// fonction d'import des smileys personnels et favoris
+function import_smileys() {
+  fetch("https://forum.hardware.fr/user/editprofil.php?config=hfr.inc&page=5", {
+    method: "GET",
+    mode: "same-origin",
+    credentials: "same-origin",
+    cache: "reload",
+    referrer: "",
+    referrerPolicy: "no-referrer"
+  }).then(function(p_response) {
+    return p_response.text();
+  }).then(function(p_response) {
+    // la page des smileys personnels et favoris
+    let l_parser = new DOMParser();
+    let l_document = l_parser.parseFromString(p_response, "text/html");
+    let l_smileys = [];
+    // les smlileys personnels
+    let l_nb_persos = 0;
+    let l_persos = l_document.documentElement.querySelectorAll("form[name=\"ONSENFOU\"] table.main " +
+      "tr.profil:nth-child(3) td.profilCase3:nth-child(3) img[alt][src^=\"" + smileys_persos_url + "\"]");
+    for(let l_perso of l_persos) {
+      ++l_nb_persos;
+      l_smileys.push("[:" + l_perso.getAttribute("alt") + "]");
+    }
+    // les smileys favoris
+    let l_nb_favoris = 0;
+    let l_favoris = l_document.documentElement.querySelectorAll("form[name=\"ONSENFOU\"] table.main " +
+      "tr.profil:nth-child(4) td.profilCase3:nth-child(3) img[alt][src^=\"" + smileys_persos_url + "\"]");
+    for(let l_favori of l_favoris) {
+      ++l_nb_favoris;
+      l_smileys.push(l_favori.getAttribute("alt"));
+    }
+    // ajout des smileys
+    for(let l_smiley of l_smileys) {
+      if(typeof vsf_smileys[l_smiley] !== "undefined") {
+        vsf_smileys[l_smiley].f = true;
+      } else {
+        vsf_smileys[l_smiley] = {
+          c: l_smiley,
+          s: 0,
+          d: 0,
+          f: true,
+        };
+      }
+    }
+    GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
+    // mise à jour des panneaux et onglets
+    populate_panel(null, quick_panel, "panneau", true);
+    populate_panel(null, normal_panel, "panneau", true);
+    populate_panel(null, top_tab_conf, "top", false);
+    populate_panel(null, top_tab_normal, "top", true);
+    populate_panel(null, historique_tab_conf, "historique", false);
+    populate_panel(null, historique_tab_normal, "historique", true);
+    populate_panel(null, favoris_tab_conf, "favoris", false);
+    populate_panel(null, favoris_tab_normal, "favoris", true);
+    // message final
+    // -- 0 0
+    if(l_nb_persos === 0 && l_nb_favoris === 0) {
+      alert(script_name + " :\n\nAucun smiley personnel ni aucun smiley favori n'a été importé dans vos " +
+        "smileys favoris.");
+    }
+    // -- 1 0
+    else if(l_nb_persos === 1 && l_nb_favoris === 0) {
+      alert(script_name + " :\n\nUn smiley personnel a été importé dans vos smileys favoris.");
+    }
+    // -- + 0
+    else if(l_nb_persos > 1 && l_nb_favoris === 0) {
+      alert(script_name + " :\n\n" + l_nb_persos + " smileys personnels ont été importés dans vos smileys " +
+        "favoris.");
+    }
+    // -- 0 1
+    else if(l_nb_persos === 0 && l_nb_favoris === 1) {
+      alert(script_name + " :\n\nUn smiley favori a été importé dans vos smileys favoris.");
+    }
+    // -- 0 +
+    else if(l_nb_persos === 0 && l_nb_favoris > 1) {
+      alert(script_name + " :\n\n" + l_nb_favoris + " smileys favoris ont été importés dans vos smileys " +
+        "favoris.");
+    }
+    // -- 1 1
+    else if(l_nb_persos === 1 && l_nb_favoris === 1) {
+      alert(script_name + " :\n\nUn smiley personnel et un smiley favori ont été importés dans vos smileys " +
+        "favoris.");
+    }
+    // -- + 1
+    else if(l_nb_persos > 1 && l_nb_favoris === 1) {
+      alert(script_name + " :\n\n" + l_nb_persos + " smileys personnels et un smiley favori ont été importés " +
+        "dans vos smileys favoris.");
+    }
+    // -- 1 +
+    else if(l_nb_persos === 1 && l_nb_favoris > 1) {
+      alert(script_name + " :\n\nUn smiley personnel et " + l_nb_favoris + " smileys favoris ont été importés " +
+        "dans vos smileys favoris.");
+    }
+    // -- + +
+    else if(l_nb_persos > 1 && l_nb_favoris > 1) {
+      alert(script_name + " :\n\n" + l_nb_persos + " smileys personnels et " + l_nb_favoris + " smileys " +
+        "favoris ont été importés dans vos smileys favoris.");
+    }
+  }).catch(function(e) {
+    console.log(script_name + " ERROR fetch import_smileys : " + e);
+  });
+}
+
+// fonction de suppression de tous les smileys
+function reset_smileys() {
+  // demande de confirmation
+  if(window.confirm(script_name + " :\n\nAttention, vous êtes sur le point de supprimer tous vos smileys !" +
+      "\n\nÊtes-vous sûr de vouloir continuer ?") === true) {
+    // suppression de tous les smileys
+    vsf_smileys = {};
+    GM.setValue("vsf_smileys", vsf_smileys_default);
+    // nettoyage des panneaux et onglets
+    populate_panel([], quick_panel, "panneau", true);
+    populate_panel([], normal_panel, "panneau", true);
+    populate_panel([], top_tab_conf, "top", false);
+    populate_panel([], top_tab_normal, "top", true);
+    populate_panel([], historique_tab_conf, "historique", false);
+    populate_panel([], historique_tab_normal, "historique", true);
+    populate_panel([], favoris_tab_conf, "favoris", false);
+    populate_panel([], favoris_tab_normal, "favoris", true);
+  }
+}
+
+// fonction de creation d'une date numérique (YYYYMMDDHHMMSS) à partir d'une date fournie
+function create_date_number(p_date) {
+  let l_year = p_date.getFullYear() + "";
+  let l_month = (p_date.getMonth() + 1) < 10 ? "0" + (p_date.getMonth() + 1) : (p_date.getMonth() + 1) + "";
+  let l_day = p_date.getDate() < 10 ? "0" + p_date.getDate() : p_date.getDate() + "";
+  let l_hours = p_date.getHours() < 10 ? "0" + p_date.getHours() : p_date.getHours() + "";
+  let l_minutes = p_date.getMinutes() < 10 ? "0" + p_date.getMinutes() : p_date.getMinutes() + "";
+  let l_seconds = p_date.getSeconds() < 10 ? "0" + p_date.getSeconds() : p_date.getSeconds() + "";
+  return parseInt(l_year + l_month + l_day + l_hours + l_minutes + l_seconds, 10);
+}
+
+// fonction de convertion de la date des smileys pour créer une sauvegrade
+// (pour la rétro-compatibilité)
+function convert_date_for_save(p_date) {
+  // YYYYMMDDHHMMSS (number) -> YYYY/M/D H:M:S (string)
+  if(p_date) {
+    let l_string = p_date.toString(10);
+    return l_string.substring(0, 4) + "/" + parseInt(l_string.substring(4, 6), 10) + "/" +
+      parseInt(l_string.substring(6, 8), 10) + " " + parseInt(l_string.substring(8, 10), 10) + ":" +
+      parseInt(l_string.substring(10, 12), 10) + ":" + parseInt(l_string.substring(12), 10);
+  } else {
+    return "1970/1/1 0:0:0";
+  }
+}
+
+// fonction de convertion de la date des smileys de la sauvegarde pour la restauration
+// (pour la rétro-compatibilité)
+function convert_date_for_restore(p_date) {
+  //  YYYY/M/D H:M:S (string) -> YYYYMMDDHHMMSS (number)
+  if(p_date === "1970/1/1 0:0:0") {
+    return 0;
+  } else {
+    return create_date_number(new Date(p_date));
+  }
+}
+
+// fonction de conversion du format de stockage des smileys pour créer une sauvegrade
+// (pour la rétro-compatibilité)
+function convert_smileys_for_save() {
+  let l_smileys_for_save = {};
+  let l_smileys = Object.values(vsf_smileys);
+  for(let l_smiley of l_smileys) {
+    l_smileys_for_save[l_smiley.c] = {
+      c: l_smiley.c,
+      s: l_smiley.s,
+      d: convert_date_for_save(l_smiley.d),
+    };
+    if(l_smiley.f === true) {
+      l_smileys_for_save[l_smiley.c].fav = true;
+    }
+  }
+  return l_smileys_for_save;
+}
+
+// fonction de convertion du format de stockage des smileys de la sauvegarde pour la restauration
+// (pour la rétro-compatibilité)
+function convert_smileys_for_restore(p_smileys) {
+  let l_smileys_for_restore = {};
+  let l_smileys = Object.values(p_smileys);
+  for(let l_smiley of l_smileys) {
+    l_smileys_for_restore[l_smiley.c] = {
+      c: l_smiley.c,
+      s: l_smiley.s,
+      d: convert_date_for_restore(l_smiley.d),
+      f: typeof l_smiley.fav !== "undefined" && l_smiley.fav === true,
+    };
+  }
+  return l_smileys_for_restore;
+}
+
+// fonction de création d'une sauvegarde
+function save_backup() {
+  let l_blob = new Blob([JSON.stringify(convert_smileys_for_save(), null, 2)], {
+    type: "application/json",
+  });
+  let l_url = window.URL.createObjectURL(l_blob);
+  fake_link.setAttribute("href", l_url);
+  fake_link.setAttribute("download", "hfr_vos_smileys_favoris_" + create_date_number(new Date()) + ".json");
+  fake_link.click();
+}
+
+// function de gestion de la récuperation du fichier de sauvegarde lors de la restauration
+function read_backup(p_event) {
+  let l_file = this.files[0];
+  l_file.text().then(function(p_text) {
+    let l_backup;
+    try {
+      l_backup = JSON.parse(p_text);
+    } catch (e) {
+      alert(script_name + " :\n\nLe fichier fourni pour la restauration n'a pas pu être lu.");
+      return;
+    }
+    // demande de confirmation
+    if(window.confirm(script_name + " :\n\nAttention, cette opération va remplacer tous vos smileys actuels " +
+        "par ceux de la sauvegarde !\n\nÊtes-vous sûr de vouloir continuer ?") === true) {
+      // restauration des smileys
+      vsf_smileys = convert_smileys_for_restore(l_backup);
+      GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
+      // mise à jour des panneaux et onglets
+      populate_panel(null, quick_panel, "panneau", true);
+      populate_panel(null, normal_panel, "panneau", true);
+      populate_panel(null, top_tab_conf, "top", false);
+      populate_panel(null, top_tab_normal, "top", true);
+      populate_panel(null, historique_tab_conf, "historique", false);
+      populate_panel(null, historique_tab_normal, "historique", true);
+      populate_panel(null, favoris_tab_conf, "favoris", false);
+      populate_panel(null, favoris_tab_normal, "favoris", true);
+    }
+  }).catch(function(e) {
+    console.log(script_name + " ERROR read_backup : " + e);
+  });
+}
+
+// function de restauration d'une sauvegarde
+function restore_backup() {
+  fake_input.value = "";
+  fake_input.click();
+}
+
+// fonction de récupération de la liste des smileys présents dans un message pour les statistiques
+function get_smiley_list(p_message) {
+  let l_smiley_list = {};
+  if(p_message !== "") {
+    let l_smileys = [];
+    // suppression des "https?:/" pour éviter une fausse détection du smiley ":/"
+    p_message = p_message.replace(/http:\//gi, " ");
+    // récupération des smileys persos [:roger21], [:roger21:1], ...
+    let l_list = p_message.match(smileys_persos_regexp);
+    if(l_list !== null) {
+      l_smileys = l_smileys.concat(l_list);
+    }
+    // suppression des smileys persos
+    p_message = p_message.replace(smileys_persos_regexp, " ");
+    // récupération des smileys de base étendus :lol:, :crazy:, ...
+    for(let l_regexp of extended_smiley_regexps) {
+      let l_list = p_message.match(l_regexp);
+      if(l_list !== null) {
+        l_smileys = l_smileys.concat(l_list);
+      }
+      // suppression des smileys de base étendus
+      p_message = p_message.replace(l_regexp, " ");
+    }
+    // récupération des smileys de base :o, :/, :D, ...
+    p_message = p_message.replace(/:d/g, ":D");
+    for(let l_regexp of base_smiley_regexps) {
+      let l_list = p_message.match(l_regexp);
+      if(l_list !== null) {
+        l_smileys = l_smileys.concat(l_list);
+      }
+      // suppression des smileys de base
+      p_message = p_message.replace(l_regexp, " ");
+    }
+    // tri
+    l_smileys.sort((p_1, p_2) => p_1.localeCompare(p_2));
+    // comptage
+    for(let l_smiley of l_smileys) {
+      if(typeof l_smiley_list[l_smiley] === "undefined") {
+        l_smiley_list[l_smiley] = {
+          code: l_smiley,
+          count: 1,
+        };
+      } else {
+        ++l_smiley_list[l_smiley].count;
+      }
+    }
+  }
+  return l_smiley_list;
+}
+
+// fonction de suppression des quotes dans les messages à analyser
+function remove_quotes(p_message) {
+  // suppression des quotemsg (quotes normale)
+  while(quotemsg_regexp.test(p_message)) {
+    p_message = p_message.replace(quotemsg_regexp, " ");
+  }
+  // suppression des citation (quotes bidouillées)
+  while(citation_regexp.test(p_message)) {
+    p_message = p_message.replace(citation_regexp, " ");
+  }
+  return p_message;
+}
+
+// fonction d'analyse du message avant envoie pour mettre à jour les statistiques des smileys
+function analyse_message(p_event, p_message_number) {
+  // récupération du message initial
+  let l_initial_message = typeof p_message_number === "undefined" ?
+    initial_message : initial_message_rapide[p_message_number];
+  // récupération du message à poster
+  let l_message_to_post = typeof p_message_number === "undefined" ?
+    document.querySelector("div#mesdiscussions.mesdiscussions form[name=\"hop\"] " +
+      "textarea#content_form.reponserapide, div#mesdiscussions.mesdiscussions form#hop table.main " +
+      "textarea#content_form.contenu").value :
+    document.querySelector("div#mesdiscussions.mesdiscussions " +
+      "table.messagetable tbody tr.message td.messCase2 div#para" + p_message_number +
+      " textarea#rep_editin_" + p_message_number).value;
+  // récupération des smileys dans le message initial et dans le message à poster
+  let l_imitial_smiley_list = get_smiley_list(remove_quotes(l_initial_message.trim().toLowerCase()));
+  let l_smiley_list_to_post = get_smiley_list(remove_quotes(l_message_to_post.trim().toLowerCase()));
+  // mise a jour des stats
+  let l_smileys_to_post = Object.values(l_smiley_list_to_post);
+  let l_new_smileys = [];
+  let l_date = create_date_number(new Date());
+  for(let l_smiley of l_smileys_to_post) {
+    // comparaison des deux messages sur l'utilisation de chaque smiley
+    if(typeof l_imitial_smiley_list[l_smiley.code] !== "undefined") {
+      l_smiley.count -= l_imitial_smiley_list[l_smiley.code].count;
+    }
+    // le smiley a été utilisé dans le nouveau message
+    if(l_smiley.count > 0) {
+      if(typeof vsf_smileys[l_smiley.code] !== "undefined") {
+        // le smiley est déjà présent dans les stats (maj des stats et de la date)
+        vsf_smileys[l_smiley.code].s += l_smiley.count;
+        vsf_smileys[l_smiley.code].d = l_date;
+      } else {
+        // le smiley n'est pas déjà présent dans les stats (création)
+        vsf_smileys[l_smiley.code] = {
+          c: l_smiley.code,
+          s: l_smiley.count,
+          d: l_date,
+          f: false,
+        };
+        // enregistrement des nouveau smiley pour le signalement
+        l_new_smileys.push(l_smiley.code);
+      }
+    }
+  }
+  // enregistrement des stats
+  GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
+  // mise à jour des panneaux et des onglets qui dépendent des stats en cas d'édition rapide
+  if(typeof p_message_number !== "undefined") {
+    populate_panel(null, top_tab_conf, "top", false);
+    populate_panel(null, historique_tab_conf, "historique", false);
+    if(!vsf_sort_fav_by_name) {
+      populate_panel(null, quick_panel, "panneau", true);
+      populate_panel(null, favoris_tab_conf, "favoris", false);
+    }
+  }
+  // signalement des nouveaux smileys trouvés
+  if(vsf_alert_new_smiley && l_new_smileys.length > 0) {
+    let l_alert_message = "";
+    if(l_new_smileys.length === 1) {
+      l_alert_message = "Un nouveau smiley a été trouvé dans votre message :\n\n" + l_new_smileys[0];
+    } else {
+      l_alert_message = l_new_smileys.length + " nouveaux smileys ont été trouvés dans votre message :\n\n" +
+        l_new_smileys.join("\n");
+    }
+    alert(script_name + " :\n\n" + l_alert_message);
+  }
+  // log
+  console.log(script_name + " | analyse_message | smileys distincts avant/après/nouveaux dans les stats : " +
+    Object.values(l_imitial_smiley_list).length + "/" + l_smileys_to_post.length + "/" + l_new_smileys.length +
+    (typeof p_message_number !== "undefined" ? " | edition rapide " + p_message_number : ""));
+}
+
+// fonction de gestion de l'ajout de l'analyse du message avant envoie sur l'édition rapide
+function edition_rapide() {
+  // récupération du numéro du message
+  let l_number = this.getAttribute("onclick").match(/^edit_in\((.*?)\); return false$/)[1].split(",")[3];
+  // récupération du champ d'édition rapide
+  let l_edition_rapide_timer = window.setInterval(function() {
+    let l_edition_rapide = document.querySelector("div#mesdiscussions.mesdiscussions " +
+      "table.messagetable tbody tr.message td.messCase2 div#para" + l_number +
+      " textarea#rep_editin_" + l_number);
+    if(l_edition_rapide !== null) {
+      window.clearInterval(l_edition_rapide_timer);
+      // sauvegarde du message initiale
+      initial_message_rapide[l_number] = l_edition_rapide.value;
+      // ajout de la fonction d'analyse du message sur le bonton de validation
+      let l_validate_button = l_edition_rapide.parentElement
+        .querySelector("input[type=\"button\"][onclick^=\"edit_in_post('hfr.inc'\"]");
+      if(l_validate_button) {
+        l_validate_button.addEventListener("click", function(p_event) {
+          analyse_message(p_event, l_number);
+        }, true);
+      }
+    }
+  }, edition_rapide_time);
+}
+
+/* --------------------------------------------------------- */
+/* récupération des paramètres et mise en place des éléments */
+/* --------------------------------------------------------- */
+
+Promise.all([
+  // global
+  GM.getValue("vsf_smileys_number", vsf_smileys_number_default),
+  GM.getValue("vsf_alert_new_smiley", vsf_alert_new_smiley_default),
+  GM.getValue("vsf_confirm_delete", vsf_confirm_delete_default),
+  GM.getValue("vsf_include_fav", vsf_include_fav_default),
+  GM.getValue("vsf_sort_fav_by_name", vsf_sort_fav_by_name_default),
+  GM.getValue("vsf_no_space", vsf_no_space_default),
+  GM.getValue("vsf_smileys_last_tab", vsf_smileys_last_tab_default),
+  GM.getValue("vsf_preferences_last_tab", vsf_preferences_last_tab_default),
+  GM.getValue("vsf_add_button", vsf_add_button_default),
+  GM.getValue("vsf_add_button_img", vsf_add_button_img_default),
+  GM.getValue("vsf_panel_img", vsf_panel_img_default),
+  GM.getValue("vsf_panel_settings_img", vsf_panel_settings_img_default),
+  GM.getValue("vsf_smileys", vsf_smileys_default),
+  // réponse rapide
+  GM.getValue("vsf_quick_panel", vsf_quick_panel_default),
+  GM.getValue("vsf_quick_panel_closed", vsf_quick_panel_closed_default),
+  GM.getValue("vsf_quick_panel_start_closed", vsf_quick_panel_start_closed_default),
+  GM.getValue("vsf_quick_panel_top", vsf_quick_panel_top_default),
+  GM.getValue("vsf_quick_panel_width", vsf_quick_panel_width_default),
+  GM.getValue("vsf_quick_panel_height", vsf_quick_panel_height_default),
+  // réponse normale
+  GM.getValue("vsf_normal_tabs", vsf_normal_tabs_default),
+  GM.getValue("vsf_normal_tabs_top", vsf_normal_tabs_top_default),
+  GM.getValue("vsf_normal_tabs_last_tab", vsf_normal_tabs_last_tab_default),
+  GM.getValue("vsf_normal_tabs_width", vsf_normal_tabs_width_default),
+  GM.getValue("vsf_normal_tabs_height", vsf_normal_tabs_height_default),
+  GM.getValue("vsf_hide_smileys_forum", vsf_hide_smileys_forum_default),
+  GM.getValue("vsf_normal_panel", vsf_normal_panel_default),
+  GM.getValue("vsf_normal_panel_closed", vsf_normal_panel_closed_default),
+  GM.getValue("vsf_normal_panel_start_closed", vsf_normal_panel_start_closed_default),
+  GM.getValue("vsf_normal_panel_top", vsf_normal_panel_top_default),
+  GM.getValue("vsf_normal_panel_height", vsf_normal_panel_height_default),
+]).then(function([
+  // global
+  vsf_smileys_number_value,
+  vsf_alert_new_smiley_value,
+  vsf_confirm_delete_value,
+  vsf_include_fav_value,
+  vsf_sort_fav_by_name_value,
+  vsf_no_space_value,
+  vsf_smileys_last_tab_value,
+  vsf_preferences_last_tab_value,
+  vsf_add_button_value,
+  vsf_add_button_img_value,
+  vsf_panel_img_value,
+  vsf_panel_settings_img_value,
+  vsf_smileys_value,
+  // réponse rapide
+  vsf_quick_panel_value,
+  vsf_quick_panel_closed_value,
+  vsf_quick_panel_start_closed_value,
+  vsf_quick_panel_top_value,
+  vsf_quick_panel_width_value,
+  vsf_quick_panel_height_value,
+  // réponse normale
+  vsf_normal_tabs_value,
+  vsf_normal_tabs_top_value,
+  vsf_normal_tabs_last_tab_value,
+  vsf_normal_tabs_width_value,
+  vsf_normal_tabs_height_value,
+  vsf_hide_smileys_forum_value,
+  vsf_normal_panel_value,
+  vsf_normal_panel_closed_value,
+  vsf_normal_panel_start_closed_value,
+  vsf_normal_panel_top_value,
+  vsf_normal_panel_height_value,
+]) {
+  // initialisation des variables globales
+  // -- global
+  vsf_smileys_number = vsf_smileys_number_value;
+  vsf_alert_new_smiley = vsf_alert_new_smiley_value;
+  vsf_confirm_delete = vsf_confirm_delete_value;
+  vsf_include_fav = vsf_include_fav_value;
+  vsf_sort_fav_by_name = vsf_sort_fav_by_name_value;
+  vsf_no_space = vsf_no_space_value;
+  vsf_smileys_last_tab = vsf_smileys_last_tab_value;
+  vsf_preferences_last_tab = vsf_preferences_last_tab_value;
+  vsf_add_button = vsf_add_button_value;
+  vsf_add_button_img = vsf_add_button_img_value;
+  vsf_panel_img = vsf_panel_img_value;
+  vsf_panel_settings_img = vsf_panel_settings_img_value;
+  vsf_smileys = JSON.parse(vsf_smileys_value);
+  // -- réponse rapide
+  vsf_quick_panel = vsf_quick_panel_value;
+  vsf_quick_panel_closed = vsf_quick_panel_closed_value;
+  vsf_quick_panel_start_closed = vsf_quick_panel_start_closed_value;
+  vsf_quick_panel_top = vsf_quick_panel_top_value;
+  vsf_quick_panel_width = vsf_quick_panel_width_value;
+  vsf_quick_panel_height = vsf_quick_panel_height_value;
+  // -- réponse normale
+  vsf_normal_tabs = vsf_normal_tabs_value;
+  vsf_normal_tabs_top = vsf_normal_tabs_top_value;
+  vsf_normal_tabs_last_tab = vsf_normal_tabs_last_tab_value;
+  vsf_normal_tabs_width = vsf_normal_tabs_width_value;
+  vsf_normal_tabs_height = vsf_normal_tabs_height_value;
+  vsf_hide_smileys_forum = vsf_hide_smileys_forum_value;
+  vsf_normal_panel = vsf_normal_panel_value;
+  vsf_normal_panel_closed = vsf_normal_panel_closed_value;
+  vsf_normal_panel_start_closed = vsf_normal_panel_start_closed_value;
+  vsf_normal_panel_top = vsf_normal_panel_top_value;
+  vsf_normal_panel_height = vsf_normal_panel_height_value;
+  // affichage du bouton d'ajout de favoris sur les posts
+  if(vsf_add_button) {
+    let l_toolbars = document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable tbody " +
+      "tr.message td.messCase1 + td.messCase2 div.toolbar");
+    for(let l_toolbar of l_toolbars) {
+      let l_add_div = document.createElement("div");
+      l_add_div.setAttribute("class", "right");
+      let l_add_img = document.createElement("img");
+      l_add_img.setAttribute("class", "gm_hfr_vsf_r21_add_button");
+      l_add_img.setAttribute("src", vsf_add_button_img);
+      l_add_img.setAttribute("alt", "VSF");
+      l_add_img.setAttribute("title", "Ajouter des favoris\n(clic droit pour configurer)");
+      l_add_img.addEventListener("contextmenu", prevent_default, false);
+      l_add_img.addEventListener("click", add_fav, false);
+      l_add_img.addEventListener("mouseup", mouseup_config, false);
+      l_add_div.appendChild(l_add_img);
+      let l_spacer_div = l_toolbar.querySelector("div.spacer");
+      l_toolbar.insertBefore(l_add_div, l_spacer_div);
+    }
+  }
+  // réponse rapide
+  let l_quick_response = document.querySelector("div#mesdiscussions form[name=\"hop\"] " +
+    "textarea#content_form.reponserapide");
+  if(l_quick_response) {
+    // correnction du style de la réponse rapide
+    l_quick_response.style.marginTop = "2px";
+    l_quick_response.style.marginBottom = "2px";
+    // ajout de la fonction d'analyse du message sur le bonton de validation
+    let l_validate_button = document.querySelector("div#mesdiscussions form[name=\"hop\"] " +
+      "input#submitreprap[type=\"submit\"][name=\"submit\"]");
+    if(l_validate_button) {
+      l_validate_button.addEventListener("click", analyse_message, true);
+    }
+    // modification des boutons d'édition rapide pour permettre d'inclure la fonction d'analyse du message
+    let l_edit_raps = document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable tbody " +
+      "tr.message td.messCase2 div.toolbar a[onclick^=\"edit_in('hfr.inc'\"] " +
+      "img[title=\"Edition rapide\"][alt=\"Edition rapide\"]");
+    for(let l_edit_rap of l_edit_raps) {
+      l_edit_rap.parentElement.addEventListener("click", edition_rapide, false);
+    }
+    // affichage du panneau des favoris en réponse rapide
+    if(vsf_quick_panel) {
+      // création du panneau des favoris
+      quick_panel = document.createElement("span");
+      quick_panel.setAttribute("id", "gm_hfr_vsf_r21"); // pour avoir un selecteur CSS de plus haut niveau
+      quick_panel.setAttribute("class", "gm_hfr_vsf_r21_panel gm_hfr_vsf_r21_quick_panel");
+      quick_panel.setAttribute("data-type", "panneau");
+      let l_fake_padding = document.createElement("div");
+      l_fake_padding.setAttribute("class", "gm_hfr_vsf_r21_fake_padding");
+      quick_panel.appendChild(l_fake_padding);
+      quick_panel.style.width = vsf_quick_panel_width;
+      quick_panel.style.height = vsf_quick_panel_height;
+      quick_br = document.createElement("br");
+      quick_br.setAttribute("class", "gm_hfr_vsf_r21_quick_br");
+      // gestion de la mémorisation des dimensions du panneau
+      function save_quick_panel_sizes() {
+        quick_buttons.style.height = (Math.max(parseInt(quick_panel.style.height), 54) + 6) + "px";
+        window.clearTimeout(panel_size_timer);
+        panel_size_timer = window.setTimeout(function() {
+          let l_quick_panel_width = Math.max(parseInt(quick_panel.style.width), 100) + "px";
+          let l_quick_panel_height = Math.max(parseInt(quick_panel.style.height), 54) + "px";
+          if(l_quick_panel_width === last_quick_panel_width && l_quick_panel_height === last_quick_panel_height) {
+            return;
+          }
+          last_quick_panel_width = l_quick_panel_width;
+          last_quick_panel_height = l_quick_panel_height;
+          quick_panel.style.width = l_quick_panel_width;
+          quick_panel.style.height = l_quick_panel_height;
+          GM.setValue("vsf_quick_panel_width", l_quick_panel_width);
+          GM.setValue("vsf_quick_panel_height", l_quick_panel_height);
+        }, panel_size_time);
+      }
+      let l_observer_quick_panel = new MutationObserver(save_quick_panel_sizes);
+      l_observer_quick_panel.observe(quick_panel, {
         attributes: true,
         childList: false,
         characterData: false,
         subtree: false,
-        attributeFilter: ["style"]
+        attributeFilter: ["style"],
       });
-    }
-  } else {
-    // Mise à jour du panneau
-    container = document.getElementById(key_favorite_panel);
-
-    // Suppression des favoris affichés dans l'interface
-    while(container.hasChildNodes()) {
-      container.removeChild(container.lastChild);
-    }
-  }
-
-  // Ajout de chaque smiley favori
-  var smileyArray = sortSmileysByName(smileyStats);
-  for(var i = 0; i < smileyArray.length; ++i) {
-    var smiley = smileyArray[i];
-    if(smiley.fav) {
-      var smiley_tiny_code = ConvertFullCodeToTinyCode(smiley.c); // Tiny code
-      var smiley_img = BuildSmileyImage(smiley, smiley_tiny_code, true);
-      smiley_img.style.margin = "2px";
-      smiley_img.className = "fred82vsfsmileyfavoritehover";
-      container.appendChild(smiley_img);
-    }
-  }
-  // ajout d'une div de padding pour conserver le padding bottom en overflow
-  var divPadBottom = document.createElement("span");
-  divPadBottom.style.opacity = "0";
-  divPadBottom.style.display = "block";
-  divPadBottom.style.width = "1px";
-  divPadBottom.style.height = "4px";
-  divPadBottom.style.position = "absolute";
-  container.appendChild(divPadBottom);
-
-  if(create) {
-    var img = document.createElement("img");
-    img.id = key_favorite_panel_img;
-    img.src = icon_toolbox;
-    img.title = "Gérer vos smileys";
-    img.style.position = "absolute";
-    img.style.cursor = "pointer";
-    img.style.width = "16px";
-    img.style.height = "16px";
-    img.addEventListener("click", function(event) {
-      cmScript.showConfigWindow(key_window_config, key_tab_yoursmileys);
-    }, false);
-
-    if(sm_fast_reply_position === 1 || sm_fast_reply_position === 2) { // à droite ou en dessous
-      var next = textarea.nextElementSibling;
-    }
-
-    if(sm_fast_reply_position === 0 || sm_fast_reply_position === 2) { // au dessus ou en dessous
-      var br = getLineBreak();
-    }
-
-    switch (sm_fast_reply_position) {
-      case 0: // au dessus
-        container.style.margin = "1px 3px 0px";
-        staticImgMarginTop = 1;
-        textarea.parentNode.insertBefore(container, textarea);
-        textarea.parentNode.insertBefore(img, textarea);
-        textarea.parentNode.insertBefore(br, textarea);
-        savePanelPosition(); // met à jour la marge de l'image
-        break;
-      case 1: // à droite
-        container.style.margin = "1px 3px -2px 1px";
-        staticImgMarginTop = 1;
-        textarea.parentNode.insertBefore(container, next);
-        textarea.parentNode.insertBefore(img, next);
-        savePanelPosition(); // met à jour la marge de l'image
-        break;
-      case 2: // en dessous
-        container.style.margin = "0px 3px 1px";
-        staticImgMarginTop = 0;
-        textarea.parentNode.insertBefore(br, next);
-        textarea.parentNode.insertBefore(container, next);
-        textarea.parentNode.insertBefore(img, next);
-        savePanelPosition(); // met à jour la marge de l'image
-        break;
-      case 3: // à gauche
-        container.style.margin = "1px 1px -2px 19px";
-        staticImgMarginTop = 1;
-        textarea.parentNode.insertBefore(img, textarea);
-        textarea.parentNode.insertBefore(container, textarea);
-        savePanelPosition(); // met à jour la marge de l'image
-        break;
-    }
-  }
-}
-
-/*
-  Ajout d'une icône pour scanner les smileys présents dans un message
-*/
-function AddScanSmileysFeature() {
-  getElementByXpath("//table//tr[starts-with(@class, \"message\")]//div[@class=\"toolbar\"]//div[@class=\"left\"]", root).
-  filter(function(toolbar) {
-    return getElementByXpath(".//a[starts-with(@href, \"/message.php\")]", toolbar).length > 0;
-  }).forEach(function(toolbar) {
-    var icon_ScanSmileys = document.createElement("img");
-    icon_ScanSmileys.src = sm_fav_world_icon;
-    icon_ScanSmileys.style.cursor = "pointer";
-    icon_ScanSmileys.style.marginRight = "3px";
-    icon_ScanSmileys.title = "Choisir les smileys à placer en favoris";
-
-    var message = getElementByXpath(".//div[starts-with(@id, \"para\")]", toolbar.parentNode.parentNode)[0];
-    icon_ScanSmileys.addEventListener("click", function(event) {
-      ShowSmileysForFavorite(message);
-    }, true);
-
-    // Placement de l'icône dans la page
-    if(toolbar.nextSibling.className == "spacer") {
-      var newDiv = document.createElement("div");
-      newDiv.className = "right";
-      newDiv.appendChild(icon_ScanSmileys);
-      toolbar.parentNode.insertBefore(newDiv, toolbar.nextSibling);
-    } else {
-      toolbar.nextSibling.insertBefore(icon_ScanSmileys, toolbar.nextSibling.firstChild);
-    }
-  });
-}
-
-/*
-  Affiche une fenêtre pour choisir quel smileys placer en favoris
-
-  message : message dans lequel rechercher les smileys
-*/
-function ShowSmileysForFavorite(message) {
-  // Récupération de tous les smileys. Ce sont tous les "img" dont l'attribut "onload" est indéfini.
-  var imgList = getElementByXpath(".//img[not(@onload) and starts-with(@src, \"https://forum-images.hardware.fr/\")]",
-    message);
-  if(imgList.length == 0) {
-    alert("Aucun smiley n'a été trouvé dans ce message.");
-  } else {
-    cmScript.showConfigWindow(key_window_favorite);
-    cmScript.buildFavoriteWindow(imgList);
-  }
-}
-
-/*
-  Modification de la fonctionnalité HFR d'édition rapide,
-  afin de pouvoir traiter les smileys de ce message édité.
-*/
-function ModifyValidateFastEdit() {
-  // Modification de l'évènement "clic de l'utilisateur sur l'icône 'fast edit'"
-  function fred82vsf_function_new_edit_in(config, cat, post, numreponse, path) {
-    // HFR
-    unsafeWindow.fred82vsf_function_old_edit_in(config, cat, post, numreponse, path);
-
-    // Stockage d'information sur les smileys initiaux
-    unsafeWindow.fred82vsf_function_ScheduleModifyFastEdit(numreponse);
-  }
-  exportFunction(fred82vsf_function_new_edit_in, unsafeWindow, {
-    defineAs: "fred82vsf_function_new_edit_in"
-  });
-  unsafeWindow.edit_in = unsafeWindow.fred82vsf_function_new_edit_in;
-}
-
-function fred82vsf_function_GetFastEditTextArea(msgId) {
-  return document.getElementById("rep_editin_" + msgId);
-}
-exportFunction(fred82vsf_function_GetFastEditTextArea, unsafeWindow, {
-  defineAs: "fred82vsf_function_GetFastEditTextArea"
-});
-
-/*
-  Stockage d'information sur les smileys initiaux
-*/
-function fred82vsf_function_ScheduleModifyFastEdit(numreponse) {
-  setTimeout(function() {
-    var textArea = unsafeWindow.fred82vsf_function_GetFastEditTextArea(numreponse);
-
-    if(textArea == null) {
-      /*
-        Nouvel essai, car la "textarea" n'est pas encore disponible
-        (en attente traitement serveur HFR pour obtenir le BBcode)
-      */
-      unsafeWindow.fred82vsf_function_ScheduleModifyFastEdit(numreponse);
-    } else {
-      // Stockage d'informations
-      var msgInfo = {};
-      msgInfo.msgId = numreponse;
-      msgInfo.initialText = unsafeWindow.fred82vsf_function_GetFastEditTextArea(numreponse).value;
-      unsafeWindow.fred82vsf_object_fastEditDict[msgInfo.msgId] = msgInfo;
-
-      var val_button = document.querySelector("div#para" + numreponse + " > div > input:first-child:first-of-type");
-      val_button.addEventListener("click", function() {
-        ValidateFunction(numreponse);
-      }, true);
-    }
-  }, 500);
-}
-exportFunction(fred82vsf_function_ScheduleModifyFastEdit, unsafeWindow, {
-  defineAs: "fred82vsf_function_ScheduleModifyFastEdit"
-});
-
-/*
-  Traitement des pages "édition de message". Insertion du panneau des smileys.
-*/
-function HandleEditingMessagePage() {
-  // Masque les smileys favoris et personnels du forum
-  if(sm_hide_forum_smileys) {
-    var dynamic_smilies = document.getElementById("dynamic_smilies");
-    if(dynamic_smilies != null) {
-      while(dynamic_smilies.hasChildNodes()) {
-        dynamic_smilies.removeChild(dynamic_smilies.lastChild);
+      // ajout des smileys
+      populate_panel(null, quick_panel, "panneau", true);
+      // ajout du lien d'ouverture et des boutons
+      // -- fonction de gestion du clic sur le lien d'ouverture
+      function open_quick_panel() {
+        GM.setValue("vsf_quick_panel_closed", false);
+        quick_link.style.display = "none";
+        quick_panel.style.display = "inline-block";
+        quick_br.style.display = "unset";
+        quick_buttons.style.display = "inline-flex";
+        window.scrollBy(0, quick_panel.offsetHeight + 2);
       }
-    }
-  }
-
-  // Conteneur latéral gauche
-  var parent_container = GetMessageEditingBox().parentNode.parentNode.cells[0];
-
-  // Création du nouveau panneau de statistiques de smileys
-  var smiley_panel = document.createElement("div");
-  smiley_panel.id = key_smiley_panel;
-  smiley_panel.className = "tabber";
-
-  // Ajout de ce panneau au conteneur latéral gauche
-  parent_container.appendChild(smiley_panel);
-
-  BuildYourSmileysPanel(smiley_panel, true, panel_max_height_left, panel_max_width_left);
-
-  // Lien pour ouvrir la fenêtre de configuration
-  var link_config = document.createElement("a");
-  link_config.className = "s1Topic"; // Style
-  link_config.href = "javascript:void(null);";
-  link_config.addEventListener("click", function(event) {
-    cmScript.showConfigWindow(key_window_config, key_tab_parameters);
-  }, true);
-  link_config.innerHTML = "Configuration du script";
-  link_config.title = "Cliquez ici pour configurer le script " + script_name;
-  parent_container.appendChild(link_config);
-
-  ChangeValidateButtonAction();
-
-  // Mémorisation du TextArea.
-  initialText = GetMessageEditingBox().value;
-}
-
-/*
-  Construction du panneau des smileys avec les trois onglets {top, historique, favoris)
-*/
-function BuildYourSmileysPanel(parentPanel, clickable, panel_height, panel_width) {
-  LoadSmileyStats();
-
-  // 1) Panneau Top
-
-  displaySmileysInPanel(sortSmileysByStat(smileyStats), key_tab_top, key_tab_top_content, key_prefix_top,
-    tab_top_title, "Vos " + sm_count + " smileys les plus utilisés", parentPanel, clickable, panel_height, panel_width);
-
-  // 2) Panneau Historique
-
-  displaySmileysInPanel(sortSmileysByHistory(smileyStats), key_tab_history, key_tab_history_content, key_prefix_hist,
-    tab_history_title, "Vos " + sm_count + " smileys les plus récents", parentPanel, clickable, panel_height, panel_width);
-
-  // 3) Panneau Favoris
-
-  displaySmileysInPanel(sortSmileysByName(smileyStats), key_tab_favorite, key_tab_favorite_content, key_prefix_fav,
-    tab_favorite_title, null, parentPanel, clickable, panel_height, panel_width);
-
-  if(parentPanel.id == key_smiley_panel) {
-    // Affiche l'onglet précédemment affiché par l'utilisateur
-    ShowThisTab(sm_current_tab);
-  }
-}
-
-/*
-  Affiche l'onglet dont l'id est fourni
-*/
-function ShowThisTab(key_tab) {
-  // Selection d'un onglet sur la fennetre de configuration
-  if(key_tab == key_tab_yoursmileys) {
-    // Onglet "Vos smileys"
-    BuildYourSmileysContentTab(key_tab_yoursmileys);
-    document.getElementById(key_config_window_content).tabber.tabShow(index_tab_yoursmileys);
-  } else if(key_tab == key_tab_parameters) {
-    // Onglet "Paramètres"
-    document.getElementById(key_config_window_content).tabber.tabShow(index_tab_parameters);
-  }
-  // Selection d'un onglet sur le panneau de réponse normale
-  else {
-    // Onglets du panneau des smileys (top, historique, favoris)
-    var default_tab = document.getElementById(key_tab);
-    default_tab.className = "tabbertab tabbertabdefault";
-  }
-}
-
-/*
-  Affiche la liste des smileys dans le panneau indiqué
-
-  smileyArray : tableau des smileys ordonné en fonction de l'onglet
-  tab_key : type du panneau
-  id_panel : id du sous-panneau à créer
-  prefix_id : préfixe de l'id du conteneur de chaque image
-  tab_title : texte du header de l'onglet
-  tips_title : texte en haut du sous-panneau décrivant son utilité,
-  parentPanel : panneau parent hébergeant le sous-panneau
-  clickable : est-ce que le smiley peut-être selectioné pour un message (oui en réponse normale, non en fenêtre de conf)
-  panel_height : hauteur
-  panel_width : largeur
-*/
-function displaySmileysInPanel(smileyArray, tab_key, id_panel, prefix_id, tab_title, tips_title, parentPanel, clickable, panel_height, panel_width) {
-  var panel = document.createElement("div");
-  panel.id = tab_key;
-  panel.className = "tabbertab";
-  panel.title = tab_title;
-
-  parentPanel.appendChild(panel);
-
-  if(tips_title != null) {
-    var tips_titleItem = document.createElement("span");
-    tips_titleItem.className = "s1Topic";
-    tips_titleItem.style.fontWeight = "bold";
-    tips_titleItem.innerHTML = tips_title;
-    panel.appendChild(tips_titleItem);
-  }
-
-  var j = 0;
-  var smileys_table = document.createElement("div");
-  smileys_table.id = id_panel;
-  smileys_table.style.overflow = "auto";
-  smileys_table.style.height = panel_height;
-  smileys_table.style.width = panel_width;
-
-  rebuildSmileyTabContent(smileyArray, tab_key, smileys_table, prefix_id, clickable);
-
-  panel.appendChild(smileys_table);
-}
-
-function rebuildSmileyTabContent(smileyArray, tab_key, smileys_table, prefix_id, clickable) {
-  // Suppression du contenu existant
-  while(smileys_table.hasChildNodes()) {
-    smileys_table.removeChild(smileys_table.lastChild);
-  }
-
-  // Comptage des smileys affichés
-  var i = 0;
-
-  // Construction des smileys
-  for(var j = 0; j < smileyArray.length; ++j) {
-    if(tab_key != key_tab_favorite && i == sm_count) {
-      // Pour les panneaux autres que celui des favoris, une limite de nombre de smiley est appliquée
-      break;
-    }
-
-    var smiley = smileyArray[j];
-
-    var displayThisSmiley = false;
-
-    // Détermination si on affiche ce smiley
-    switch (tab_key) {
-      case key_tab_top:
-      case key_tab_history:
-        if(!smiley.fav || sm_include_fav) {
-          // Si ce n'est pas un favoris : on l'affiche
-          // Si c'est un favoris et qu'il est spécifié de les inclure : on l'affiche
-          displayThisSmiley = true;
-        }
-        break;
-      case key_tab_favorite:
-        if(smiley.fav == true) {
-          displayThisSmiley = true;
-        }
-        break;
-    }
-
-    if(displayThisSmiley) {
-      // Ajout du smiley dans le panneau
-      AddSmileyToPanel(smiley, tab_key, smileys_table, i, prefix_id, clickable);
-      ++i;
-    }
-  }
-
-  // Si il n'y a pas de smileys dans cette "catégorie" on affiche "aucun"
-  //if(Object.keys(smileysList).length === 0 || (i === 0 && tab_key === key_tab_favorite)) {
-  // -> contre-intuitif, retour à un affichage simple du "aucun" quand aucun smiley n'est affiché dans l'onglet
-  if(i === 0) {
-    displayAucun(smileys_table)
-  }
-}
-
-function displayAucun(parent) {
-  parent.appendChild(getLineBreakBlankLine());
-
-  var none_text = document.createElement("span"); // Elément de texte
-  none_text.style.font = "14px Verdana"; // Style
-  none_text.innerHTML = "aucun"; // Texte
-  parent.appendChild(none_text);
-
-  parent.appendChild(getLineBreakBlankLine());
-}
-
-/*
-  Ajoute un smiley au panneau désigné
-
-  smiley : objet smiley
-  tab_key : type du panneau
-  smileys_table : objet graphique contenant les smileys graphiques du panneau
-  i : numéro de smiley dans la liste des smileys
-  prefix_id : préfixe de l'id du conteneur de chaque image
-  clickable : est-ce que le smiley peut-être selectioné pour un message (oui en réponse normale, non en fenêtre de conf)
-*/
-function AddSmileyToPanel(smiley, tab_key, smileys_table, i, prefix_id, clickable) {
-  var smiley_tiny_code = ConvertFullCodeToTinyCode(smiley.c); // Tiny code
-
-  // Conteneur racine de description d'un smiley
-  var smiley_parent_container = document.createElement("li");
-  smiley_parent_container.id = prefix_id + smiley_tiny_code;
-  smiley_parent_container.className = "fred82vsfsmileyhover";
-  smiley_parent_container.style.display = "-moz-inline-stack";
-  smiley_parent_container.style.display = "inline-block";
-  smiley_parent_container.style.verticalAlign = "middle";
-  smiley_parent_container.style.margin = "2px";
-  smiley_parent_container.style.zoom = "1";
-
-  // Conteneur de description du smiley
-  var smiley_container = document.createElement("div");
-
-  // 1) Conteneur de l'image et image (smiley)
-  var img_container = document.createElement("div");
-  img_container.appendChild(BuildSmileyImage(smiley, smiley_tiny_code, clickable));
-  smiley_container.appendChild(img_container);
-
-  // 2) Conteneur d'édition (en-dessous du smiley)
-  var manager_container = document.createElement("div");
-  manager_container.style.display = "table";
-  manager_container.style.width = "100%";
-  manager_container.style.height = "18px";
-
-  // 2.1) Statistique
-  if(tab_key != key_tab_favorite) {
-    var stat_container = document.createElement("span");
-
-    var statInfoText = null;
-    var statInfoToolTipText = null;
-
-    switch (tab_key) {
-      case key_tab_top:
-        statInfoText = smiley.s;
-        statInfoToolTipText = smiley.s + " fois";
-        break;
-      case key_tab_history:
-        statInfoText = (i + 1);
-        statInfoToolTipText = getDateTimeStringForDisplay(smiley.d);
-        break;
-    }
-
-    stat_container.innerHTML = statInfoText;
-    stat_container.title = statInfoToolTipText;
-    stat_container.style.display = "table-cell";
-    stat_container.style.align = "left";
-    stat_container.style.fontSize = "x-small"; // Taille du nombre statistique
-    stat_container.style.cursor = "default";
-    stat_container.style.verticalAlign = "middle";
-    manager_container.appendChild(stat_container);
-  }
-
-  // 2.2) Bouton favori (étoile)
-  var star_container = document.createElement("span");
-  star_container.style.display = "table-cell";
-  star_container.style.align = "center";
-  star_container.style.width = "100%";
-  star_container.appendChild(BuildFavoriteIcon(smiley, smiley_tiny_code, prefix_id));
-  manager_container.appendChild(star_container);
-
-  // 2.3) Bouton de suppression
-  if(tab_key != key_tab_favorite) {
-    var remove_container = document.createElement("span");
-    star_container.style.display = "table-cell";
-    star_container.style.align = "right";
-    var remove_button = document.createElement("input");
-    remove_button.value = "X";
-    remove_button.type = "image";
-    remove_button.src = icon_del;
-    remove_button.title = "Supprimer le smiley " + smiley.c;
-    remove_button.alt = smiley.c;
-    remove_button.style.verticalAlign = "middle";
-    remove_button.className = "fred82vsfdeletehover";
-    remove_button.addEventListener("click", RemoveSmileyStat, true);
-    remove_container.appendChild(remove_button);
-    manager_container.appendChild(remove_container);
-  }
-
-  smiley_container.appendChild(manager_container);
-
-  smiley_parent_container.appendChild(smiley_container);
-
-  smileys_table.appendChild(smiley_parent_container);
-}
-
-/*
-  Construit l'icône interactive "favoris", en forme d'étoile.
-*/
-function BuildFavoriteIcon(smiley, smiley_tiny_code, prefix_id) {
-  var img_favorite = document.createElement("img");
-
-  var favorite_icon_url = "";
-  if(smiley.fav == true) {
-    favorite_icon_url = icon_fav_active;
-  } else {
-    favorite_icon_url = icon_fav_inactive;
-  }
-
-  img_favorite.id = prefix_id + key_prefix_fav_img + smiley_tiny_code;
-  img_favorite.src = favorite_icon_url;
-  img_favorite.width = 16;
-  img_favorite.height = 16;
-  img_favorite.style.marginTop = "1px";
-  img_favorite.style.marginBottom = "0";
-  img_favorite.style.verticalAlign = "middle";
-  img_favorite.className = "fred82vsffavoritehover";
-
-  AddClickEventHandlerForFavoriteStatusChange(smiley, img_favorite);
-
-  return img_favorite;
-}
-
-/*
-  Ajoute un gestionnaire d'évènement sur le clic de l'utilisateur,
-  pour changer le status favoris du smiley
-*/
-function AddClickEventHandlerForFavoriteStatusChange(smiley, element) {
-  element.addEventListener("click", ChangeFavoriteStatus, true);
-  element.alt = smiley.c;
-  element.style.cursor = "pointer";
-  element.title = GetFavoriteTooltip(smiley);
-}
-
-/*
-  Construction de l'image représentant le smiley
-*/
-function BuildSmileyImage(smiley, smiley_tiny_code, clickable) {
-  var img = document.createElement("img");
-
-  var icon_path = null;
-
-  if(IsBaseSmiley(smiley.c)) {
-    // Smiley de base
-    icon_path = GetUrlForBaseSmiley(smiley.c);
-  } else {
-    // Smiley utilisateur
-    if(smiley_tiny_code.count(":") == 1) {
-      // Smiley personnel numéroté
-      var splitCode = smiley_tiny_code.split(":");
-      var tiny_code = splitCode[0];
-      var numeroSmileyPerso = splitCode[1];
-
-      icon_path = image_utilisateur_url + numeroSmileyPerso + "/" + tiny_code + ".gif";
-    } else {
-      // Le smiley du forumeur
-      icon_path = image_utilisateur_url + smiley_tiny_code + ".gif";
-    }
-  }
-
-  img.src = icon_path;
-  img.alt = smiley.c; // Texte alternatif (quand l'image n'est pas chargée)
-  img.title = smiley.c; // Tooltip
-  img.style.verticalAlign = "middle";
-
-  if(clickable) {
-    img.addEventListener("click", function(event) {
-      putSmiley(this.alt);
-    }, false);
-    img.style.cursor = "pointer";
-  }
-
-  return img;
-}
-
-function GetFavoriteTooltip(smiley) {
-  var tooltip = null;
-
-  if(smiley.fav) {
-    tooltip = "Enlever " + smiley.c + " de vos favoris";
-  } else {
-    tooltip = "Ajouter " + smiley.c + " à vos favoris";
-  }
-
-  return tooltip;
-}
-
-/*
-  Change le comportement du bouton "Valider votre message"
-  Ajoute une action qui analyse le message, extrait les smileys, et met à jour les statistiques dans GreaseMonkey
-*/
-function ChangeValidateButtonAction() {
-  var validate_button = getElementByXpath("//td[@class=\"repCase2\"]/input[@name=\"submit\"]", root)[0];
-  validate_button.addEventListener("click", function() {
-    ValidateFunction();
-  }, true);
-}
-
-/*
-  Mise à jour des statistiques de smileys
-
-  Arguments :
-  fastEditMsgId : l'id de l'edition rapide
-*/
-function ValidateFunction(fastEditMsgId) {
-  // Le message est prêt à être envoyé au serveur. Avant cela, analyse le message pour les smileys.
-
-  var message_initial = null;
-  var nouveau_message = null;
-
-  // Extraction de la liste des smileys à partir du message
-  if(fastEditMsgId === undefined) {
-    // Mode réponse rapide ou normale ou edition normale
-    message_initial = initialText;
-    nouveau_message = GetMessageEditingBox().value;
-  } else {
-    // Mode édition rapide
-    var msgInfo = unsafeWindow.fred82vsf_object_fastEditDict[fastEditMsgId];
-    message_initial = msgInfo.initialText;
-    nouveau_message = unsafeWindow.fred82vsf_function_GetFastEditTextArea(msgInfo.msgId).value;
-  }
-
-  var smileysList_Old = BuildSmileyListFromMessage(message_initial); // Liste des smileys avant édition
-  var smileysList_New = BuildSmileyListFromMessage(nouveau_message); // Liste des smileys actuels
-
-  if(smileysList_New == null) {
-    // Aucun smiley trouvé
-  } else {
-    // Des smileys ont été trouvés :  mise à jour de la configuration GreaseMonkey
-
-    LoadSmileyStats();
-
-    // Construction de la date actuelle
-    var date = GetCurrentFormatedDate();
-
-    var newSmileyList = new Array;
-    var newSmileyCount = 0;
-
-    for(var i in smileysList_New) { // Pour chaque smiley trouvé
-      var smiley_New = smileysList_New[i];
-
-      // Recherche si ce smiley était déjà présent avant l'édition
-      var smiley_Old = smileysList_Old[smiley_New.code];
-
-      if(smiley_Old != null) {
-        var diff = smiley_New.count - smiley_Old.count;
-
-        if(diff <= 0) {
-          // Ce smiley n'a pas été utilisé à nouveau dans le message
-          continue;
-        } else {
-          smiley_New.count = diff;
-        }
+      // -- fonction de gestion du clic sur le bouton de fermeture
+      function close_quick_panel() {
+        GM.setValue("vsf_quick_panel_closed", true);
+        quick_link.style.display = "inline";
+        quick_panel.style.display = "none";
+        quick_br.style.display = "none";
+        quick_buttons.style.display = "none";
       }
-
-      // Obtention de la statistique précédente, si existante
-      var smiley = smileyStats[smiley_New.code];
-
-      if(smiley == null) {
-        newSmileyList.push(smiley_New.code);
-        ++newSmileyCount;
-
-        // Nouveau smiley, nouvelle entrée
-
-        smiley = CreateSmileyObject(smiley_New.code, smiley_New.count, date);
+      // -- lien d'ouverture du panneau
+      quick_link = document.createElement("span");
+      quick_link.setAttribute("class", "gm_hfr_vsf_r21_quick_link s1Ext");
+      quick_link.setAttribute("title", "Afficher vos favoris\n(clic droit pour configurer)");
+      quick_link.addEventListener("contextmenu", prevent_default, false);
+      quick_link.addEventListener("click", open_quick_panel, false);
+      quick_link.addEventListener("mouseup", mouseup_config, false);
+      let l_quick_link_img = document.createElement("img");
+      l_quick_link_img.setAttribute("class", "gm_hfr_vsf_r21_quick_link_img");
+      l_quick_link_img.setAttribute("src", vsf_panel_img);
+      l_quick_link_img.setAttribute("alt", "VSF");
+      let l_quick_link_span = document.createElement("span");
+      l_quick_link_span.setAttribute("class", "gm_hfr_vsf_r21_quick_link_span");
+      l_quick_link_span.textContent = "Vos favoris";
+      quick_link.appendChild(l_quick_link_img);
+      quick_link.appendChild(l_quick_link_span);
+      l_quick_response.parentNode.insertBefore(quick_link,
+        l_quick_response.previousElementSibling.previousElementSibling);
+      l_quick_response.parentNode.insertBefore(document.createTextNode(" "), quick_link);
+      // -- div des boutons
+      quick_buttons = document.createElement("div");
+      quick_buttons.setAttribute("class", "gm_hfr_vsf_r21_quick_buttons");
+      quick_buttons.style.height = "calc(" + quick_panel.style.height + " + 6px)";
+      // -- bouton de fermeture du panneau
+      let l_close_button = document.createElement("img");
+      l_close_button.setAttribute("class", "gm_hfr_vsf_r21_quick_buttons_img " +
+        "gm_hfr_vsf_r21_quick_buttons_img_top");
+      l_close_button.setAttribute("src", img_close);
+      l_close_button.setAttribute("alt", "VSF");
+      l_close_button.setAttribute("title", "Fermer vos favoris");
+      l_close_button.addEventListener("click", close_quick_panel, false);
+      quick_buttons.appendChild(l_close_button);
+      // -- bouton d'ouverture de la fenêtre de configuration
+      let l_conf_button = document.createElement("img");
+      l_conf_button.setAttribute("class", "gm_hfr_vsf_r21_quick_buttons_img " +
+        "gm_hfr_vsf_r21_quick_buttons_img_bottom");
+      l_conf_button.setAttribute("src", vsf_panel_settings_img);
+      l_conf_button.setAttribute("alt", "VSF");
+      l_conf_button.setAttribute("title", "Gérer vos smileys");
+      l_conf_button.dataset.onglet = "smileys";
+      l_conf_button.addEventListener("contextmenu", prevent_default, false);
+      l_conf_button.addEventListener("click", show_config_window, false);
+      l_conf_button.addEventListener("mouseup", mouseup_config, false);
+      quick_buttons.appendChild(l_conf_button);
+      // positionnement du panneau et des boutons
+      if(vsf_quick_panel_top) {
+        quick_panel.classList.add("gm_hfr_vsf_r21_quick_panel_top");
+        quick_buttons.classList.add("gm_hfr_vsf_r21_quick_panel_top");
+        l_quick_response.parentNode.insertBefore(quick_panel, l_quick_response);
+        l_quick_response.parentNode.insertBefore(quick_buttons, l_quick_response);
+        l_quick_response.parentNode.insertBefore(quick_br, l_quick_response);
       } else {
-        smiley.s += smiley_New.count; // Incrémente la statistique existante
-        smiley.d = date;
+        let l_next = l_quick_response.nextSibling;
+        quick_panel.classList.add("gm_hfr_vsf_r21_quick_panel_bottom");
+        quick_buttons.classList.add("gm_hfr_vsf_r21_quick_panel_bottom");
+        l_quick_response.parentNode.insertBefore(quick_br, l_next);
+        l_quick_response.parentNode.insertBefore(quick_panel, l_next);
+        l_quick_response.parentNode.insertBefore(quick_buttons, l_next);
       }
-
-      smileyStats[smiley_New.code] = smiley; // Mise à jour ou ajout de la statisque dans la liste Json
-    }
-
-    if(sm_notify_new && newSmileyCount > 0) {
-      var msg = null;
-
-      if(newSmileyCount == 1) {
-        msg = "1 nouveau smiley a été trouvé :\n\n" + newSmileyList[0];
+      // affichage initial du panneau
+      if(!vsf_quick_panel_start_closed && !vsf_quick_panel_closed) {
+        open_quick_panel();
       } else {
-        msg = newSmileyCount + " nouveaux smileys ont été trouvés :\n\n";
-        for(var s = 0; s < newSmileyList.length; ++s) {
-          if(s === newSmileyList.length - 2) {
-            msg += newSmileyList[s] + " et ";
-          } else if(s === newSmileyList.length - 1) {
-            msg += newSmileyList[s];
-          } else {
-            msg += newSmileyList[s] + ", ";
-          }
+        close_quick_panel();
+      }
+    }
+  }
+  // réponse normale
+  let l_normal_response = document.querySelector("div#mesdiscussions form#hop table.main " +
+    "textarea#content_form.contenu");
+  if(l_normal_response) {
+    normal_row = l_normal_response.parentElement.parentElement;
+    // suppression des br en trop
+    let l_brs = normal_row.querySelectorAll("td.repCase2 div.spacer + br, th.repCase1 > br");
+    for(let l_br of l_brs) {
+      l_br.parentNode.removeChild(l_br);
+    }
+    // ajout d'un br mieux placés
+    let l_new_br = normal_row.querySelector("th.repCase1 > div:first-of-type > div.center:first-child > " +
+      "br:first-child");
+    if(!l_new_br) {
+      var l_div_smiley = normal_row.querySelector("th.repCase1 > div:first-of-type > div.center:first-child > " +
+        "div.smiley");
+      if(l_div_smiley) {
+        l_div_smiley.parentNode.removeChild(l_div_smiley.previousSibling);
+        l_div_smiley.parentNode.removeChild(l_div_smiley.previousElementSibling);
+        l_div_smiley.parentNode.insertBefore(document.createElement("br"), l_div_smiley.previousElementSibling);
+        l_div_smiley.parentNode.insertBefore(document.createElement("br"), l_div_smiley);
+        l_div_smiley.parentNode.insertBefore(document.createElement("br"), l_div_smiley);
+      }
+    }
+    // correnction du style de la réponse normale
+    l_normal_response.style.marginTop = "0";
+    l_normal_response.style.marginBottom = "2px";
+    l_normal_response.style.width = "calc(100% - 6px)";
+    l_normal_response.style.resize = "vertical";
+    // suvegarde du message initial
+    initial_message = l_normal_response.value;
+    // ajout de la fonction d'analyse du message sur le bonton de validation
+    let l_validate_button = normal_row.querySelector("td.repCase2 input[type=\"submit\"][name=\"submit\"]");
+    if(l_validate_button) {
+      l_validate_button.addEventListener("click", analyse_message, true);
+    }
+    // affichage des onglets vos smileys en réponse normale
+    if(vsf_normal_tabs) {
+      create_vos_smileys(true);
+    }
+    // masquage des smileys personnels et favoris du forum
+    if(vsf_hide_smileys_forum) {
+      let l_dynamic_smilies = document.getElementById("dynamic_smilies");
+      if(l_dynamic_smilies) {
+        while(l_dynamic_smilies.hasChildNodes()) {
+          l_dynamic_smilies.removeChild(l_dynamic_smilies.lastChild);
         }
       }
-
-      alert(msg);
     }
-
-    saveUserStats(); // Sauve et recharge les stats triées et recharge le panneau des favoris de la réponse rapide
-  }
-
-  // Envoi du message au serveur HFR
-  return true;
-}
-
-/*
-  Recharge le panneau des smileys en fast reply
-*/
-function ReloadSmileysFullPanel() {
-  var favoritePanelItem = document.getElementById(key_favorite_panel);
-  if(favoritePanelItem != null) {
-    ShowFavoriteSmileysPanel(false);
-  }
-}
-
-// =============================================================== //
-// CSS des onglets
-// =============================================================== //
-
-GM_addStyle(".tabbertabhide{display:none;} .tabber{} .tabberlive{margin-top:4px;} ul.tabbernav{margin:0;padding:3px 0;border-bottom:1px solid #778;font:bold 12px Verdana;} ul.tabbernav li{list-style:none;margin:0;display:inline;} ul.tabbernav li a{padding:3px 0.5em;margin-left:3px;border:1px solid #778;border-bottom:none;background:#DDE;text-decoration:none;} ul.tabbernav li:last-child a{margin-right:3px;} ul.tabbernav li a:link{color:#448;} ul.tabbernav li a:visited{color:#667;} ul.tabbernav li a:hover{color:#000;background:#AAE;border-color:#227;} ul.tabbernav li.tabberactive a{background-color:#fff;border-bottom:1px solid #fff;} ul.tabbernav li.tabberactive a:hover{color:#000;background:#fff;border-bottom:1px solid #fff;} .tabbertab{padding:4px;border:1px solid #778;border-top:0;} .tabberlive#tab2{height:200px;overflow:auto;}");
-
-// CSS mouse over sur les smileys
-GM_addStyle(".fred82vsfsmileyhover:hover{opacity:0.75;}");
-
-// CSS mouse over sur les smileys du panneau des favoris en réponse rapide
-GM_addStyle(".fred82vsfsmileyfavoritehover:hover{opacity:0.75;}");
-
-// CSS mouse over sur le bouton étoile
-GM_addStyle(".fred82vsffavoritehover:hover{opacity:0.75;}");
-
-// CSS mouse over sur le bouton suppression
-GM_addStyle(".fred82vsfdeletehover:hover{opacity:0.75;}");
-
-// =============================================================== //
-// CSS Manager
-// =============================================================== //
-
-var cssManager = {
-  cssContent: "",
-
-  addCssProperties: function(properties) {
-    cssManager.cssContent += properties;
-  },
-
-  insertStyle: function() {
-    GM_addStyle(cssManager.cssContent);
-    cssManager.cssContent = "";
-  }
-}
-
-// =============================================================== //
-// Fenêtre de configuration
-// =============================================================== //
-
-var cmScript = {
-  backgroundDiv: null,
-
-  configDiv: null,
-
-  favoriteDiv: null,
-
-  timer: null,
-
-  isOpened: false,
-
-  configHeight: 0,
-  favoriteHeight: 0,
-
-  setDivsPosition: function() {
-    cmScript.setBackgroundPosition();
-    cmScript.setConfigWindowPosition();
-  },
-
-  setBackgroundPosition: function() {
-    cmScript.backgroundDiv.style.width = document.documentElement.scrollWidth + "px";
-    cmScript.backgroundDiv.style.height = document.documentElement.scrollHeight + "px";
-    cmScript.backgroundDiv.style.top = "0";
-  },
-
-  setConfigWindowPosition: function() {
-    if(parseInt(cmScript.configDiv.clientHeight) > this.configHeight) {
-      this.configHeight = parseInt(cmScript.configDiv.clientHeight);
-    }
-    if(parseInt(cmScript.favoriteDiv.clientHeight) > this.favoriteHeight) {
-      this.favoriteHeight = parseInt(cmScript.favoriteDiv.clientHeight);
-    }
-    cmScript.configDiv.style.left = (document.documentElement.clientWidth / 2) -
-      (parseInt(cmScript.configDiv.style.width) / 2) + window.scrollX + "px";
-    cmScript.configDiv.style.top = (document.documentElement.clientHeight / 2) -
-      (this.configHeight / 2) + "px";
-    cmScript.favoriteDiv.style.left = (document.documentElement.clientWidth / 2) -
-      (parseInt(cmScript.favoriteDiv.style.width) / 2) + window.scrollX + "px";
-    cmScript.favoriteDiv.style.top = (document.documentElement.clientHeight / 2) -
-      (this.favoriteHeight / 2) + "px";
-  },
-
-  escKey: function(event) {
-    if(event.which === 27) {
-      clearInterval(cmScript.timer);
-      cmScript.hideConfigWindow();
-    }
-  },
-
-  alterWindow: function(opening) {
-    this.isOpened = opening;
-    if(opening) {
-      document.addEventListener("keydown", cmScript.escKey, false);
-      window.addEventListener("resize", cmScript.setDivsPosition, false);
-      getElementByXpath("//iframe", document.body).forEach(function(iframe) {
-        iframe.style.visibility = "hidden";
+    // affichage du panneau des favoris en réponse normal
+    if(vsf_normal_panel) {
+      // création du panneau des favoris
+      normal_panel = document.createElement("span");
+      normal_panel.setAttribute("id", "gm_hfr_vsf_r21"); // pour avoir un selecteur CSS de plus haut niveau
+      normal_panel.setAttribute("class", "gm_hfr_vsf_r21_panel gm_hfr_vsf_r21_normal_panel");
+      normal_panel.setAttribute("data-type", "panneau");
+      let l_fake_padding = document.createElement("div");
+      l_fake_padding.setAttribute("class", "gm_hfr_vsf_r21_fake_padding");
+      normal_panel.appendChild(l_fake_padding);
+      normal_panel.style.height = vsf_normal_panel_height;
+      normal_br = document.createElement("br");
+      normal_br.setAttribute("class", "gm_hfr_vsf_r21_normal_br");
+      // gestion de la mémorisation de la heuteur du panneau
+      function save_normal_panel_height() {
+        window.clearTimeout(panel_size_timer);
+        panel_size_timer = window.setTimeout(function() {
+          let l_normal_panel_height = Math.max(parseInt(normal_panel.style.height), 54) + "px";
+          if(l_normal_panel_height === last_normal_panel_height) {
+            return;
+          }
+          last_normal_panel_height = l_normal_panel_height;
+          normal_panel.style.height = l_normal_panel_height
+          GM.setValue("vsf_normal_panel_height", l_normal_panel_height);
+        }, panel_size_time);
+      }
+      let l_observer_normal_panel = new MutationObserver(save_normal_panel_height);
+      l_observer_normal_panel.observe(normal_panel, {
+        attributes: true,
+        childList: false,
+        characterData: false,
+        subtree: false,
+        attributeFilter: ["style"],
       });
-    } else {
-      document.removeEventListener("keydown", cmScript.escKey, false);
-      window.removeEventListener("resize", cmScript.setDivsPosition, false);
-      getElementByXpath("//iframe", document.body).forEach(function(iframe) {
-        iframe.style.visibility = "visible";
-      });
-    }
-  },
-
-  buildBackground: function() {
-    if(!document.getElementById("sm_back")) {
-      cmScript.backgroundDiv = document.createElement("div");
-      cmScript.backgroundDiv.id = "sm_back";
-      cmScript.backgroundDiv.addEventListener("click", function() {
-        clearInterval(cmScript.timer);
-        cmScript.hideConfigWindow();
-      }, false);
-      cssManager.addCssProperties("#sm_back{display:none;position:fixed;left:0;top:0;background-color:#242424;z-index:1001;}");
-      document.body.appendChild(cmScript.backgroundDiv);
-    }
-  },
-
-  // =============================================================== //
-  // Construction de la fenêtre de configuration
-  // =============================================================== //
-
-  buildConfigWindow: function() {
-    // Styles de la fenêtre
-    cssManager.addCssProperties(".sm_front{display:none;vertical-align:bottom;position:fixed;z-index:1002;border:1px dotted #778;" +
-      "padding:8px;text-align:center;font-family:Verdana,Arial,Sans-serif,Helvetica;}");
-    cssManager.addCssProperties(".sm_front dl{clear:both;margin:0;}");
-    cssManager.addCssProperties(".sm_front dt{float:left;width:80%;text-align:right;font-size:14px;margin-bottom:10px;}");
-    cssManager.addCssProperties(".sm_front dd{float:left;font-size:14px;margin-left:20px;}");
-
-    // Construction de la fenêtre
-    var configWindow = document.createElement("div");
-    configWindow.id = "sm_configWindow";
-    configWindow.className = "sm_front cBackCouleurTab1";
-    configWindow.style.width = config_window_width;
-    configWindow.style.padding = "16px";
-
-    // Bouton Fermer la fenêtre
-    var closeButton = this.buildCloseButton();
-    closeButton.style.marginTop = "4px";
-    closeButton.style.marginRight = "0";
-    configWindow.appendChild(closeButton);
-
-    var windowTitle = document.createElement("legend");
-    windowTitle.innerHTML = "Configuration du script " + script_name;
-    windowTitle.style.fontWeight = "bold";
-    configWindow.appendChild(windowTitle);
-
-    var tabs = document.createElement("div");
-    tabs.className = "tabber";
-    tabs.style.marginTop = "16px";
-    tabs.id = key_config_window_content;
-
-    // 1) Construction de l'onglet Paramètres
-    this.buildParametersTab(tabs);
-
-    // 2) Onglet Backup
-    this.buildBackupTab(tabs);
-
-    // 3) Onglet "Vos smileys"
-    this.buildYourSmileysTab(tabs);
-
-    configWindow.appendChild(tabs);
-
-    // Insertion de la fenêtre dans la page globale
-    cmScript.configDiv = configWindow;
-    document.body.appendChild(cmScript.configDiv);
-  },
-  /*
-    Construire un bouton pour fermer la fenêtre
-  */
-  buildCloseButton: function() {
-    var inputClose = document.createElement("input");
-    inputClose.type = "image";
-    inputClose.src = icon_cancel;
-    inputClose.title = "Fermer";
-    inputClose.style.cssFloat = "right";
-    inputClose.addEventListener("click", cmScript.hideConfigWindow, false);
-    return inputClose;
-  },
-  /*
-    Onglet paramètres
-  */
-  buildParametersTab: function(tabs) {
-    var configTab = document.createElement("div");
-    configTab.className = "tabbertab";
-    configTab.style.padding = "8px";
-    configTab.title = "Paramètres";
-    configTab.id = key_tab_parameters;
-
-    tabs.appendChild(configTab);
-
-    // Formulaire
-    var formular = document.createElement("fieldset");
-    formular.style.margin = "0";
-    formular.style.border = "1px solid #778";
-
-    // Titre
-    var titre = document.createElement("legend");
-    titre.innerHTML = "Paramètres";
-    titre.style.fontWeight = "bold";
-    formular.appendChild(titre);
-
-    // Liste des réglages
-
-    this.addTextBoxField(formular, "Nombre de smileys affichés dans les onglets \"Top\" et \"Historique\"",
-      key_sm_count, sm_count, 10);
-
-    this.addCheckBoxField(formular, "Confirmer la suppression des smileys",
-      key_sm_confirm_delete, sm_confirm_delete, true);
-
-    this.addCheckBoxField(formular, "Inclure les favoris dans les onglets \"Top\" et \"Historique\"",
-      key_sm_include_fav, sm_include_fav, true);
-
-    this.addCheckBoxField(formular, "Trier les smileys favoris par nom au lieu du tri par \"Top\"",
-      key_sm_sort_fav, sm_sort_fav, true);
-
-    this.addCheckBoxField(formular, "Afficher vos smileys favoris à côté de la réponse rapide",
-      key_sm_fast_reply, sm_fast_reply, true);
-
-    this.addPositionChoice(formular, "Position",
-      key_sm_fast_reply_position, sm_fast_reply_position);
-
-    this.addCheckBoxField(formular, "Signaler lorsque de nouveaux smileys sont trouvés dans vos posts",
-      key_sm_notify_new, sm_notify_new, true);
-
-    this.addCheckBoxField(formular, "Masquer le bloc des smileys favoris et personnels du forum",
-      key_sm_hide_forum_smileys, sm_hide_forum_smileys, true);
-
-    this.addCheckBoxField(formular, "Ne pas mettre d'espaces autour des smileys insérés dans les posts",
-      key_sm_no_space_insert, sm_no_space_insert, true);
-
-    this.addCheckBoxField(formular, "Permettre de marquer des smileys en favori depuis n'importe quel post",
-      key_sm_fav_world, sm_fav_world, true);
-
-    // Définition de l'icône associée à chaque message
-    this.addIconChoice(formular, "Icône du bouton de marquage des smileys en favori",
-      key_sm_fav_world_icon, sm_fav_world_icon, 10);
-
-    // Remarque
-    var note = document.createElement("div");
-    note.innerHTML = "Si vous changez ces réglages, vous devrez actualiser la page afin qu'ils soient appliqués.";
-    note.style.cssFloat = "left";
-    note.style.fontSize = "10px";
-    note.style.color = "crimson";
-    note.style.fontWeight = "bold";
-    note.style.margin = "16px 0 0 16px";
-    formular.appendChild(note);
-
-    // Boutons de contrôle
-    var buttonsContainer = document.createElement("div");
-    buttonsContainer.style.cssFloat = "right";
-    buttonsContainer.style.margin = "16px 16px 0 0";
-
-    // Enregistrer cette configuration
-    var inputOk = document.createElement("input");
-    inputOk.type = "image";
-    inputOk.src = icon_validate;
-    inputOk.title = "Valider";
-    inputOk.addEventListener("click", cmScript.validateConfig, false);
-    buttonsContainer.appendChild(inputOk);
-
-    // Annuler cette configuration
-    var inputCancel = document.createElement("input");
-    inputCancel.type = "image";
-    inputCancel.src = icon_cancel;
-    inputCancel.title = "Annuler";
-    inputCancel.style.marginLeft = "8px";
-    inputCancel.addEventListener("click", cmScript.hideConfigWindow, false);
-    buttonsContainer.appendChild(inputCancel);
-
-    formular.appendChild(buttonsContainer);
-
-    configTab.appendChild(formular);
-  },
-  /*
-    Onglet Backup
-  */
-  buildBackupTab: function(tabs) {
-    var backupTab = document.createElement("div");
-    backupTab.className = "tabbertab";
-    backupTab.style.padding = "8px";
-    backupTab.title = "Sauvegarde";
-
-    // Formulaire
-    var formular = document.createElement("fieldset");
-    formular.style.margin = "0";
-    formular.style.border = "1px solid #778";
-
-    // Titre
-    var titre = document.createElement("legend");
-    titre.innerHTML = "Sauvegarde";
-    titre.style.fontWeight = "bold";
-    formular.appendChild(titre);
-
-    // Instruction
-    var backupTitle = document.createElement("div");
-    backupTitle.style.fontSize = "14px";
-    backupTitle.innerHTML = "En cas de réinstallation de Firefox, si vous voulez conserver vos smileys,<br>il faut faire une sauvegarde avant de désinstaller Firefox.";
-    formular.appendChild(backupTitle);
-
-    formular.appendChild(getLineBreakBlankLine());
-
-    // Lien pour sauvegarder les données
-    var saveDiv = document.createElement("div");
-    saveDiv.style.fontSize = "14px";
-    var saveText = document.createElement("span");
-    saveText.innerHTML = "- ";
-    saveDiv.appendChild(saveText);
-    var saveLink = document.createElement("a");
-    saveLink.className = "s1Topic"; // Style
-    saveLink.style.fontSize = "14px";
-    saveLink.href = "javascript:void(null);";
-    saveLink.addEventListener("click", DoBackupFile, true);
-    saveLink.innerHTML = "Faire une sauvegarde de tous vos smileys";
-    saveLink.title = "Cliquez ici pour construire un fichier de backup contenant toutes vos infos de smileys.";
-    saveDiv.appendChild(saveLink);
-    formular.appendChild(saveDiv);
-
-    formular.appendChild(getLineBreakBlankLine());
-
-    // Input file pour charger les données
-    var loadDiv = document.createElement("div");
-    loadDiv.style.fontSize = "14px";
-    var loadText = document.createElement("span");
-    loadText.innerHTML = "- Charger un fichier de sauvegarde : ";
-    loadDiv.appendChild(loadText);
-    var loadInput = document.createElement("input");
-    loadInput.style.font = "14px Verdana";
-    loadInput.type = "file";
-    loadInput.name = "files[]";
-    loadDiv.appendChild(loadInput);
-    formular.appendChild(loadDiv);
-
-    formular.addEventListener("change", LoadBackupFile, false);
-
-    backupTab.appendChild(formular);
-
-    tabs.appendChild(backupTab);
-  },
-  /*
-    Onglet "Vos smileys"
-  */
-  buildYourSmileysTab: function(tabs) {
-    var yourSmileysTab = document.createElement("div");
-    yourSmileysTab.className = "tabbertab";
-    yourSmileysTab.style.padding = "8px";
-    yourSmileysTab.title = "Vos smileys";
-    yourSmileysTab.id = key_tab_yoursmileys;
-
-    // Lien pour importer les smileys favoris et personnels du forum
-    var importDiv = document.createElement("div");
-    importDiv.style.marginBottom = "8px";
-    var importLink = document.createElement("a");
-    importLink.className = "s1Topic"; // Style
-    importLink.href = "javascript:void(null);";
-    importLink.addEventListener("click", ImportFavPersoForum, true);
-    importLink.innerHTML = "Importer vos smileys favoris et personnels du forum dans vos favoris";
-    importLink.title = "Cliquez ici pour importer vos smileys favoris et personnels du forum dans vos favoris";
-    importDiv.appendChild(importLink);
-    yourSmileysTab.appendChild(importDiv);
-
-    // Lien pour réinitialiser les statistiques
-    var resetDiv = document.createElement("div");
-    resetDiv.style.marginTop = "8px";
-    var resetLink = document.createElement("a");
-    resetLink.className = "s1Topic"; // Style
-    resetLink.href = "javascript:void(null);";
-    resetLink.addEventListener("click", ResetAllStats, true);
-    resetLink.innerHTML = "Réinitialiser toutes vos données de smileys";
-    resetLink.title = "Cliquez ici pour effacer toutes vos données de smileys (après confirmation)";
-    resetDiv.appendChild(resetLink);
-    yourSmileysTab.appendChild(resetDiv);
-
-    tabs.appendChild(yourSmileysTab);
-  },
-  /*
-    Ajoute un champ de type TextBox
-    formular : conteneur
-  */
-  addTextBoxField: function(formular, field_title, field_id, field_value, maxlength) {
-    var dl = document.createElement("dl");
-    formular.appendChild(dl);
-
-    var dt = document.createElement("dt");
-    dt.innerHTML = field_title + " :";
-    dl.appendChild(dt);
-
-    var dd = document.createElement("dd");
-    dl.appendChild(dd);
-
-    var inputField = document.createElement("input");
-    inputField.type = "text";
-    inputField.id = field_id;
-    inputField.setAttribute("name", field_id);
-    inputField.maxlength = maxlength; // maximum length (in characters) of an input field
-    inputField.size = maxlength; // number of characters that should be visible
-    inputField.value = field_value;
-    dd.appendChild(inputField);
-  },
-  /*
-    Ajoute un champ de type CheckBox
-    formular : conteneur
-  */
-  addCheckBoxField: function(formular, field_title, field_id, checked, enabled) {
-    var dl = document.createElement("dl");
-    formular.appendChild(dl);
-
-    var dt = document.createElement("dt");
-    dt.innerHTML = field_title + " :";
-    dl.appendChild(dt);
-
-    var dd = document.createElement("dd");
-    dl.appendChild(dd);
-
-    var inputField = document.createElement("input");
-    inputField.type = "checkbox";
-    inputField.id = field_id;
-    inputField.setAttribute("name", field_id);
-    inputField.disabled = !enabled;
-    inputField.checked = checked;
-    dd.appendChild(inputField);
-  },
-  /*
-    Ajoute le champ pour choisir la position
-    formular : conteneur
-  */
-  addPositionChoice: function(formular, field_title, field_id, field_value) {
-    var dl = document.createElement("dl");
-    formular.appendChild(dl);
-
-    var dt = document.createElement("dt");
-    dt.style.width = "25%"
-
-    // Texte
-    var divText = document.createElement("span");
-    divText.innerHTML = field_title + " :";
-    dt.appendChild(divText);
-
-    dl.appendChild(dt);
-
-    var dd = document.createElement("dd");
-
-    // Boutons radio
-    var positions = ["au dessus", "à droite", "en dessous", "à gauche"];
-    for(var i = 0; i < 4; ++i) {
-      var inputField = document.createElement("input");
-      inputField.type = "radio";
-      inputField.id = field_id + "_" + i;
-      inputField.setAttribute("name", field_id);
-      if(i === field_value) {
-        inputField.checked = true;
+      // ajout des smileys
+      populate_panel(null, normal_panel, "panneau", true);
+      // ajout des boutons
+      let l_spacer = normal_row.querySelector("td.repCase2 div.left + div.spacer");
+      // -- fonction de gestion de l'ouverture / fermeture du panneau
+      function open_close_normal_panel() {
+        let l_do_open = normal_button.dataset.status === "closed";
+        GM.setValue("vsf_normal_panel_closed", !l_do_open);
+        normal_button.dataset.status = l_do_open ? "opened" : "closed";
+        normal_br.style.display = l_do_open ? "unset" : "none";
+        normal_panel.style.display = l_do_open ? "inline-block" : "none";
+        normal_button.setAttribute("title", l_do_open ? "Fermer vos favoris" : "Afficher vos favoris");
+        normal_button.firstElementChild.setAttribute("src", l_do_open ? img_close : vsf_panel_img);
       }
-      dd.appendChild(inputField);
-      var inputLabel = document.createElement("label");
-      inputLabel.setAttribute("for", field_id + "_" + i);
-      inputLabel.appendChild(document.createTextNode(" " + positions[i]));
-      dd.appendChild(inputLabel);
-      dd.appendChild(document.createTextNode(" "));
-    }
-
-    dl.appendChild(dd);
-  },
-  /*
-    Ajoute le champ pour choisir l'icône
-    formular : conteneur
-  */
-  addIconChoice: function(formular, field_title, field_id, field_value, maxlength) {
-    var dl = document.createElement("dl");
-    formular.appendChild(dl);
-
-    var dt = document.createElement("dt");
-
-    // Texte
-    var divText = document.createElement("span");
-    divText.innerHTML = field_title + " ";
-    dt.appendChild(divText);
-
-    // espace 1
-    var divSpace1 = document.createElement("span");
-    divSpace1.innerHTML = " ";
-    dt.appendChild(divSpace1);
-
-    // Icône
-    var iconShow = document.createElement("img");
-    iconShow.id = key_fav_world_icon_preview;
-    iconShow.src = field_value;
-    iconShow.style.verticalAlign = "middle";
-    dt.appendChild(iconShow);
-
-    // espace 2
-    var divSpace2 = document.createElement("span");
-    divSpace2.innerHTML = " ";
-    dt.appendChild(divSpace2);
-
-    // Image pour réinitialiser l'icône
-    var inputReset = document.createElement("input");
-    inputReset.type = "image";
-    inputReset.src = icon_cancel;
-    inputReset.title = "Réinitialiser l'icône";
-    inputReset.style.verticalAlign = "middle";
-    inputReset.addEventListener("click", ResetIconFavWorld, false);
-    dt.appendChild(inputReset);
-
-    // les deux points
-    var divDeuxPoint = document.createElement("span");
-    divDeuxPoint.innerHTML = " :";
-    dt.appendChild(divDeuxPoint);
-
-    dl.appendChild(dt);
-
-    var dd = document.createElement("dd");
-
-    // Définition éditable de l'icône
-    var inputField = document.createElement("input");
-    inputField.type = "text";
-    inputField.id = field_id;
-    inputField.title = "URL de l'icône (http ou data)";
-    inputField.setAttribute("name", field_id);
-    inputField.maxlength = maxlength; // maximum length (in characters) of an input field
-    inputField.size = maxlength; // number of characters that should be visible
-    inputField.value = field_value;
-    inputField.addEventListener("input", ReloadIconFavWorld, false);
-    inputField.addEventListener("click", function() {
-      // Sélection de tout le contenu de la inputBox quand on clique dessus
-      inputField.select();
-    }, false);
-    dd.appendChild(inputField);
-
-    dl.appendChild(dd);
-  },
-  /*
-    Initialisation de la fenêtre "Choix des favoris"
-  */
-  initFavoriteWindow: function() {
-    var favoriteWindow = document.createElement("div");
-    favoriteWindow.className = "sm_front cBackCouleurTab1";
-    favoriteWindow.style.padding = "16px";
-    favoriteWindow.style.width = favorite_window_width;
-
-    // Bouton Fermer la fenêtre
-    var closeButton = this.buildCloseButton();
-    closeButton.style.marginTop = "2px";
-    closeButton.style.marginRight = "0";
-    favoriteWindow.appendChild(closeButton);
-
-    // Texte d'en-tête
-    var headerText = document.createElement("legend");
-    headerText.innerHTML = "Ajoutez des smileys à vos favoris";
-    headerText.style.fontSize = "14px";
-    headerText.style.fontWeight = "bold";
-    favoriteWindow.appendChild(headerText);
-
-    // Encadré
-    var container = document.createElement("div");
-    container.style.border = "1px solid #778";
-    container.style.marginTop = "16px";
-    container.style.padding = "4px";
-    favoriteWindow.appendChild(container);
-
-    // Conteneur des smileys
-    var favoritesList = document.createElement("div");
-    favoritesList.id = key_favorite_window_content;
-    favoritesList.style.textAlign = "center";
-    favoritesList.style.overflow = "auto"; // Scrolling
-    favoritesList.style.maxHeight = favorite_window_content_max_height;
-    container.appendChild(favoritesList);
-
-    cmScript.favoriteDiv = favoriteWindow;
-    document.body.appendChild(cmScript.favoriteDiv);
-  },
-  /*
-    Construction de la fenêtre "Choix des favoris"
-  */
-  buildFavoriteWindow: function(smileysList) {
-    LoadSmileyStats();
-
-    var favoritesList = document.getElementById(key_favorite_window_content);
-
-    // Suppression des favoris éventuellement déjà affichés précédemment.
-    while(favoritesList.hasChildNodes()) {
-      favoritesList.removeChild(favoritesList.lastChild);
-    }
-
-    smileysList = smileysList.getUnique("alt"); // case insensitive!
-
-    for(var i = 0; i < smileysList.length; ++i) {
-      var smiley_code = smileysList[i];
-      smiley_code = smiley_code.replace(/^:O$/, ":o").replace(/^:P$/, ":p").replace(/^:d$/, ":D");
-      var smiley = smileyStats[smiley_code];
-
-      if(smiley == null) {
-        smiley = CreateSmileyDefaultObject(smiley_code);
+      // -- bouton d'ouverture / fermeture du panneau
+      normal_button = document.createElement("div");
+      normal_button.setAttribute("class", "left gm_hfr_vsf_r21_normal_button");
+      normal_button.setAttribute("title", "Afficher vos favoris");
+      normal_button.dataset.status = "closed";
+      normal_button.addEventListener("click", open_close_normal_panel, false);
+      let l_normal_button_img = document.createElement("img");
+      l_normal_button_img.setAttribute("class", "gm_hfr_vsf_r21_normal_button_img");
+      l_normal_button_img.setAttribute("src", vsf_panel_img);
+      l_normal_button_img.setAttribute("alt", "VSF");
+      normal_button.appendChild(l_normal_button_img);
+      l_spacer.parentNode.insertBefore(normal_button, l_spacer);
+      // -- bouton d'ouverture de la fenêtre de configuration
+      let l_conf_button = document.createElement("div");
+      l_conf_button.setAttribute("class", "left gm_hfr_vsf_r21_normal_button");
+      l_conf_button.setAttribute("title", "Gérer vos smileys");
+      l_conf_button.dataset.onglet = "smileys";
+      l_conf_button.addEventListener("contextmenu", prevent_default, false);
+      l_conf_button.addEventListener("click", show_config_window, false);
+      l_conf_button.addEventListener("mouseup", mouseup_config, false);
+      let l_conf_button_img = document.createElement("img");
+      l_conf_button_img.setAttribute("class", "gm_hfr_vsf_r21_normal_button_img");
+      l_conf_button_img.setAttribute("src", vsf_panel_settings_img);
+      l_conf_button_img.setAttribute("alt", "VSF");
+      l_conf_button.appendChild(l_conf_button_img);
+      l_spacer.parentNode.insertBefore(l_conf_button, l_spacer);
+      // positionnement du panneau
+      if(vsf_normal_panel_top) {
+        l_normal_response.parentNode.insertBefore(normal_panel, l_normal_response);
+        l_normal_response.parentNode.insertBefore(normal_br, l_normal_response);
+      } else {
+        l_normal_response.parentNode.insertBefore(normal_panel, l_normal_response.nextSibling);
+        l_normal_response.parentNode.insertBefore(normal_br, l_normal_response.nextSibling);
       }
-
-      var smiley_tiny_code = ConvertFullCodeToTinyCode(smiley.c);
-
-      // Container du smiley
-      var favoriteContainer = document.createElement("div");
-      favoriteContainer.style.display = "inline-block";
-      favoriteContainer.style.margin = "2px";
-      favoriteContainer.className = "fred82vsfsmileyhover"
-
-      // Ajout image du smiley
-      var smileyImage = BuildSmileyImage(smiley, smiley_tiny_code, false);
-      smileyImage.id = key_prefix_favwin + key_prefix_smiley_img + smiley_tiny_code;
-      AddClickEventHandlerForFavoriteStatusChange(smiley, smileyImage);
-      favoriteContainer.appendChild(smileyImage);
-
-      // Ajout icône pour changer le status favoris
-      var favoriteIcon = BuildFavoriteIcon(smiley, smiley_tiny_code, key_prefix_favwin);
-      favoriteIcon.style.display = "block";
-      favoriteIcon.style.textAlign = "center";
-      favoriteIcon.style.marginLeft = "auto";
-      favoriteIcon.style.marginRight = "auto";
-      favoriteContainer.appendChild(favoriteIcon);
-
-      favoritesList.appendChild(favoriteContainer);
-    }
-  },
-  validateConfig: function() {
-    getElementByXpath(".//input[starts-with(@id, \"sm_\")]", document.getElementById("sm_configWindow")).
-    forEach(function(input) {
-      switch (input.type) {
-        case "text":
-          // Enregistrement du réglage
-          GM_setValue(input.name, input.value);
-          break;
-        case "checkbox":
-          // Enregistrement du réglage
-          GM_setValue(input.name, input.checked);
-          break;
-        case "radio":
-          if(input.checked) {
-            // Enregistrement du réglage
-            GM_setValue(input.name, parseInt(input.id.substring(input.id.length - 1)));
-          }
-          break;
-      }
-    });
-    cmScript.hideConfigWindow();
-  },
-
-  initBackAndFront: function() {
-    if(document.getElementById("sm_back")) {
-      cmScript.setBackgroundPosition();
-      cmScript.backgroundDiv.style.opacity = 0;
-      cmScript.backgroundDiv.style.display = "block";
-    }
-  },
-
-  /*
-    windowToShow : nom de la fenêtre à afficher
-    key_tab : onglet à afficher dans cette fenêtre
-  */
-  showConfigWindow: function(windowToShow, key_tab) {
-    cmScript.alterWindow(true);
-    cmScript.initBackAndFront();
-    var opacity = 0;
-    cmScript.timer = setInterval(function() {
-      opacity = Math.round((opacity + 0.1) * 100) / 100;
-      cmScript.backgroundDiv.style.opacity = opacity;
-      if(opacity >= 0.8) {
-        clearInterval(cmScript.timer);
-
-        switch (windowToShow) {
-          case key_window_config:
-            cmScript.configDiv.style.display = "block";
-            break;
-          case key_window_favorite:
-            cmScript.favoriteDiv.style.display = "block";
-            break;
-        }
-
-        cmScript.setBackgroundPosition();
-        cmScript.setConfigWindowPosition();
-
-        if(key_tab !== undefined && key_tab !== null) {
-          // Affichage d'un onglet particulier
-          ShowThisTab(key_tab);
-        }
-      }
-    }, 1);
-  },
-
-  /*
-    Cache la fenêtre de configuration, et annule les saisies éventuelles
-  */
-  hideConfigWindow: function() {
-    reloadUserConfig(); // Rechargement des réglages
-
-    cmScript.configDiv.style.display = "none";
-    cmScript.favoriteDiv.style.display = "none";
-    var opacity = cmScript.backgroundDiv.style.opacity;
-    cmScript.timer = setInterval(function() {
-      opacity = Math.round((opacity - 0.1) * 100) / 100;
-      cmScript.backgroundDiv.style.opacity = opacity;
-      if(opacity <= 0) {
-        clearInterval(cmScript.timer);
-        cmScript.backgroundDiv.style.display = "none";
-        cmScript.alterWindow(false);
-      }
-    }, 1);
-  },
-
-  setUp: function() {
-    if(top.location != self.document.location) {
-      return;
-    }
-
-    // Arrière-plan
-    cmScript.buildBackground();
-
-    // Fenêtre de configuration
-    cmScript.buildConfigWindow();
-
-    // Fenêtre de choix des favoris
-    cmScript.initFavoriteWindow();
-
-    // CSS
-    cssManager.insertStyle();
-  },
-
-  createConfigMenu: function() {
-    GM_registerMenuCommand(script_name + " -> configuration", function(event) {
-      cmScript.showConfigWindow(key_window_config, key_tab_parameters);
-    });
-  }
-};
-
-/*
-  Onglet "Vos smileys" : définition du contenu
-*/
-function BuildYourSmileysContentTab(yourSmileysTabId) {
-  // récupération de l'onglet "Vos smileys"
-  var yourSmileysTab = document.getElementById(yourSmileysTabId);
-  if(yourSmileysTab !== null) {
-
-    // suppression du contenu de "Vos smileys"
-    var yourSmileysContent = yourSmileysTab.querySelector("div[id=\"" + key_tab_yoursmileys_content + "\"]");
-    if(yourSmileysContent !== null) {
-      yourSmileysTab.removeChild(yourSmileysContent);
-    }
-
-    // construction du nouveau contenu de "Vos smileys"
-    yourSmileysContent = document.createElement("div");
-    yourSmileysContent.id = key_tab_yoursmileys_content;
-    yourSmileysContent.className = "tabber";
-    BuildYourSmileysPanel(yourSmileysContent, false, panel_max_height, panel_max_width);
-    yourSmileysTab.insertBefore(yourSmileysContent, yourSmileysTab.lastElementChild);
-
-    // initialisation des onglets dans le contenu de "Vos smileys"
-    InitTabSystem({}, yourSmileysTab);
-
-  }
-}
-
-// =============================================================== //
-// Script pour faire apparaitre des onglets
-// =============================================================== //
-
-var tabberOptions = {
-  /* Optional: instead of letting tabber run during the onload event,
-     we'll start it up manually. This can be useful because the onload
-     even runs after all the images have finished loading, and we can
-     run tabber at the bottom of our page to start it up faster. See the
-     bottom of this page for more info. Note: this variable must be set
-     BEFORE you include tabber.js.   */
-  "manualStartup": true,
-
-  /* Optional: code to run after each tabber object has initialized */
-  "onLoad": function(argsObj) {
-    /* Exemple
-       if (argsObj.tabber.id == "tab2") {
-       alert("Finished loading tab2!");
-       } */
-  },
-
-  /* Optional: code to run when the user clicks a tab. If this
-     function returns boolean false then the tab will not be changed
-     the click is canceled). If you do not return a value or return
-     something that is not boolean false, */
-  "onClick": function(argsObj) {
-    var t = argsObj.tabber; /* Tabber object */
-    var id = t.id; /* ID of the main tabber DIV */
-    var i = argsObj.index; /* Which tab was clicked (0 is the first tab) */
-    var e = argsObj.event; /* Event object */
-
-    if(id == key_smiley_panel) {
-      // Onglets du panneau complet des smileys
-      SaveCurrentShownTab(t.tabs[i].headingText);
-    } else if(t.tabs[i].id == key_tab_yoursmileys) {
-      // Onglet "Vos smileys" à l'intérieur de la fenêtre de configuration
-      BuildYourSmileysContentTab(t.tabs[i].id);
-    }
-  },
-
-  /* Optional: set an ID for each tab navigation link */
-  "addLinkId": true
-};
-
-/*
-  Sauvegarde de l'onglet actuellement affiché
-*/
-function SaveCurrentShownTab(title) {
-  switch (title) {
-    case tab_top_title:
-      sm_current_tab = key_tab_top;
-      break;
-    case tab_history_title:
-      sm_current_tab = key_tab_history;
-      break;
-    case tab_favorite_title:
-      sm_current_tab = key_tab_favorite;
-      break;
-  }
-
-  GM_setValue(key_sm_current_tab, sm_current_tab);
-}
-
-// Source : http://www.barelyfitz.com/projects/tabber/
-/*==================================================
-  $Id: tabber.js,v 1.9 2006/04/27 20:51:51 pat Exp $
-  tabber.js by Patrick Fitzgerald pat@barelyfitz.com
-
-  Documentation can be found at the following URL:
-  http://www.barelyfitz.com/projects/tabber/
-
-  License (http://www.opensource.org/licenses/mit-license.php)
-
-  Copyright (c) 2006 Patrick Fitzgerald
-
-  Permission is hereby granted, free of charge, to any person
-  obtaining a copy of this software and associated documentation files
-  (the "Software"), to deal in the Software without restriction,
-  including without limitation the rights to use, copy, modify, merge,
-  publish, distribute, sublicense, and/or sell copies of the Software,
-  and to permit persons to whom the Software is furnished to do so,
-  subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be
-  included in all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-  SOFTWARE.
-  ==================================================*/
-
-function tabberObj(argsObj) {
-  var arg; /* name of an argument to override */
-
-  /* Element for the main tabber div. If you supply this in argsObj,
-     then the init() method will be called. */
-  this.div = null;
-
-  /* Class of the main tabber div */
-  this.classMain = "tabber";
-
-  /* Rename classMain to classMainLive after tabifying
-     (so a different style can be applied) */
-  this.classMainLive = "tabberlive";
-
-  /* Class of each DIV that contains a tab */
-  this.classTab = "tabbertab";
-
-  /* Class to indicate which tab should be active on startup */
-  this.classTabDefault = "tabbertabdefault";
-
-  /* Class for the navigation UL */
-  this.classNav = "tabbernav";
-
-  /* When a tab is to be hidden, instead of setting display="none", we
-     set the class of the div to classTabHide. In your screen
-     stylesheet you should set classTabHide to display:none.  In your
-     print stylesheet you should set display:block to ensure that all
-     the information is printed. */
-  this.classTabHide = "tabbertabhide";
-
-  /* Class to set the navigation LI when the tab is active, so you can
-     use a different style on the active tab. */
-  this.classNavActive = "tabberactive";
-
-  /* Elements that might contain the title for the tab, only used if a
-     title is not specified in the TITLE attribute of DIV classTab. */
-  this.titleElements = ["h2", "h3", "h4", "h5", "h6"];
-
-  /* Should we strip out the HTML from the innerHTML of the title elements?
-     This should usually be true. */
-  this.titleElementsStripHTML = true;
-
-  /* If the user specified the tab names using a TITLE attribute on
-     the DIV, then the browser will display a tooltip whenever the
-     mouse is over the DIV. To prevent this tooltip, we can remove the
-     TITLE attribute after getting the tab name. */
-  this.removeTitle = true;
-
-  /* If you want to add an id to each link set this to true */
-  this.addLinkId = false;
-
-  /* If addIds==true, then you can set a format for the ids.
-     <tabberid> will be replaced with the id of the main tabber div.
-     <tabnumberzero> will be replaced with the tab number
-     (tab numbers starting at zero)
-     <tabnumberone> will be replaced with the tab number
-     (tab numbers starting at one)
-     <tabtitle> will be replaced by the tab title
-     (with all non-alphanumeric characters removed) */
-  this.linkIdFormat = "<tabberid>nav<tabnumberone>";
-
-  /* You can override the defaults listed above by passing in an object:
-     var mytab = new tabber({property:value,property:value}); */
-  for(arg in argsObj) {
-    this[arg] = argsObj[arg];
-  }
-
-  /* Create regular expressions for the class names; Note: if you
-     change the class names after a new object is created you must
-     also change these regular expressions. */
-  this.REclassMain = new RegExp("\\b" + this.classMain + "\\b", "gi");
-  this.REclassMainLive = new RegExp("\\b" + this.classMainLive + "\\b", "gi");
-  this.REclassTab = new RegExp("\\b" + this.classTab + "\\b", "gi");
-  this.REclassTabDefault = new RegExp("\\b" + this.classTabDefault + "\\b", "gi");
-  this.REclassTabHide = new RegExp("\\b" + this.classTabHide + "\\b", "gi");
-
-  /* Array of objects holding info about each tab */
-  this.tabs = new Array();
-
-  /* If the main tabber div was specified, call init() now */
-  if(this.div) {
-
-    this.init(this.div);
-
-    /* We don't need the main div anymore, and to prevent a memory leak
-       in IE, we must remove the circular reference between the div
-       and the tabber object. */
-    this.div = null;
-  }
-}
-
-/*--------------------------------------------------
-  Methods for tabberObj
-  --------------------------------------------------*/
-
-tabberObj.prototype.init = function(e) {
-  /* Set up the tabber interface.
-
-  e = element (the main containing div)
-
-  Example:
-  init(document.getElementById("mytabberdiv")) */
-
-  var
-    childNodes, /* child nodes of the tabber div */
-    i, i2, /* loop indices */
-    t, /* object to store info about a single tab */
-    defaultTab = 0,
-    /* which tab to select by default */
-    DOM_ul, /* tabbernav list */
-    DOM_li, /* tabbernav list item */
-    DOM_a, /* tabbernav link */
-    aId, /* A unique id for DOM_a */
-    headingElement; /* searching for text to use in the tab */
-
-  /* Verify that the browser supports DOM scripting */
-  if(!document.getElementsByTagName) {
-    return false;
-  }
-
-  /* If the main DIV has an ID then save it. */
-  if(e.id) {
-    this.id = e.id;
-  }
-
-  /* Clear the tabs array (but it should normally be empty) */
-  this.tabs.length = 0;
-
-  /* Loop through an array of all the child nodes within our tabber element. */
-  childNodes = e.childNodes;
-  for(i = 0; i < childNodes.length; ++i) {
-
-    /* Find the nodes where class="tabbertab" */
-    if(childNodes[i].className &&
-      childNodes[i].className.match(this.REclassTab)) {
-
-      /* Create a new object to save info about this tab */
-      t = new Object();
-
-      /* Save a pointer to the div for this tab */
-      t.div = childNodes[i];
-
-      /* Add the new object to the array of tabs */
-      this.tabs[this.tabs.length] = t;
-
-      /* If the class name contains classTabDefault,
-         then select this tab by default. */
-      if(childNodes[i].className.match(this.REclassTabDefault)) {
-        defaultTab = this.tabs.length - 1;
+      // affichage initial du panneau
+      if(!vsf_normal_panel_start_closed && !vsf_normal_panel_closed) {
+        open_close_normal_panel();
       }
     }
   }
-
-  /* Create a new UL list to hold the tab headings */
-  DOM_ul = document.createElement("ul");
-  DOM_ul.className = this.classNav;
-
-  /* Loop through each tab we found */
-  for(i = 0; i < this.tabs.length; ++i) {
-
-    t = this.tabs[i];
-
-    /* Get the label to use for this tab:
-       From the title attribute on the DIV,
-       Or from one of the this.titleElements[] elements,
-       Or use an automatically generated number. */
-    t.headingText = t.div.title;
-    t.id = t.div.id;
-
-    /* Remove the title attribute to prevent a tooltip from appearing */
-    if(this.removeTitle) {
-      t.div.title = "";
-    }
-
-    if(!t.headingText) {
-
-      /* Title was not defined in the title of the DIV,
-         So try to get the title from an element within the DIV.
-         Go through the list of elements in this.titleElements
-         (typically heading elements ["h2","h3","h4"]) */
-      for(i2 = 0; i2 < this.titleElements.length; ++i2) {
-        headingElement = t.div.getElementsByTagName(this.titleElements[i2])[0];
-        if(headingElement) {
-          t.headingText = headingElement.innerHTML;
-          if(this.titleElementsStripHTML) {
-            t.headingText.replace(/<br>/gi, " ");
-            t.headingText = t.headingText.replace(/<[^>]+>/g, "");
-          }
-          break;
-        }
-      }
-    }
-
-    if(!t.headingText) {
-      /* Title was not found (or is blank) so automatically generate a
-         number for the tab. */
-      t.headingText = i + 1;
-    }
-
-    /* Create a list element for the tab */
-    DOM_li = document.createElement("li");
-
-    /* Save a reference to this list item so we can later change it to
-       the "active" class */
-    t.li = DOM_li;
-
-    /* Create a link to activate the tab */
-    DOM_a = document.createElement("a");
-    DOM_a.appendChild(document.createTextNode(t.headingText));
-    DOM_a.href = "javascript:void(null);";
-    DOM_a.title = t.headingText;
-    DOM_a.addEventListener("click", this.navClick, true);
-
-    /* Add some properties to the link so we can identify which tab
-       was clicked. Later the navClick method will need this. */
-    DOM_a.tabber = this;
-    DOM_a.tabberIndex = i;
-
-    /* Do we need to add an id to DOM_a? */
-    if(this.addLinkId && this.linkIdFormat) {
-
-      /* Determine the id name */
-      aId = this.linkIdFormat;
-      aId = aId.replace(/<tabberid>/gi, this.id);
-      aId = aId.replace(/<tabnumberzero>/gi, i);
-      aId = aId.replace(/<tabnumberone>/gi, i + 1);
-      aId = aId.replace(/<tabtitle>/gi, t.headingText.replace(/[^a-zA-Z0-9\-]/gi, ""));
-
-      DOM_a.id = aId;
-    }
-
-    /* Add the link to the list element */
-    DOM_li.appendChild(DOM_a);
-
-    /* Add the list element to the list */
-    DOM_ul.appendChild(DOM_li);
-  }
-
-  /* Add the UL list to the beginning of the tabber div */
-  e.insertBefore(DOM_ul, e.firstChild);
-
-  /* Make the tabber div "live" so different CSS can be applied */
-  e.className = e.className.replace(this.REclassMain, this.classMainLive);
-
-  /* Activate the default tab, and do not call the onclick handler */
-  this.tabShow(defaultTab);
-
-  /* If the user specified an onLoad function, call it now. */
-  if(typeof this.onLoad == "function") {
-    this.onLoad({
-      tabber: this
-    });
-  }
-
-  return this;
-};
-
-tabberObj.prototype.navClick = function(event) {
-  /* This method should only be called by the onClick event of an <A>
-     element, in which case we will determine which tab was clicked by
-     examining a property that we previously attached to the <A>
-     element.
-
-     Since this was triggered from an onClick event, the variable
-     "this" refers to the <A> element that triggered the onClick
-     event (and not to the tabberObj).
-
-     When tabberObj was initialized, we added some extra properties
-     to the <A> element, for the purpose of retrieving them now. Get
-     the tabberObj object, plus the tab number that was clicked. */
-
-  var
-    rVal, /* Return value from the user onclick function */
-    a, /* element that triggered the onclick event */
-    self, /* the tabber object */
-    tabberIndex, /* index of the tab that triggered the event */
-    onClickArgs; /* args to send the onclick function */
-
-  a = this;
-  if(!a.tabber) {
-    return false;
-  }
-
-  self = a.tabber;
-  tabberIndex = a.tabberIndex;
-
-  /* Remove focus from the link because it looks ugly.
-     I don't know if this is a good idea... */
-  a.blur();
-
-  /* If the user specified an onClick function, call it now.
-     If the function returns false then do not continue. */
-  if(typeof self.onClick == "function") {
-
-    onClickArgs = {
-      "tabber": self,
-      "index": tabberIndex,
-      "event": event
-    };
-
-    /* IE uses a different way to access the event object */
-    if(!event) {
-      onClickArgs.event = window.event;
-    }
-
-    rVal = self.onClick(onClickArgs);
-    if(rVal === false) {
-      return false;
-    }
-  }
-
-  self.tabShow(tabberIndex);
-
-  return false;
-};
-
-tabberObj.prototype.tabHideAll = function() {
-  var i; /* counter */
-
-  /* Hide all tabs and make all navigation links inactive */
-  for(i = 0; i < this.tabs.length; ++i) {
-    this.tabHide(i);
-  }
-};
-
-tabberObj.prototype.tabHide = function(tabberIndex) {
-  var div;
-
-  if(!this.tabs[tabberIndex]) {
-    return false;
-  }
-
-  /* Hide a single tab and make its navigation link inactive */
-  div = this.tabs[tabberIndex].div;
-
-  /* Hide the tab contents by adding classTabHide to the div */
-  if(!div.className.match(this.REclassTabHide)) {
-    div.className += " " + this.classTabHide;
-  }
-  this.navClearActive(tabberIndex);
-
-  return this;
-};
-
-tabberObj.prototype.tabShow = function(tabberIndex) {
-  /* Show the tabberIndex tab and hide all the other tabs */
-
-  var div;
-
-  if(!this.tabs[tabberIndex]) {
-    return false;
-  }
-
-  /* Hide all the tabs first */
-  this.tabHideAll();
-
-  /* Get the div that holds this tab */
-  div = this.tabs[tabberIndex].div;
-
-  /* Remove classTabHide from the div */
-  div.className = div.className.replace(this.REclassTabHide, "");
-
-  /* Mark this tab navigation link as "active" */
-  this.navSetActive(tabberIndex);
-
-  /* If the user specified an onTabDisplay function, call it now. */
-  if(typeof this.onTabDisplay == "function") {
-    this.onTabDisplay({
-      "tabber": this,
-      "index": tabberIndex
-    });
-  }
-
-  return this;
-};
-
-tabberObj.prototype.navSetActive = function(tabberIndex) {
-  /* Note: this method does *not* enforce the rule
-     that only one nav item can be active at a time. */
-
-  /* Set classNavActive for the navigation list item */
-  this.tabs[tabberIndex].li.className = this.classNavActive;
-
-  return this;
-};
-
-tabberObj.prototype.navClearActive = function(tabberIndex) {
-  /* Note: this method does *not* enforce the rule
-     that one nav should always be active. */
-
-  /* Remove classNavActive from the navigation list item */
-  this.tabs[tabberIndex].li.className = "";
-
-  return this;
-};
-
-/*==================================================*/
-
-/*
-  Création du système d'onglet
-
-  tabberArgs : options des onglets
-
-  rootDiv : élément racine à partir du quel chercher où placer le système d'onglets (ex : document)
-*/
-function InitTabSystem(tabberArgs, rootDiv) {
-  /* This function finds all DIV elements in the document where
-     class=tabber.classMain, then converts them to use the tabber
-     interface.
-
-     tabberArgs = an object to send to "new tabber()" */
-  var tempObj, /* Temporary tabber object */
-    divs, /* Array of all divs on the page */
-    i; /* Loop index */
-
-  if(!tabberArgs) {
-    tabberArgs = {};
-  }
-
-  /* Create a tabber object so we can get the value of classMain */
-  tempObj = new tabberObj(tabberArgs);
-
-  /* Find all DIV elements in the document that have class=tabber */
-
-  /* First get an array of all DIV elements and loop through them */
-  divs = rootDiv.getElementsByTagName("div");
-
-  for(i = 0; i < divs.length; ++i) {
-    /* Is this DIV the correct class? */
-    if(divs[i].className && divs[i].className.match(tempObj.REclassMain)) {
-      /* Now tabify the DIV */
-      tabberArgs.div = divs[i];
-      divs[i].tabber = new tabberObj(tabberArgs);
-    }
-  }
-
-  return this;
-}
-
-/*
-  Prépare le système d'onglets pour le panneau des smileys
-*/
-function InitTabSystem_ForFullAnswer() {
-  InitTabSystem(tabberOptions, document);
-}
-
-// =============================================================== //
-// Fin script pour faire apparaitre des onglets
-// =============================================================== //
-
-Main(); // Exécution du script GreaseMonkey
+  // création des onglets vos smileys dans la fenêtre de configuration
+  create_vos_smileys();
+  // affichage du dernier onglet sélectionné pour les préférences dans la fenêtre de configuration
+  display_tab("preferences", vsf_preferences_last_tab);
+});

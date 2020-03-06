@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.0.2
+// @version       4.0.3
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 1689 $
 
 // historique :
+// 4.0.3 (04/03/2020) :
+// - ajout de prevent default pour éviter l'aparition de l'universal scroll sur l'ouverture du wiki et du profil
 // 4.0.2 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 4.0.1 (30/01/2020) :
@@ -256,7 +258,7 @@ style.textContent =
   "div#gm_hfr_infrap_r21_keywords_tooltip{position:absolute;max-width:350px;height:auto;padding:4px 8px 5px;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;border-radius:10px;font-size:11px;border:1px solid;" +
   "background:linear-gradient(#ffffff, #f7f7ff);left:0;top:0;text-align:justify;color:#000000;display:none;" +
-  "z-index:1005;}" +
+  "z-index:1005;cursor:default;}" +
   // styles pour la popup
   "div#gm_hfr_infrap_r21_keywords_popup{display:none;position:absolute;left:0;top:0;width:auto;height:auto;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;padding:4px;overflow:auto;" +
@@ -293,6 +295,7 @@ document.getElementsByTagName("head")[0].appendChild(style);
 /* création de la tooltip d'affichage des mots-clés */
 /* ------------------------------------------------ */
 
+// création de la tooltip d'affichage des mots-clés
 var keywords_tooltip = document.createElement("div");
 keywords_tooltip.setAttribute("id", "gm_hfr_infrap_r21_keywords_tooltip");
 document.body.appendChild(keywords_tooltip);
@@ -381,6 +384,7 @@ keywords_span.setAttribute("title", script_name);
 var keywords_span_link = document.createElement("span");
 keywords_span_link.setAttribute("class", "gm_hfr_infrap_r21_keywords_span_link");
 keywords_span_link.setAttribute("title", "Page du smiley sur le wiki");
+keywords_span_link.addEventListener("mousedown", prevent_default, false);
 keywords_span_link.addEventListener("mouseup", open_wiki, false);
 keywords_span.appendChild(keywords_span_link);
 keywords_div.appendChild(keywords_span);
@@ -511,6 +515,11 @@ function hide_popup(p_event) {
 /* fonctions globales */
 /* ------------------ */
 
+// fonction de désactivation de l'action par défaut sur un événement
+function prevent_default(p_event) {
+  p_event.preventDefault();
+}
+
 // fonction de fermeture de le tooltip et des popup par la touche echap
 function esc_popup(p_event) {
   if(p_event.key === "Escape") {
@@ -637,6 +646,7 @@ function add_info_pseudal(pseudal, profillink, avatarimg) {
   if(real_pseudal !== "Profil supprimé") {
     if(profillink) {
       pseudal.style.cursor = "help";
+      pseudal.addEventListener("mousedown", prevent_default, false);
       pseudal.addEventListener("mouseup", function(e) {
         e.preventDefault();
         if(e.button === 0 || e.button === 1) {

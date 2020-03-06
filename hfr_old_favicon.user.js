@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Old Favicon
-// @version       1.3.4
+// @version       1.3.5
 // @namespace     roger21.free.fr
 // @description   Remplace l'icône du forum et du site par le précédent en noir et blanc.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAAAAABWESUoAAAAg0lEQVR42sWTXQ6AIAyDe%2F9T9WYYtoljbiIvSuIf%2FbK1CGiLgY8AyNDnfH8PpMU3gMLeDaB6AXU%2BtuApyoUQU12T8sWmVSJgc0MPLax312lvaQrRUcfsPkatZKEAlzSYvEQvR4AuTdJCw7Fe6hWAGvC%2Fe3L4vB%2BWwN6Wy7bsDvDz2TwAMXIqGblpZe4AAAAASUVORK5CYII%3D
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 1705 $
 
 // historique :
+// 1.3.5 (06/03/2020) :
+// - double installation du favicon, avec et sans tempo pour une meilleur efficacité
 // 1.3.4 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // - ajout d'une fausse tempo pour forcer la mise-à-jour du favicon (good ol' javascript trick)
@@ -92,7 +94,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 1.0.1 (14/09/2012) :
 // - ajout des metadata @grant
 
-window.setTimeout(function() {
+function favicon(){
   var head = document.getElementsByTagName("head")[0];
   if(head) {
     var link = document.createElement("link");
@@ -101,4 +103,6 @@ window.setTimeout(function() {
     link.setAttribute("href", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAAAAAA6mKC9AAAAT0lEQVR42nWOiw3AQAhC2X8qNrN%2BwKZ3qYkmTxFFHIFMYoLFECZ0asQWM5lSLod3i9lLsfNUxzbKR9bivYwX9IhtfQ1jqPLTwKXwI9%2BG4wEGx6xs3T841gAAAABJRU5ErkJggg%3D%3D");
     head.appendChild(link);
   }
-}, 1);
+}
+favicon();
+window.setTimeout(favicon, 1);

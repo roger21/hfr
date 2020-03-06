@@ -1,0 +1,245 @@
+/* ==UserStyle==
+@name          [HFR] Vos smileys favoris
+@version       1.0.0
+@namespace     roger21.free.fr
+@description   Modèle pour la personnalisation du style de [HFR] Vos smileys favoris mod_r21 version 3.0.0+
+@revision      $Rev: 1595 $
+==/UserStyle== */
+
+/*
+historique :
+1.0.0 (04/03/2020) :
+- creation
+*/
+
+@-moz-document domain("forum.hardware.fr") {
+
+/******************************/
+/* fenêtre d'ajout de favoris */
+/******************************/
+
+/* couleur de la bordure */
+
+#gm_hfr_vsf_r21_add_fav_window {
+  border-color: #242424 !important;
+}
+
+/* couleur de fond */
+
+#gm_hfr_vsf_r21_add_fav_window {
+  background-color: #f0f0f0 !important;
+}
+
+/* couleur du texte */
+
+#gm_hfr_vsf_r21_add_fav_window {
+  color: #000000 !important;
+}
+
+/* couleur de la bordure du panneau des smileys */
+
+#gm_hfr_vsf_r21_add_fav_window div.gm_hfr_vsf_r21_add_fav_panel {
+  border-color: #888888 !important;
+}
+
+/* couleur de fond du panneau des smileys */
+
+#gm_hfr_vsf_r21_add_fav_window div.gm_hfr_vsf_r21_add_fav_panel {
+  background-color: #ffffff !important;
+}
+
+/*****************************************/
+/* panneau des favoris en réponse rapide */
+/*****************************************/
+
+/* opacité des boutons par défaut */
+
+img.gm_hfr_vsf_r21_quick_buttons_img {
+  opacity: 0.3 !important;
+}
+
+/* couleur de la bordure */
+
+span.gm_hfr_vsf_r21_quick_panel {
+  border-color: #888888 !important;
+}
+
+/* couleur de fond */
+
+span.gm_hfr_vsf_r21_quick_panel {
+  background-color: #f0f0f0 !important;
+}
+
+/******************************************/
+/* panneau des favoris en réponse normale */
+/******************************************/
+
+/* couleur de la bordure */
+
+span.gm_hfr_vsf_r21_normal_panel {
+  border-color: #888888 !important;
+}
+
+/* couleur de fond */
+
+span.gm_hfr_vsf_r21_normal_panel {
+  background-color: #f0f0f0 !important;
+}
+
+/******************************/
+/* onglets en réponse normale */
+/******************************/
+
+/* opacité des boutons par défaut */
+
+div#mesdiscussions img.gm_hfr_vsf_r21_img_tab {
+  opacity: 0.3 !important;
+}
+
+/* couleur des bordures (mettre la même couleur sur les trois règles suivantes) */
+
+span.gm_hfr_vsf_r21_span_tab {
+  border-color: #888888 !important;
+}
+div.gm_hfr_vsf_r21_div_tabs,
+div.gm_hfr_vsf_r21_div_content {
+  border-bottom-color: #888888 !important;
+}
+div.gm_hfr_vsf_r21_div_content {
+  border-right-color: #888888 !important;
+  border-left-color: #888888 !important;
+}
+
+/* couleur de fond des onglets */
+
+span.gm_hfr_vsf_r21_span_tab {
+  background-color: #d7d7d7 !important;
+}
+
+/* couleur du texte des onglets */
+
+span.gm_hfr_vsf_r21_span_tab {
+  color: #000000 !important;
+}
+
+/* couleur de fond des onglets actifs (mettre la même couleur sur les deux règles suivantes) */
+
+span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover,
+span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active,
+div.gm_hfr_vsf_r21_div_content {
+  background-color: #f0f0f0 !important;
+}
+span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active {
+  border-bottom-color: #f0f0f0 !important;
+}
+
+/* couleur du texte des onglets actifs */
+
+span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover,
+span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active,
+div.gm_hfr_vsf_r21_div_content {
+  color: #000000 !important;
+}
+
+/****************************/
+/* fenêtre de configuration */
+/****************************/
+
+/* couleur de la bordure */
+
+#gm_hfr_vsf_r21_config_window {
+  border-color: #242424 !important;
+}
+
+/* couleur de fond */
+
+#gm_hfr_vsf_r21_config_window {
+  background-color: #e0e0e0 !important;
+}
+
+/* couleur du texte */
+
+#gm_hfr_vsf_r21_config_window {
+  color: #000000 !important;
+}
+
+/* couleur des bordures des onglets (mettre la même couleur sur les trois règles suivantes) */
+
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_action_save,
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab {
+  border-color: #888888 !important;
+}
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_tabs,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content {
+  border-bottom-color: #888888 !important;
+}
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content {
+  border-right-color: #888888 !important;
+  border-left-color: #888888 !important;
+}
+
+/* couleur de fond des onglets de premier niveau */
+
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab {
+  background-color: #d7d7d7 !important;
+}
+
+/* couleur du texte des onglets de premier niveau */
+
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab {
+  color: #000000 !important;
+}
+
+/* couleur de fond des onglets actifs de premier niveau (mettre la même couleur sur les deux règles suivantes) */
+
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover,
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content {
+  background-color: #f0f0f0 !important;
+}
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active {
+  border-bottom-color: #f0f0f0 !important;
+}
+
+/* couleur du texte des onglets actifs de premier niveau */
+
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover,
+#gm_hfr_vsf_r21_config_window span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content {
+  color: #000000 !important;
+}
+
+/* couleur de fond des onglets de deuxième niveau */
+
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general span.gm_hfr_vsf_r21_span_tab {
+  background-color: #e7e7e7 !important;
+}
+
+/* couleur du texte des onglets de deuxième niveau */
+
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general span.gm_hfr_vsf_r21_span_tab {
+  color: #000000 !important;
+}
+
+/* couleur de fond des onglets actifs de deuxième niveau (mettre la même couleur sur les deux règles suivantes) */
+
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_action_save,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general div.gm_hfr_vsf_r21_div_content {
+  background-color: #ffffff !important;
+}
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active {
+  border-bottom-color: #ffffff !important;
+}
+
+/* couleur du texte des onglets actifs de deuxième niveau */
+
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_action_save,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general span.gm_hfr_vsf_r21_span_tab:not(.gm_hfr_vsf_r21_tab_active):hover,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general span.gm_hfr_vsf_r21_span_tab.gm_hfr_vsf_r21_tab_active,
+#gm_hfr_vsf_r21_config_window div.gm_hfr_vsf_r21_div_content_tab_general div.gm_hfr_vsf_r21_div_content {
+  color: #000000 !important;
+}
+
+}
