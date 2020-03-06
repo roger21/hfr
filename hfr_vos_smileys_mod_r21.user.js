@@ -41,10 +41,10 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1697 $
+// $Rev: 1714 $
 
 // historique :
-// 3.0.0 (xx/03/2020) :
+// 3.0.0 (07/03/2020) :
 // - refonte complète / fresh restart
 
 /*
