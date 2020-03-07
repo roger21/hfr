@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Vos smileys favoris mod_r21
-// @version       3.0.0
+// @version       3.0.1
 // @namespace     roger21.free.fr
 // @description   Permet de gérer une liste illimitée de smileys favoris.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -41,9 +41,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1714 $
+// $Rev: 1721 $
 
 // historique :
+// 3.0.1 (07/03/2020) :
+// - nouvelle gestion de l'import pour compatibilité
 // 3.0.0 (07/03/2020) :
 // - refonte complète / fresh restart
 
@@ -2524,35 +2526,38 @@ function save_backup() {
 }
 
 // function de gestion de la récuperation du fichier de sauvegarde lors de la restauration
+function import_backup(p_event) {
+  let l_backup;
+  try {
+    l_backup = JSON.parse(this.result);
+  } catch (e) {
+    alert(script_name + " :\n\nLe fichier fourni pour la restauration n'a pas pu être lu.");
+    return;
+  }
+  // demande de confirmation
+  if(window.confirm(script_name + " :\n\nAttention, cette opération va remplacer tous vos smileys actuels " +
+      "par ceux de la sauvegarde !\n\nÊtes-vous sûr de vouloir continuer ?") === true) {
+    // restauration des smileys
+    vsf_smileys = convert_smileys_for_restore(l_backup);
+    GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
+    // mise à jour des panneaux et onglets
+    populate_panel(null, quick_panel, "panneau", true);
+    populate_panel(null, normal_panel, "panneau", true);
+    populate_panel(null, top_tab_conf, "top", false);
+    populate_panel(null, top_tab_normal, "top", true);
+    populate_panel(null, historique_tab_conf, "historique", false);
+    populate_panel(null, historique_tab_normal, "historique", true);
+    populate_panel(null, favoris_tab_conf, "favoris", false);
+    populate_panel(null, favoris_tab_normal, "favoris", true);
+  }
+}
+
+// function de gestion de la lecture du fichier de sauvegarde lors de la restauration
 function read_backup(p_event) {
   let l_file = this.files[0];
-  l_file.text().then(function(p_text) {
-    let l_backup;
-    try {
-      l_backup = JSON.parse(p_text);
-    } catch (e) {
-      alert(script_name + " :\n\nLe fichier fourni pour la restauration n'a pas pu être lu.");
-      return;
-    }
-    // demande de confirmation
-    if(window.confirm(script_name + " :\n\nAttention, cette opération va remplacer tous vos smileys actuels " +
-        "par ceux de la sauvegarde !\n\nÊtes-vous sûr de vouloir continuer ?") === true) {
-      // restauration des smileys
-      vsf_smileys = convert_smileys_for_restore(l_backup);
-      GM.setValue("vsf_smileys", JSON.stringify(vsf_smileys));
-      // mise à jour des panneaux et onglets
-      populate_panel(null, quick_panel, "panneau", true);
-      populate_panel(null, normal_panel, "panneau", true);
-      populate_panel(null, top_tab_conf, "top", false);
-      populate_panel(null, top_tab_normal, "top", true);
-      populate_panel(null, historique_tab_conf, "historique", false);
-      populate_panel(null, historique_tab_normal, "historique", true);
-      populate_panel(null, favoris_tab_conf, "favoris", false);
-      populate_panel(null, favoris_tab_normal, "favoris", true);
-    }
-  }).catch(function(e) {
-    console.log(script_name + " ERROR read_backup : " + e);
-  });
+  let l_reader = new FileReader();
+  l_reader.addEventListener("loadend", import_backup, false);
+  l_reader.readAsText(l_file);
 }
 
 // function de restauration d'une sauvegarde
