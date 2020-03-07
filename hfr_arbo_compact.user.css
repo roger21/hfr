@@ -3,10 +3,12 @@
 @version       1.1.2
 @namespace     roger21.free.fr
 @description   Permet de compacter l'affichage des arborescences cat/sous-cat/topic.
-@revision      $Rev: 1595 $
 ==/UserStyle== */
 
 /*
+
+$Rev: 1716 $
+
 historique :
 1.1.2 (13/02/2020) :
 - mise en forme des metadata pour la compatibilité avec Stylus
@@ -16,6 +18,7 @@ historique :
 - meilleur compactage
 1.0.0 (28/04/2014) :
 - creation
+
 */
 
 @-moz-document domain("forum.hardware.fr") {

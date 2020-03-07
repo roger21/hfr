@@ -3,10 +3,12 @@
 @version       1.2.3
 @namespace     roger21.free.fr
 @description   Permet de masquer les smileys par défaut sur la page de réponse et de creation des topics.
-@revision      $Rev: 1595 $
 ==/UserStyle== */
 
 /*
+
+$Rev: 1716 $
+
 historique :
 1.2.3 (13/02/2020) :
 - mise en forme des metadata pour la compatibilité avec Stylus
@@ -20,6 +22,7 @@ historique :
 - prise en compte des pages de creation de topic/sondage
 1.0.0 (07/03/2015) :
 - creation
+
 */
 
 @-moz-document url-prefix("https://forum.hardware.fr/message.php"),

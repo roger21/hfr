@@ -3,10 +3,12 @@
 @version       1.0.2
 @namespace     roger21.free.fr
 @description   Permet de décorer le titre du topic des scripts greasemonkey avec des têtes de singe dans la liste des topics.
-@revision      $Rev: 1595 $
 ==/UserStyle== */
 
 /*
+
+$Rev: 1716 $
+
 historique :
 1.0.2 (13/02/2020) :
 - mise en forme des metadata pour la compatibilité avec Stylus
@@ -14,6 +16,7 @@ historique :
 - suppression du @namesapce pour la compatibilité avec Stylus
 1.0.0 (29/04/2018) :
 - creation
+
 */
 
 @-moz-document url-prefix("https://forum.hardware.fr/forum1.php"),

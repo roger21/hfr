@@ -3,10 +3,12 @@
 @version       1.2.1
 @namespace     roger21.free.fr
 @description   Permet un affichage identique des images et des smileys (sans marge).
-@revision      $Rev: 1595 $
 ==/UserStyle== */
 
 /*
+
+$Rev: 1716 $
+
 historique :
 1.2.1 (13/02/2020) :
 - mise en forme des metadata pour la compatibilité avec Stylus
@@ -18,6 +20,7 @@ historique :
 - ajout du support de l'aperçu dans la réponse normale
 1.0.0 (26/04/2014) :
 - creation
+
 */
 
 @-moz-document domain("forum.hardware.fr") {

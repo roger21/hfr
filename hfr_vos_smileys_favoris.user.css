@@ -2,14 +2,17 @@
 @name          [HFR] Vos smileys favoris
 @version       1.0.0
 @namespace     roger21.free.fr
-@description   Modèle pour la personnalisation du style de [HFR] Vos smileys favoris mod_r21 version 3.0.0+
-@revision      $Rev: 1713 $
+@description   Modèle pour la personnalisation du style de [HFR] Vos smileys favoris mod_r21 version 3.0.0+.
 ==/UserStyle== */
 
 /*
+
+$Rev: 1716 $
+
 historique :
 1.0.0 (04/03/2020) :
 - creation
+
 */
 
 @-moz-document domain("forum.hardware.fr") {

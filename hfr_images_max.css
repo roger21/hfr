@@ -3,10 +3,12 @@
 @version       1.0.2
 @namespace     roger21.free.fr
 @description   Permet de limiter par défaut la taille maximale des images.
-@revision      $Rev: 1595 $
 ==/UserStyle== */
 
 /*
+
+$Rev: 1716 $
+
 historique :
 1.0.2 (13/02/2020) :
 - mise en forme des metadata pour la compatibilité avec Stylus
@@ -14,6 +16,7 @@ historique :
 - suppression du @namesapce pour la compatibilité avec Stylus
 1.0.0 (21/04/2019) :
 - creation
+
 */
 
 @-moz-document domain("forum.hardware.fr") {
