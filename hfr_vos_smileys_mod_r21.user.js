@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Vos smileys favoris mod_r21
-// @version       3.0.3
+// @version       3.0.4
 // @namespace     roger21.free.fr
 // @description   Permet de gérer une liste illimitée de smileys favoris.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -41,9 +41,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1745 $
+// $Rev: 1755 $
 
 // historique :
+// 3.0.4 (12/03/2020) :
+// - conversion des click -> select() en focus -> select() sur les champs de saisie
+// - ouverture de la fenêtre de configuration sur les préférences si ouvert via un clic droit
+// - amélioration de la correction précédente (encore ...)
 // 3.0.3 (12/03/2020) :
 // - correction de la correction précédente [:roger21:2]
 // 3.0.2 (12/03/2020) :
@@ -767,6 +771,9 @@ smileys_number_input.setAttribute("maxLength", "5");
 smileys_number_input.setAttribute("pattern", "[0-9]+");
 smileys_number_input.setAttribute("title", "au moins 10");
 smileys_number_input.setAttribute("placeholder", "10");
+smileys_number_input.addEventListener("focus", function() {
+  smileys_number_input.select();
+}, false);
 smileys_number_p.appendChild(smileys_number_input);
 content_pref1.appendChild(smileys_number_p);
 // -- alert_new_smiley
@@ -853,7 +860,7 @@ add_button_img_input.setAttribute("type", "text");
 add_button_img_input.setAttribute("spellcheck", "false");
 add_button_img_input.setAttribute("size", "23");
 add_button_img_input.setAttribute("title", "url de l'icône (http ou data)");
-add_button_img_input.addEventListener("click", function() {
+add_button_img_input.addEventListener("focus", function() {
   add_button_img_input.select();
 }, false);
 
@@ -891,7 +898,7 @@ panel_img_input.setAttribute("type", "text");
 panel_img_input.setAttribute("spellcheck", "false");
 panel_img_input.setAttribute("size", "23");
 panel_img_input.setAttribute("title", "url de l'icône (http ou data)");
-panel_img_input.addEventListener("click", function() {
+panel_img_input.addEventListener("focus", function() {
   panel_img_input.select();
 }, false);
 
@@ -929,7 +936,7 @@ panel_settings_img_input.setAttribute("type", "text");
 panel_settings_img_input.setAttribute("spellcheck", "false");
 panel_settings_img_input.setAttribute("size", "23");
 panel_settings_img_input.setAttribute("title", "url de l'icône (http ou data)");
-panel_settings_img_input.addEventListener("click", function() {
+panel_settings_img_input.addEventListener("focus", function() {
   panel_settings_img_input.select();
 }, false);
 
@@ -1315,7 +1322,7 @@ function show_config_window(p_event) {
   normal_panel_position_dessus_radio.checked = vsf_normal_panel_top;
   normal_panel_position_dessous_radio.checked = !vsf_normal_panel_top;
   // affichage d'un onglet en fonction du contexte
-  if(typeof p_event !== "undefined" &&
+  if(typeof p_event !== "undefined" && p_event.button !== 2 &&
     typeof p_event.currentTarget.dataset.onglet !== "undefined" &&
     p_event.currentTarget.dataset.onglet === "smileys") {
     // affichage de l'onglet vos smileys
@@ -2933,12 +2940,14 @@ Promise.all([
         }
       }
       // -- fonction de gestion du clic sur le bouton de fermeture
-      function close_quick_panel() {
+      function close_quick_panel(p_event) {
         quick_link.style.display = "inline";
         quick_panel.style.display = "none";
         quick_br.style.display = "none";
         quick_buttons.style.display = "none";
-        GM.setValue("vsf_quick_panel_closed", true);
+        if(p_event !== null) {
+          GM.setValue("vsf_quick_panel_closed", true);
+        }
       }
       // -- lien d'ouverture du panneau
       quick_link = document.createElement("span");
@@ -3003,7 +3012,7 @@ Promise.all([
       if(!vsf_quick_panel_start_closed && !vsf_quick_panel_closed) {
         open_quick_panel(null);
       } else {
-        close_quick_panel();
+        close_quick_panel(null);
       }
     }
   }
