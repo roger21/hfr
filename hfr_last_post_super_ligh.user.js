@@ -32,10 +32,10 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1748 $
+// $Rev: 1751 $
 
 // historique :
-// 1.1.2 (13/03/2020) :
+// 1.1.2 (12/03/2020) :
 // - adaptation du code de recherche des leds pour fonctionner avec [HFR] Chat
 // 1.1.1 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)

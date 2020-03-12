@@ -39,10 +39,10 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1748 $
+// $Rev: 1751 $
 
 // historique :
-// 3.5.7 (13/03/2020) :
+// 3.5.7 (12/03/2020) :
 // - adaptation du code de détection des quotes pour fonctionner avec [HFR] Chat
 // 3.5.6 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
