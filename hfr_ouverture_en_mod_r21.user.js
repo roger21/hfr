@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Ouverture en masse mod_r21
-// @version       4.2.0
+// @version       4.2.1
 // @namespace     roger21.free.fr
 // @description   Permet d'ouvrir ses drapeaux dans de nouveaux onglets avec un seul clic.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -41,9 +41,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 1788 $
 
 // historique :
+// 4.2.1 (17/03/2020) :
+// - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 4.2.0 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 4.1.9 (07/02/2020) :
@@ -581,7 +583,7 @@ nb_tabs_input.setAttribute("size", "2");
 nb_tabs_input.setAttribute("maxLength", "2");
 nb_tabs_input.setAttribute("pattern", "[1-9]([0-9])?");
 nb_tabs_input.setAttribute("title", "de 1 à 99 onglets");
-nb_tabs_input.addEventListener("click", function() {
+nb_tabs_input.addEventListener("focus", function() {
   nb_tabs_input.select();
 }, false);
 nb_tabs_p.appendChild(nb_tabs_input);
@@ -673,7 +675,7 @@ img_all_cat_input.setAttribute("type", "text");
 img_all_cat_input.setAttribute("spellcheck", "false");
 img_all_cat_input.setAttribute("size", "37");
 img_all_cat_input.setAttribute("title", "url de l'icône (http ou data)");
-img_all_cat_input.addEventListener("click", function() {
+img_all_cat_input.addEventListener("focus", function() {
   img_all_cat_input.select();
 }, false);
 
@@ -712,7 +714,7 @@ img_cat_input.setAttribute("type", "text");
 img_cat_input.setAttribute("spellcheck", "false");
 img_cat_input.setAttribute("size", "37");
 img_cat_input.setAttribute("title", "url de l'icône (http ou data)");
-img_cat_input.addEventListener("click", function() {
+img_cat_input.addEventListener("focus", function() {
   img_cat_input.select();
 }, false);
 
@@ -761,7 +763,7 @@ refresh_after_time_input.setAttribute("size", "2");
 refresh_after_time_input.setAttribute("maxLength", "2");
 refresh_after_time_input.setAttribute("pattern", "[1-9]([0-9])?");
 refresh_after_time_input.setAttribute("title", "de 1 à 99 secondes");
-refresh_after_time_input.addEventListener("click", function() {
+refresh_after_time_input.addEventListener("focus", function() {
   refresh_after_time_input.select();
 }, false);
 refresh_after_p.appendChild(refresh_after_time_input);
@@ -789,7 +791,7 @@ refresh_every_time_input.setAttribute("size", "2");
 refresh_every_time_input.setAttribute("maxLength", "2");
 refresh_every_time_input.setAttribute("pattern", "[1-9]([0-9])?");
 refresh_every_time_input.setAttribute("title", "de 1 à 99 minutes");
-refresh_every_time_input.addEventListener("click", function() {
+refresh_every_time_input.addEventListener("focus", function() {
   refresh_every_time_input.select();
 }, false);
 refresh_every_p.appendChild(refresh_every_time_input);

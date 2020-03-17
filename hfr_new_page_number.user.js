@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.8.0
+// @version       2.8.1
 // @namespace     roger21.free.fr
 // @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1639 $
+// $Rev: 1788 $
 
 // historique :
+// 2.8.1 (17/03/2020) :
+// - conversion des click -> select() en focus -> select() sur les champs de saisie
+// - reduction de la tempo sur l'actualisation du drapal de l'ouverture en masse
 // 2.8.0 (20/02/2020) :
 // - ajout d'une double option pour ouvrir les drapals dans un nouvel onglet
 // - correction de la gestion des attributs spécifiques du script
@@ -562,7 +565,7 @@ var npn_in_button = document.createElement("input");
 npn_in_button.setAttribute("type", "text");
 npn_in_button.setAttribute("size", "39");
 npn_in_button.setAttribute("title", "url de l'icône (http ou data)");
-npn_in_button.addEventListener("click", function() {
+npn_in_button.addEventListener("focus", function() {
   npn_in_button.select();
 }, false);
 
@@ -622,7 +625,7 @@ npn_in_maxtab.setAttribute("maxlength", "2");
 npn_in_maxtab.setAttribute("pattern", "[1-9]([0-9])?");
 npn_in_maxtab.setAttribute("title", "de 1 à 99 onglets");
 npn_in_maxtab.style.textAlign = "right";
-npn_in_maxtab.addEventListener("click", function() {
+npn_in_maxtab.addEventListener("focus", function() {
   npn_in_maxtab.select();
 }, false);
 npn_p_maxtab.appendChild(npn_in_maxtab);
@@ -807,7 +810,7 @@ npn_in_limit_fixed.setAttribute("maxlength", "5");
 npn_in_limit_fixed.setAttribute("pattern", "[1-9]([0-9])*");
 npn_in_limit_fixed.setAttribute("title", "nombre de pages nécéssaires pour atteindre la couleur de fin");
 npn_in_limit_fixed.style.textAlign = "right";
-npn_in_limit_fixed.addEventListener("click", function() {
+npn_in_limit_fixed.addEventListener("focus", function() {
   npn_in_limit_fixed.select();
 }, false);
 npn_p_limit.appendChild(npn_in_limit_fixed);
@@ -902,7 +905,7 @@ npn_in_refreshclick.setAttribute("maxlength", "2");
 npn_in_refreshclick.setAttribute("pattern", "[1-9]([0-9])?");
 npn_in_refreshclick.setAttribute("title", "de 1 à 99 secondes");
 npn_in_refreshclick.style.textAlign = "right";
-npn_in_refreshclick.addEventListener("click", function() {
+npn_in_refreshclick.addEventListener("focus", function() {
   npn_in_refreshclick.select();
 }, false);
 var npn_lb_in_refreshclick = document.createElement("label");
@@ -944,7 +947,7 @@ npn_in_refreshpage.setAttribute("maxlength", "2");
 npn_in_refreshpage.setAttribute("pattern", "[1-9]([0-9])?");
 npn_in_refreshpage.setAttribute("title", "de 1 à 99 minutes");
 npn_in_refreshpage.style.textAlign = "right";
-npn_in_refreshpage.addEventListener("click", function() {
+npn_in_refreshpage.addEventListener("focus", function() {
   npn_in_refreshpage.select();
 }, false);
 var npn_lb_in_refreshpage = document.createElement("label");
@@ -1267,7 +1270,7 @@ function drapal_mouseup(e) {
       let xhr = new XMLHttpRequest();
       xhr.open("GET", last_url);
       xhr.send();
-    }, 1000);
+    }, 100);
   } else if(open_new_tab && (e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
     GM.openInTab(this.dataset.href, new_tab_foreground ? false : open_in_background);
   } else if((this.hasAttribute("target") && this.getAttribute("target") === "_blank") ||

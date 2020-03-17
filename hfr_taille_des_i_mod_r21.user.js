@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Taille des images mod_r21
-// @version       3.0.7
+// @version       3.0.8
 // @namespace     roger21.free.fr
 // @description   Permet de limiter la taille des images dans les posts et de leur rendre leur taille originale en cliquant sur un bouton intégré à l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 1788 $
 
 // historique :
+// 3.0.8 (17/03/2020) :
+// - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 3.0.7 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 3.0.6 (11/01/2020) :
@@ -325,7 +327,7 @@ width_fixed_input.setAttribute("id", "gm_hfr_tdi_r21_width_fixed_input");
 width_fixed_input.setAttribute("size", "3");
 width_fixed_input.setAttribute("maxLength", "4");
 width_fixed_input.setAttribute("pattern", "[1-9]([0-9])*");
-width_fixed_input.addEventListener("click", function() {
+width_fixed_input.addEventListener("focus", function() {
   width_fixed_input.select();
 }, false);
 width_fixed_p.appendChild(width_fixed_input);
@@ -366,7 +368,7 @@ height_fixed_input.setAttribute("id", "gm_hfr_tdi_r21_height_fixed_input");
 height_fixed_input.setAttribute("size", "3");
 height_fixed_input.setAttribute("maxLength", "4");
 height_fixed_input.setAttribute("pattern", "[1-9]([0-9])*");
-height_fixed_input.addEventListener("click", function() {
+height_fixed_input.addEventListener("focus", function() {
   height_fixed_input.select();
 }, false);
 height_fixed_p.appendChild(height_fixed_input);
@@ -425,7 +427,7 @@ img_expand_input.setAttribute("type", "text");
 img_expand_input.setAttribute("spellcheck", "false");
 img_expand_input.setAttribute("size", "30");
 img_expand_input.setAttribute("title", "url de l'image (http ou data)");
-img_expand_input.addEventListener("click", function() {
+img_expand_input.addEventListener("focus", function() {
   img_expand_input.select();
 }, false);
 
@@ -468,7 +470,7 @@ img_reduce_input.setAttribute("type", "text");
 img_reduce_input.setAttribute("spellcheck", "false");
 img_reduce_input.setAttribute("size", "30");
 img_reduce_input.setAttribute("title", "url de l'image (http ou data)");
-img_reduce_input.addEventListener("click", function() {
+img_reduce_input.addEventListener("focus", function() {
   img_reduce_input.select();
 }, false);
 
