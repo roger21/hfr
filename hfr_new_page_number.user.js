@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.8.1
+// @version       2.8.2
 // @namespace     roger21.free.fr
 // @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1788 $
+// $Rev: 1910 $
 
 // historique :
+// 2.8.2 (11/04/2020) :
+// - suppression de la tempo sur l'actualisation du drapal de l'ouverture en masse (marche pas)
 // 2.8.1 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // - reduction de la tempo sur l'actualisation du drapal de l'ouverture en masse
@@ -1266,11 +1268,9 @@ function drapal_mouseup(e) {
       GM.openInTab(url, open_in_background);
     });
     // force l'actualisation du drapal en réouvrant le dernier onglet silencieusement
-    window.setTimeout(function() {
-      let xhr = new XMLHttpRequest();
-      xhr.open("GET", last_url);
-      xhr.send();
-    }, 100);
+    let xhr = new XMLHttpRequest();
+    xhr.open("GET", last_url);
+    xhr.send();
   } else if(open_new_tab && (e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
     GM.openInTab(this.dataset.href, new_tab_foreground ? false : open_in_background);
   } else if((this.hasAttribute("target") && this.getAttribute("target") === "_blank") ||
