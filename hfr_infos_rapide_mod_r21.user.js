@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.0.3
+// @version       4.0.4
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1689 $
+// $Rev: 1937 $
 
 // historique :
+// 4.0.4 (25/04/2020) :
+// - correction de la requête de récupération du profil (mauvaise gestion des pseudos compliqués)
+// - amélioration de la récupération de la page du profil (pour gérer les pseudos mal tronqués par le forum)
+// - exclusion du profil "Publicité" (en mode déconnecté)
 // 4.0.3 (04/03/2020) :
 // - ajout de prevent default pour éviter l'aparition de l'universal scroll sur l'ouverture du wiki et du profil
 // 4.0.2 (13/02/2020) :
@@ -644,24 +648,28 @@ function get_real_pseudal_value(p_pseudal_value) {
 function add_info_pseudal(pseudal, profillink, avatarimg) {
   var real_pseudal = get_real_pseudal_value(pseudal.firstChild.textContent.trim());
   if(real_pseudal !== "Profil supprimé") {
+    let profileurl = null;
     if(profillink) {
+      profileurl = pseudal.parentElement.parentElement.parentElement.querySelector("a[href^=\"/hfr/profil-\"]").href;
       pseudal.style.cursor = "help";
       pseudal.addEventListener("mousedown", prevent_default, false);
       pseudal.addEventListener("mouseup", function(e) {
         e.preventDefault();
         if(e.button === 0 || e.button === 1) {
-          GM.openInTab(profil_url + real_pseudal, e.button === 1);
+          GM.openInTab(profileurl, e.button === 1);
         }
       }, false);
     }
-    add_popup(pseudal, real_pseudal, avatarimg);
+    add_popup(pseudal, real_pseudal, avatarimg, profileurl);
   }
 }
 
 // récupération des différents pseudal et ajout de la popup d'info
 var pseudos = root.querySelectorAll("table.messagetable td.messCase1 > div:not([postalrecall]) > b.s2");
 for(let pseudal of pseudos) {
-  add_info_pseudal(pseudal, true, false);
+  if(pseudal.firstChild.textContent !== "Publicité") {
+    add_info_pseudal(pseudal, true, false);
+  }
 }
 var pseudos_citation = root.querySelectorAll("table.messagetable td.messCase2 div.container table.citation " +
   "td b.s1, table.messagetable td.messCase2 div.container table.oldcitation td b.s1");
@@ -671,7 +679,9 @@ for(let pseudal of pseudos_citation) {
 window.setTimeout(function() {
   var pseudos_recall = root.querySelectorAll("table.messagetable td.messCase1 > div[postalrecall] > b.s2");
   for(let pseudal of pseudos_recall) {
-    add_info_pseudal(pseudal, true, true);
+    if(pseudal.firstChild.textContent !== "Publicité") {
+      add_info_pseudal(pseudal, true, true);
+    }
   }
 }, 10000);
 
@@ -715,7 +725,7 @@ function hide_popup_info() {
 }
 
 // fonction de construction de la popup d'info en fonction du profil
-function add_popup(pseudal, real_pseudal, avatarimg) {
+function add_popup(pseudal, real_pseudal, avatarimg, profileurl) {
   // ajout du mouseover
   pseudal.addEventListener("mouseover", function(event) {
     hide_popup_info();
@@ -741,7 +751,7 @@ function add_popup(pseudal, real_pseudal, avatarimg) {
         root.appendChild(infos_div);
       }
       // recupération du profil et remplissage de la div infos
-      fetch(profil_url + real_pseudal, {
+      fetch(profileurl !== null ? profileurl : profil_url + encodeURIComponent(real_pseudal), {
         method: "GET",
         mode: "same-origin",
         credentials: "omit",
