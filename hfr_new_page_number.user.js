@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.8.2
+// @version       2.8.3
 // @namespace     roger21.free.fr
 // @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1910 $
+// $Rev: 1976 $
 
 // historique :
+// 2.8.3 (04/05/2020) :
+// - nouvelle gestion de l'ouverture des onglets pour Violentmonkey et Tampermonkey ->
+// ouverture "à la fin" pour permettre de respecter l'ordre des "séquences" d'ouvertures
 // 2.8.2 (11/04/2020) :
 // - suppression de la tempo sur l'actualisation du drapal de l'ouverture en masse (marche pas)
 // 2.8.1 (17/03/2020) :
@@ -222,9 +225,6 @@ if(typeof GM_registerMenuCommand !== "undefined") {
 /* nom du script */
 var script_name = "[HFR] New Page Number";
 
-/* option en dur */
-var open_in_background = true;
-
 /* les images */
 var default_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAACjUlEQVR42mWSXUhTcRjGz3B2E22ii5XgNvbhF%2BlwykzODDRZgh%2FMwDWmNyGpmDGTRGyixOZk7uDeMRtmJBIl3VgXGdJNJzMqvRAqsCLnpXlhXrSoSOfT%2F6SF1Au%2Fu%2F%2FD%2F3mf5%2BW4AwPi5IwMhgmUagapzT8oz%2FSJ%2BIzX1CDn%2Fh32UMY4wrAxfKAUEVF1fJty4htUJr6P1vsWYy22h5FuxU1hUHZQKIkaGSJIlkBIlVzwZGJ12Ip3VJucGXAkQl2N8zdGvM7oWExx0B6%2FJ0rZxpgaLy9noVR7CM%2BH7HgSakJztRWOGjuEcHR%2BMHLX1kmzcm5%2FJ8neF1xXA1OF6Kk6ig67AW9vteLecDtKLQXwXLmKa7H7iXaa87loUcXtBcF2YvbIoUR9wWGUGRQo1qeBP6GBtTAHWq0OGr0JDV2RpCu6LJ6hj9lMKGfpqVZ%2FUg42iMdEawks%2BnRMBzowHuxHZWUVSirqcDHyGM7wK1RRPF5Cn82cFLmU3nr4JFYidXCfMsBRUYRY0At%2FIAi1xoTqCz64aImJVmGhrTUDwcxJPW1GefHOJWtSf0wJjVqJPJMBemMuMo7rkJZpRLqxDJqaXhSNrCd1EYhphGxOKneFan3L4y0JwXMW%2BUYt%2BymE4OQj5PO10PLn0HA7AWvsO3SEhJLg5wgq7g055AuR87YZofNZZWkBiixWeHzjaO6fBMelorBlAsXhTejC2GEikYnKGXtX9IC6FcNeT5PT1bTobOv75h6Y2rX3TMPgDCK3b2k3K7D1VTmKp0zgZCj%2BXs6ov1fmHwoovcJUeZsw628UXoinRz%2BsWcJbazphR1QIzF74908Khuy%2Fm%2B2KzsndrFypJylyKb10KQhppz%2F29ucXz0Rq1fnX2JcAAAAASUVORK5CYII%3D";
 var help_img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
@@ -282,6 +282,18 @@ var color_text = "#" + the_style[12].toLowerCase();
 var bigest_page_number = 0;
 var actual_bigest_page_number = 0;
 var computed_colors = {};
+var open_in_background = {
+  active: false,
+  insert: false,
+};
+var open_in_foreground = {
+  active: true,
+  insert: false,
+};
+var gm4 = false;
+if(GM && GM.info && GM.info.scriptHandler === "Greasemonkey") {
+  gm4 = true;
+}
 
 /* fonctions pour les refresh */
 function refresh() {
@@ -1262,7 +1274,9 @@ function drapal_mouseup(e) {
     // recupération du dernier onglet
     let last_url = url_array[url_array.length - 1];
     // inversion de l'ordre des onglets si nécessaire
-    if(!reverse_order) url_array.reverse();
+    if((gm4 && !reverse_order) || (!gm4 && reverse_order)) {
+      url_array.reverse();
+    }
     // ouverture des onglets
     url_array.forEach(function(url) {
       GM.openInTab(url, open_in_background);
@@ -1272,7 +1286,8 @@ function drapal_mouseup(e) {
     xhr.open("GET", last_url);
     xhr.send();
   } else if(open_new_tab && (e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
-    GM.openInTab(this.dataset.href, new_tab_foreground ? false : open_in_background);
+    GM.openInTab(this.dataset.href, new_tab_foreground ?
+      (gm4 ? false : open_in_foreground) : open_in_background);
   } else if((this.hasAttribute("target") && this.getAttribute("target") === "_blank") ||
     ((e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && e.ctrlKey) ||
     ((e.button === 1) && !e.altKey && !e.shiftKey && !e.metaKey)) {
