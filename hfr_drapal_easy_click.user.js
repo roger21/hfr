@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Drapal Easy Click
-// @version       1.8.7
+// @version       1.8.8
 // @namespace     roger21.free.fr
 // @description   Permet de cliquer sur la case du drapal au lieu d'avoir à viser le drapal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -35,9 +35,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1976 $
+// $Rev: 1988 $
 
 // historique :
+// 1.8.8 (05/05/2020) :
+// - ajout de l'option en dur pour ouvrir les onglets à la fin pour Violentmonkey et Tampermonkey
 // 1.8.7 (04/05/2020) :
 // - nouvelle gestion de l'ouverture des onglets pour Violentmonkey et Tampermonkey ->
 // ouverture "à la fin" pour permettre de respecter l'ordre des "séquences" d'ouvertures
@@ -116,22 +118,9 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - ajout des metadata @grant
 
 // options en dur
+var open_at_end = true;
 var drapals_refresh = false;
 var refresh_delay = 5000; // 5 secondes
-
-// variables globales
-var open_in_background = {
-  active: false,
-  insert: false,
-};
-var open_in_foreground = {
-  active: true,
-  insert: false,
-};
-var gm4 = false;
-if(GM && GM.info && GM.info.scriptHandler === "Greasemonkey") {
-  gm4 = true;
-}
 
 // compatibilité gm4
 if(typeof GM === "undefined") {
@@ -147,6 +136,20 @@ if(typeof GM_openInTab !== "undefined" && typeof GM.openInTab === "undefined") {
       }
     });
   };
+}
+
+// variables globales
+var open_in_background = {
+  active: false,
+  insert: !open_at_end,
+};
+var open_in_foreground = {
+  active: true,
+  insert: !open_at_end,
+};
+var gm4 = false;
+if(GM && GM.info && GM.info.scriptHandler === "Greasemonkey") {
+  gm4 = true;
 }
 
 // gestion du refresh

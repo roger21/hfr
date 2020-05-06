@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Ouverture en masse mod_r21
-// @version       4.2.2
+// @version       4.2.3
 // @namespace     roger21.free.fr
 // @description   Permet d'ouvrir ses drapeaux dans de nouveaux onglets avec un seul clic.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -41,9 +41,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1976 $
+// $Rev: 1988 $
 
 // historique :
+// 4.2.3 (05/05/2020) :
+// - ajout de l'option pour ouvrir les onglets à la fin  pour Violentmonkey et Tampermonkey
 // 4.2.2 (04/05/2020) :
 // - nouvelle gestion de l'ouverture des onglets pour Violentmonkey et Tampermonkey ->
 // ouverture "à la fin" pour permettre de respecter l'ordre des "séquences" d'ouvertures
@@ -222,6 +224,7 @@ var img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%
 
 var nb_tabs_default = 9;
 var reverse_order_default = false;
+var open_at_end_default = true;
 var enable_pms_default = true;
 var more_than_one_default = false;
 var always_pm_page_default = false;
@@ -234,6 +237,7 @@ var keep_cat_name_default = false;
 var excluded_topics_default = [];
 var nb_tabs = nb_tabs_default;
 var reverse_order = reverse_order_default;
+var open_at_end = open_at_end_default;
 var enable_pms = enable_pms_default;
 var more_than_one = more_than_one_default;
 var always_pm_page = always_pm_page_default;
@@ -282,11 +286,11 @@ var pms = [];
 var pm_link = null;
 var open_in_background = {
   active: false,
-  insert: false,
+  insert: !open_at_end,
 };
 var open_in_foreground = {
   active: true,
-  insert: false,
+  insert: !open_at_end,
 };
 var gm4 = false;
 if(GM && GM.info && GM.info.scriptHandler === "Greasemonkey") {
@@ -448,7 +452,8 @@ function open_topics(p_event) {
     }
     if(l_urls.length > 0) {
       l_urls = l_urls.slice(0, nb_tabs);
-      if((gm4 && !reverse_order) || (!gm4 && reverse_order)) {
+      if((gm4 && !reverse_order) ||
+        (!gm4 && ((reverse_order && open_at_end) || (!reverse_order && !open_at_end)))) {
         l_urls.reverse();
       }
       // ouverture des topics
@@ -474,7 +479,8 @@ function open_pms(p_event) {
       l_pms.push(pm_page);
     } else {
       l_pms = l_pms.slice(0, nb_tabs);
-      if((gm4 && !reverse_order) || (!gm4 && reverse_order)) {
+      if((gm4 && !reverse_order) ||
+        (!gm4 && ((reverse_order && open_at_end) || (!reverse_order && !open_at_end)))) {
         l_pms.reverse();
       }
     }
@@ -604,17 +610,26 @@ nb_tabs_input.addEventListener("focus", function() {
 nb_tabs_p.appendChild(nb_tabs_input);
 tabs_fieldset.appendChild(nb_tabs_p);
 
-// reverse order
-var reverse_order_p = document.createElement("p");
+// reverse order & open at end
+var reverse_and_open_p = document.createElement("p");
 var reverse_order_checkbox = document.createElement("input");
 reverse_order_checkbox.setAttribute("id", "gm_hfr_oem_reverse_order_checkbox");
 reverse_order_checkbox.setAttribute("type", "checkbox");
-reverse_order_p.appendChild(reverse_order_checkbox);
+reverse_and_open_p.appendChild(reverse_order_checkbox);
 var reverse_order_label = document.createElement("label");
 reverse_order_label.textContent = " inverser l'ordre des onglets";
 reverse_order_label.setAttribute("for", "gm_hfr_oem_reverse_order_checkbox");
-reverse_order_p.appendChild(reverse_order_label);
-tabs_fieldset.appendChild(reverse_order_p);
+reverse_and_open_p.appendChild(reverse_order_label);
+reverse_and_open_p.appendChild(document.createTextNode("\u2003\u2003\u2003\u2003\u2003\u2003\u2003\u2003"));
+var open_at_end_checkbox = document.createElement("input");
+open_at_end_checkbox.setAttribute("id", "gm_hfr_oem_open_at_end_checkbox");
+open_at_end_checkbox.setAttribute("type", "checkbox");
+reverse_and_open_p.appendChild(open_at_end_checkbox);
+var open_at_end_label = document.createElement("label");
+open_at_end_label.textContent = " ouvrir les onglets à la fin";
+open_at_end_label.setAttribute("for", "gm_hfr_oem_open_at_end_checkbox");
+reverse_and_open_p.appendChild(open_at_end_label);
+tabs_fieldset.appendChild(reverse_and_open_p);
 
 // pms section
 var pms_fieldset = document.createElement("fieldset");
@@ -900,6 +915,10 @@ function save_config_window() {
   }
   // reverse order
   reverse_order = reverse_order_checkbox.checked;
+  // open_at_end
+  open_at_end = open_at_end_checkbox.checked;
+  open_in_background.insert = !open_at_end;
+  open_in_foreground.insert = !open_at_end;
   // pms
   enable_pms = enable_pms_checkbox.checked;
   more_than_one = more_than_one_checkbox.checked;
@@ -945,6 +964,7 @@ function save_config_window() {
   Promise.all([
     GM.setValue("nb_tabs", nb_tabs),
     GM.setValue("reverse_order", reverse_order),
+    GM.setValue("open_at_end", open_at_end),
     GM.setValue("enable_pms", enable_pms),
     GM.setValue("more_than_one", more_than_one),
     GM.setValue("always_pm_page", always_pm_page),
@@ -997,6 +1017,10 @@ function show_config_window() {
   // initialisation des paramètres
   nb_tabs_input.value = nb_tabs;
   reverse_order_checkbox.checked = reverse_order;
+  open_at_end_checkbox.checked = open_at_end && !gm4;
+  if(gm4) {
+    open_at_end_checkbox.disabled = true;
+  }
   enable_pms_checkbox.checked = enable_pms;
   more_than_one_checkbox.checked = more_than_one;
   always_pm_page_checkbox.checked = always_pm_page;
@@ -1037,6 +1061,7 @@ if(typeof GM_registerMenuCommand !== "undefined") {
 Promise.all([
   GM.getValue("nb_tabs", nb_tabs_default),
   GM.getValue("reverse_order", reverse_order_default),
+  GM.getValue("open_at_end", open_at_end_default),
   GM.getValue("enable_pms", enable_pms_default),
   GM.getValue("more_than_one", more_than_one_default),
   GM.getValue("always_pm_page", always_pm_page_default),
@@ -1052,6 +1077,7 @@ Promise.all([
 ]).then(function([
   l_nb_tabs,
   l_reverse_order,
+  l_open_at_end,
   l_enable_pms,
   l_more_than_one,
   l_always_pm_page,
@@ -1068,6 +1094,9 @@ Promise.all([
   // initialisation des variables globales
   nb_tabs = l_nb_tabs;
   reverse_order = l_reverse_order;
+  open_at_end = l_open_at_end;
+  open_in_background.insert = !open_at_end;
+  open_in_foreground.insert = !open_at_end;
   enable_pms = l_enable_pms;
   more_than_one = l_more_than_one;
   always_pm_page = l_always_pm_page;

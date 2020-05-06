@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.8.3
+// @version       2.8.4
 // @namespace     roger21.free.fr
 // @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1976 $
+// $Rev: 1989 $
 
 // historique :
+// 2.8.4 (05/05/2020) :
+// - ajout de l'option pour ouvrir les onglets à la fin pour Violentmonkey et Tampermonkey
 // 2.8.3 (04/05/2020) :
 // - nouvelle gestion de l'ouverture des onglets pour Violentmonkey et Tampermonkey ->
 // ouverture "à la fin" pour permettre de respecter l'ordre des "séquences" d'ouvertures
@@ -247,6 +249,7 @@ var button_icon;
 var mass_opener;
 var max_tab;
 var reverse_order;
+var open_at_end;
 var color_gradient;
 var color_start_type;
 var color_end_type;
@@ -284,11 +287,11 @@ var actual_bigest_page_number = 0;
 var computed_colors = {};
 var open_in_background = {
   active: false,
-  insert: false,
+  insert: !open_at_end,
 };
 var open_in_foreground = {
   active: true,
-  insert: false,
+  insert: !open_at_end,
 };
 var gm4 = false;
 if(GM && GM.info && GM.info.scriptHandler === "Greasemonkey") {
@@ -629,7 +632,7 @@ npn_lg_mass.appendChild(create_help_button(225,
 npn_fs_mass.appendChild(npn_lg_mass);
 npn_config.appendChild(npn_fs_mass);
 
-/* max tab et reverse order */
+/* max tab, reverse order et open at end */
 var npn_p_maxtab = document.createElement("p");
 npn_p_maxtab.appendChild(document.createTextNode("nombre maximum d'onglets à ouvrir simultanément : "));
 var npn_in_maxtab = document.createElement("input");
@@ -644,19 +647,31 @@ npn_in_maxtab.addEventListener("focus", function() {
 }, false);
 npn_p_maxtab.appendChild(npn_in_maxtab);
 npn_fs_mass.appendChild(npn_p_maxtab);
-var npn_p_reverseorder = document.createElement("p");
+var npn_p_reverseandopen = document.createElement("p");
 var npn_cb_reverseorder = document.createElement("input");
 npn_cb_reverseorder.setAttribute("id", "npn_cb_reverseorder");
 npn_cb_reverseorder.setAttribute("type", "checkbox");
 var npn_lb_reverseorder = document.createElement("label");
 npn_lb_reverseorder.appendChild(document.createTextNode(" inverser l'ordre des onglets "));
 npn_lb_reverseorder.setAttribute("for", "npn_cb_reverseorder");
-npn_p_reverseorder.appendChild(npn_cb_reverseorder);
-npn_p_reverseorder.appendChild(npn_lb_reverseorder);
-npn_p_reverseorder.appendChild(create_help_button(250,
+npn_p_reverseandopen.appendChild(npn_cb_reverseorder);
+npn_p_reverseandopen.appendChild(npn_lb_reverseorder);
+npn_p_reverseandopen.appendChild(create_help_button(250,
   "Certaines configurations ont l'ordre des onglets " +
   "inversé, cette option permet de les remettre à l'endroit."));
-npn_fs_mass.appendChild(npn_p_reverseorder);
+npn_p_reverseandopen.appendChild(document.createTextNode("\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"));
+var npn_cb_openatend = document.createElement("input");
+npn_cb_openatend.setAttribute("id", "npn_cb_openatend");
+npn_cb_openatend.setAttribute("type", "checkbox");
+var npn_lb_openatend = document.createElement("label");
+npn_lb_openatend.appendChild(document.createTextNode(" ouvrir les onglets à la fin "));
+npn_lb_openatend.setAttribute("for", "npn_cb_openatend");
+npn_p_reverseandopen.appendChild(npn_cb_openatend);
+npn_p_reverseandopen.appendChild(npn_lb_openatend);
+npn_p_reverseandopen.appendChild(create_help_button(272,
+  "Permet d'ouvrir les onglets à la fin de tous les onglets ouverts, cela permet de mieux gérer l'ordre " +
+  "d'ouverture des onglets en cas d'ouvertures succéssives. Non disponible avec Greasemonkey v4."));
+npn_fs_mass.appendChild(npn_p_reverseandopen);
 
 /* dégradé */
 var npn_fs_gradient = document.createElement("fieldset");
@@ -1039,6 +1054,10 @@ function saveconfig() {
   GM.setValue("max_tab", max_tab);
   reverse_order = npn_cb_reverseorder.checked;
   GM.setValue("reverse_order", reverse_order);
+  open_at_end = npn_cb_openatend.checked;
+  GM.setValue("open_at_end", open_at_end);
+  open_in_background.insert = !open_at_end;
+  open_in_foreground.insert = !open_at_end;
   color_gradient = npn_cb_gradient.checked;
   GM.setValue("color_gradient", color_gradient);
   color_start_type = npn_rd_color_start_auto.checked ? "auto" :
@@ -1135,6 +1154,10 @@ function showconfig() {
   change_mass();
   npn_in_maxtab.value = max_tab;
   npn_cb_reverseorder.checked = reverse_order;
+  npn_cb_openatend.checked = open_at_end && !gm4;
+  if(gm4) {
+    npn_cb_openatend.disabled = true;
+  }
   npn_cb_gradient.checked = color_gradient;
   change_gradient();
   npn_rd_color_start_auto.checked = color_start_type === "auto";
@@ -1274,7 +1297,8 @@ function drapal_mouseup(e) {
     // recupération du dernier onglet
     let last_url = url_array[url_array.length - 1];
     // inversion de l'ordre des onglets si nécessaire
-    if((gm4 && !reverse_order) || (!gm4 && reverse_order)) {
+    if((gm4 && !reverse_order) ||
+      (!gm4 && ((reverse_order && open_at_end) || (!reverse_order && !open_at_end)))) {
       url_array.reverse();
     }
     // ouverture des onglets
@@ -1432,6 +1456,7 @@ Promise.all([
   GM.getValue("mass_opener", false),
   GM.getValue("max_tab", default_max_tab),
   GM.getValue("reverse_order", false),
+  GM.getValue("open_at_end", true),
   GM.getValue("color_gradient", true),
   GM.getValue("color_start_type", "auto"), // "auto" "trans" "perso"
   GM.getValue("color_end_type", "auto"), // "auto" "trans" "perso"
@@ -1455,6 +1480,7 @@ Promise.all([
   mass_opener_value,
   max_tab_value,
   reverse_order_value,
+  open_at_end_value,
   color_gradient_value,
   color_start_type_value,
   color_end_type_value,
@@ -1478,6 +1504,9 @@ Promise.all([
   mass_opener = mass_opener_value;
   max_tab = max_tab_value;
   reverse_order = reverse_order_value;
+  open_at_end = open_at_end_value;
+  open_in_background.insert = !open_at_end;
+  open_in_foreground.insert = !open_at_end;
   color_gradient = color_gradient_value;
   color_start_type = color_start_type_value;
   color_end_type = color_end_type_value;
