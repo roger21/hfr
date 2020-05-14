@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.0.6
+// @version       4.0.7
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2030 $
+// $Rev: 2032 $
 
 // historique :
+// 4.0.7 (14/05/2020) :
+// - correction du z-index de la popup d'info
 // 4.0.6 (14/05/2020) :
 // - homogénéisation du code
 // - homogénéisation de la popup avec les popups des autres scripts
@@ -266,7 +268,7 @@ style.setAttribute("type", "text/css");
 style.textContent =
   // styles de la popup d'info
   "div#gm_hfr_infos_rapides{position:absolute;border:1px solid #242424;max-width:238px;height:auto;" +
-  "background:linear-gradient(#ffffff, #f7f7ff);color:#000000;display:none;padding:4px 6px 6px;z-index:1001;" +
+  "background:linear-gradient(#ffffff, #f7f7ff);color:#000000;display:none;padding:4px 6px 6px;z-index:999;" +
   "border-radius:10px;font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:10px;text-align:center;}" +
   "div#gm_hfr_infos_rapides img.gm_hfr_infos_rapides_avatar{padding:2px 0 4px;vertical-align:text-bottom;}" +
   "div#gm_hfr_infos_rapides img.gm_hfr_infos_rapides_smiley{padding:4px 2px 0;vertical-align:text-bottom;}" +
