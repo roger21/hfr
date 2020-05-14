@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.0.5
+// @version       4.0.6
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1953 $
+// $Rev: 2030 $
 
 // historique :
+// 4.0.6 (14/05/2020) :
+// - homogénéisation du code
+// - homogénéisation de la popup avec les popups des autres scripts
 // 4.0.5 (28/04/2020) :
 // - correction de la correction précédente pour exclure le profil Modération
 // 4.0.4 (25/04/2020) :
@@ -164,11 +167,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 /* options en dur */
 /* -------------- */
 
-// mode "comme avant" (la popup disparait lorsque la souris quitte le pseudal), passer à true pour activer
-var comme_avant = false;
+// mode "comme avant" (la popup disparait immédiatement lorsque la souris quitte le pseudal),
+// ne permet pas d'accéder aux smileys, passer à true pour activer
+const comme_avant = false;
 
-// le caractère autour du smiley quand on l'ajoute (une espace par exemple), moi j'en mets pas
-var char_around_smiley_at_insert = " ";
+// le caractère autour du smiley quand on l'ajoute (une espace par exemple)
+const char_around_smiley_at_insert = " ";
 
 // affichage des mots-clés dans le title/tooltip des smileys (true) ou dans un tooltip/popup en html (false)
 const in_title = false;
@@ -227,14 +231,14 @@ var tooltip_canceled = false;
 /* -------------- */
 
 const script_name = "[HFR] Infos rapides";
-const root = document.getElementById("mesdiscussions");
+const root = document.querySelector("div.container > div#mesdiscussions.mesdiscussions");
 const profil_url = "https://forum.hardware.fr/profilebdd.php?config=hfr.inc&pseudo=";
-const regexp_avatar = "<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/mesdiscussions-.*?)\" " +
-  "alt=\"[^\"]+\" \/>";
+const regexp_avatar =
+  "<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/mesdiscussions-.*?)\" alt=\"[^\"]+\" \/>";
 const regexp_smiley_1 = "([^<>]*)<img src=\"(https:\/\/forum-images\.hardware\.fr\/images\/perso\/";
 const regexp_smiley_2 = "[^\/]*\.gif)\".*?\/>";
-const html_avatar = "<img class=\"gm_infos_rapides_avatar\" style=\"vertical-align:middle;padding:3px;\" src=\"";
-const html_smiley = "<img class=\"gm_infos_rapides_smiley\" style=\"vertical-align:middle;padding:3px;\" src=\"";
+const html_avatar = "<img class=\"gm_hfr_infos_rapides_avatar\" src=\"";
+const html_smiley = "<img class=\"gm_hfr_infos_rapides_smiley\" src=\"";
 const html_image_2 = "\" alt=\"";
 const html_image_3 = "\" title=\"";
 const html_image_4 = "\">";
@@ -260,12 +264,18 @@ const keywords_tooltip_time = 450;
 var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
-  // styles pour la tooltip
+  // styles de la popup d'info
+  "div#gm_hfr_infos_rapides{position:absolute;border:1px solid #242424;max-width:238px;height:auto;" +
+  "background:linear-gradient(#ffffff, #f7f7ff);color:#000000;display:none;padding:4px 6px 6px;z-index:1001;" +
+  "border-radius:10px;font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:10px;text-align:center;}" +
+  "div#gm_hfr_infos_rapides img.gm_hfr_infos_rapides_avatar{padding:2px 0 4px;vertical-align:text-bottom;}" +
+  "div#gm_hfr_infos_rapides img.gm_hfr_infos_rapides_smiley{padding:4px 2px 0;vertical-align:text-bottom;}" +
+  // styles pour la tooltip d'affichage des mots-clés
   "div#gm_hfr_infrap_r21_keywords_tooltip{position:absolute;max-width:350px;height:auto;padding:4px 8px 5px;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;border-radius:10px;font-size:11px;border:1px solid;" +
   "background:linear-gradient(#ffffff, #f7f7ff);left:0;top:0;text-align:justify;color:#000000;display:none;" +
   "z-index:1005;cursor:default;}" +
-  // styles pour la popup
+  // styles pour la popup d'édition des mots-clés
   "div#gm_hfr_infrap_r21_keywords_popup{display:none;position:absolute;left:0;top:0;width:auto;height:auto;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;padding:4px;overflow:auto;" +
   "resize:both;min-width:416px;min-height:70px;background:linear-gradient(#ffffff, #f7f7ff);color:#000000;" +
@@ -292,8 +302,8 @@ style.textContent =
   "div.gm_hfr_infrap_r21_keywords_buttons{float:right;text-align:right;padding:0 15px 0 0;}" +
   "div.gm_hfr_infrap_r21_keywords_buttons > img{margin-left:8px;cursor:pointer;}";
 if(box_shadow) {
-  style.textContent += "div#gm_hfr_infrap_r21_keywords_tooltip, div#gm_hfr_infrap_r21_keywords_popup" +
-    "{box-shadow:4px 4px 4px 0 rgba(0, 0, 0, 0.4);}";
+  style.textContent += "div#gm_hfr_infos_rapides, div#gm_hfr_infrap_r21_keywords_tooltip, " +
+    "div#gm_hfr_infrap_r21_keywords_popup{box-shadow:4px 4px 4px 0 rgba(0, 0, 0, 0.4);}";
 }
 document.getElementsByTagName("head")[0].appendChild(style);
 
@@ -549,18 +559,18 @@ function insert_or_edit_keywords(p_event) {
 }
 
 // fonction d'ajout du smiley dans la première édition rapide ou dans la réponse rapide
-function insert_smiley(alt) {
-  let edit_rap = document.querySelector("textarea[id^=\"rep_editin_\"]");
-  let rep_rap = document.querySelector("textarea#content_form");
-  let area = edit_rap ? edit_rap : rep_rap;
-  if(area) {
-    let text = char_around_smiley_at_insert + alt + char_around_smiley_at_insert;
-    let start_pos = area.selectionStart;
-    let end_pos = area.selectionEnd;
-    area.value = area.value.substring(0, start_pos) + text +
-      area.value.substring(end_pos, area.value.length);
-    area.selectionStart = start_pos + text.length;
-    area.selectionEnd = start_pos + text.length;
+function insert_smiley(p_alt) {
+  let l_edit_rap = document.querySelector("textarea[id^=\"rep_editin_\"]");
+  let l_rep_rap = document.querySelector("textarea#content_form");
+  let l_area = l_edit_rap ? l_edit_rap : l_rep_rap;
+  if(l_area) {
+    let l_text = char_around_smiley_at_insert + p_alt + char_around_smiley_at_insert;
+    let l_start_pos = l_area.selectionStart;
+    let l_end_pos = l_area.selectionEnd;
+    l_area.value = l_area.value.substring(0, l_start_pos) + l_text +
+      l_area.value.substring(l_end_pos, l_area.value.length);
+    l_area.selectionStart = l_start_pos + l_text.length;
+    l_area.selectionEnd = l_start_pos + l_text.length;
   }
 }
 
@@ -601,8 +611,8 @@ function set_keywords(p_callback, p_smiley_code, p_keywords) {
       console.log(script_name + " ERROR set_keywords : ", p_text);
       p_callback("error");
     }
-  }).catch(function(e) {
-    console.log(script_name + " ERROR fetch set_keywords : ", e);
+  }).catch(function(p_error) {
+    console.log(script_name + " ERROR fetch set_keywords : ", p_error);
     p_callback("fetch error");
   });
 }
@@ -621,8 +631,8 @@ function get_keywords(p_callback, p_smiley_img) {
   }).then(function(p_text) {
     let l_keywords = p_text.match(smileys_keywords_regexp).pop().trim();
     p_callback(p_smiley_img, l_keywords);
-  }).catch(function(e) {
-    console.log(script_name + " ERROR fetch get_keywords : ", e);
+  }).catch(function(p_error) {
+    console.log(script_name + " ERROR fetch get_keywords : ", p_error);
     p_callback(p_smiley_img, "error");
   });
 }
@@ -637,8 +647,8 @@ function access_keywords(p_access_function, p_callback, p_param_1, p_param_2) {
 }
 
 // division entière pour le calcul de l'age
-function div_int(a, b) {
-  return ((a - (a % b)) / b);
+function div_int(p_a, p_b) {
+  return ((p_a - (p_a % p_b)) / p_b);
 }
 
 // fonction de nettaoyage du pseudal
@@ -647,41 +657,42 @@ function get_real_pseudal_value(p_pseudal_value) {
 }
 
 // fonction d'ajout des popup d'info sur les pseudals
-function add_info_pseudal(pseudal, profillink, avatarimg) {
-  var real_pseudal = get_real_pseudal_value(pseudal.firstChild.textContent.trim());
-  if(real_pseudal !== "Profil supprimé" && real_pseudal !== "Modération" && real_pseudal !== "Publicité") {
-    let profileurl = null;
-    if(profillink) {
-      profileurl = pseudal.parentElement.parentElement.parentElement.querySelector("a[href^=\"/hfr/profil-\"]").href;
-      pseudal.style.cursor = "help";
-      pseudal.addEventListener("mousedown", prevent_default, false);
-      pseudal.addEventListener("mouseup", function(e) {
-        e.preventDefault();
-        if(e.button === 0 || e.button === 1) {
-          GM.openInTab(profileurl, e.button === 1);
+function add_info_pseudal(p_pseudal, p_profillink, p_avatarimg) {
+  let l_real_pseudal = get_real_pseudal_value(p_pseudal.firstChild.textContent.trim());
+  if(l_real_pseudal !== "Profil supprimé" && l_real_pseudal !== "Modération" && l_real_pseudal !== "Publicité") {
+    let l_profileurl = null;
+    if(p_profillink) {
+      l_profileurl =
+        p_pseudal.parentElement.parentElement.parentElement.querySelector("a[href^=\"/hfr/profil-\"]").href;
+      p_pseudal.style.cursor = "help";
+      p_pseudal.addEventListener("mousedown", prevent_default, false);
+      p_pseudal.addEventListener("mouseup", function(p_event) {
+        p_event.preventDefault();
+        if(p_event.button === 0 || p_event.button === 1) {
+          GM.openInTab(l_profileurl, p_event.button === 1);
         }
       }, false);
     }
-    add_popup(pseudal, real_pseudal, avatarimg, profileurl);
+    add_popup(p_pseudal, l_real_pseudal, p_avatarimg, l_profileurl);
   }
 }
 
 // récupération des différents pseudal et ajout de la popup d'info
 var pseudos = root.querySelectorAll("table.messagetable td.messCase1 > div:not([postalrecall]) > b.s2");
-for(let pseudal of pseudos) {
-  add_info_pseudal(pseudal, true, false);
+for(let l_pseudal of pseudos) {
+  add_info_pseudal(l_pseudal, true, false);
 }
 var pseudos_citation = root.querySelectorAll("table.messagetable td.messCase2 div.container table.citation " +
   "td b.s1, table.messagetable td.messCase2 div.container table.oldcitation td b.s1");
-for(let pseudal of pseudos_citation) {
-  add_info_pseudal(pseudal, false, true);
+for(let l_pseudal of pseudos_citation) {
+  add_info_pseudal(l_pseudal, false, true);
 }
 window.setTimeout(function() {
   var pseudos_recall = root.querySelectorAll("table.messagetable td.messCase1 > div[postalrecall] > b.s2");
-  for(let pseudal of pseudos_recall) {
-    add_info_pseudal(pseudal, true, true);
+  for(let l_pseudal of pseudos_recall) {
+    add_info_pseudal(l_pseudal, true, true);
   }
-}, 10000);
+}, 10000); // 10 secondes
 
 
 // fonction de fermeture de la popup d'info en quitant le psuedal
@@ -717,237 +728,239 @@ function do_hide_popup_info() {
 function hide_popup_info() {
   popup_status = false;
   window.clearTimeout(info_timer_out);
-  if(document.getElementById("gm_infos_rapides")) {
-    document.getElementById("gm_infos_rapides").style.display = "none";
+  if(document.getElementById("gm_hfr_infos_rapides")) {
+    document.getElementById("gm_hfr_infos_rapides").style.display = "none";
   }
 }
 
 // fonction de construction de la popup d'info en fonction du profil
-function add_popup(pseudal, real_pseudal, avatarimg, profileurl) {
+function add_popup(p_pseudal, p_real_pseudal, p_avatarimg, p_profileurl) {
   // ajout du mouseover
-  pseudal.addEventListener("mouseover", function(event) {
+  p_pseudal.addEventListener("mouseover", function(p_event) {
     hide_popup_info();
     // réinitialisation du info_canceled
     info_canceled = false;
     window.clearTimeout(info_timer);
     info_timer = window.setTimeout(function() {
-      var infos_div = document.getElementById("gm_infos_rapides");
+      let l_infos_div = document.getElementById("gm_hfr_infos_rapides");
       // creation de la div infos si pas déjà fait
-      if(infos_div === null) {
-        infos_div = document.createElement("div");
-        infos_div.setAttribute("id", "gm_infos_rapides");
-        infos_div.style.position = "absolute";
-        infos_div.style.border = "1px solid black";
-        infos_div.style.background = "white";
-        infos_div.style.padding = "3px";
-        infos_div.style.maxWidth = "228px";
-        infos_div.style.zIndex = "1001";
-        infos_div.style.display = "none";
-        infos_div.className = "signature";
-        infos_div.addEventListener("mouseenter", slide_on_popup, false);
-        infos_div.addEventListener("mouseleave", do_hide_popup_info, false);
-        root.appendChild(infos_div);
+      if(l_infos_div === null) {
+        l_infos_div = document.createElement("div");
+        l_infos_div.setAttribute("id", "gm_hfr_infos_rapides");
+        l_infos_div.addEventListener("mouseenter", slide_on_popup, false);
+        l_infos_div.addEventListener("mouseleave", do_hide_popup_info, false);
+        document.body.appendChild(l_infos_div);
       }
       // recupération du profil et remplissage de la div infos
-      fetch(profileurl !== null ? profileurl : profil_url + encodeURIComponent(real_pseudal), {
+      fetch(p_profileurl !== null ? p_profileurl : profil_url + encodeURIComponent(p_real_pseudal), {
         method: "GET",
         mode: "same-origin",
         credentials: "omit",
         cache: "reload",
         referrer: "",
         referrerPolicy: "no-referrer"
-      }).then(function(r) {
-        return r.text();
-      }).then(function(profil) {
+      }).then(function(p_response) {
+        return p_response.text();
+      }).then(function(p_profile) {
         // récuprération des infos
-        var tmp;
-        var avatar = (tmp = profil.match(new RegExp(regexp_avatar, ""))) !== null ? tmp.pop() : null;
-        var status = profil.match(new RegExp("<td class=\"profilCase2\">Statut.*&nbsp;: <\/td>\\s*" +
+        let l_tmp;
+        let l_avatar = (l_tmp = p_profile.match(new RegExp(regexp_avatar, ""))) !== null ? l_tmp.pop() : null;
+        let l_status = p_profile.match(new RegExp("<td class=\"profilCase2\">Statut.*&nbsp;: <\/td>\\s*" +
           "<td class=\"profilCase3\">([^<]+)<\/td>", "")).pop().trim();
-        var nb_posts = profil.match(new RegExp("<td class=\"profilCase2\">Nombre de messages .*&nbsp;: " +
+        let l_nb_posts = p_profile.match(new RegExp("<td class=\"profilCase2\">Nombre de messages .*&nbsp;: " +
           "<\/td>\\s*<td class=\"profilCase3\">([0-9]+)<\/td>", "")).pop();
-        var date_insc = profil.match(new RegExp("<td class=\"profilCase2\">Date .* sur le forum&nbsp;: " +
+        let l_date_insc = p_profile.match(new RegExp("<td class=\"profilCase2\">Date .* sur le forum&nbsp;: " +
           "<\/td>\\s*<td class=\"profilCase3\">([0-9]{2}\/[0-9]{2}\/[0-9]{4})<\/td>", "")).pop();
-        var smileys = profil.match(new RegExp("<td class=\"profilCase4\" rowspan=\".\">" +
+        let l_smileys = p_profile.match(new RegExp("<td class=\"profilCase4\" rowspan=\".\">" +
           "([\\s\\S]*?)<\/td>\\s*<\/tr>", "")).pop().trim();
-        var smiley_perso_0 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_0 = (smiley_perso_0 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_1 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "1\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_1 = (smiley_perso_1 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_2 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "2\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_2 = (smiley_perso_2 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_3 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "3\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_3 = (smiley_perso_3 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_4 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "4\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_4 = (smiley_perso_4 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_5 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "5\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_5 = (smiley_perso_5 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_6 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "6\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_6 = (smiley_perso_6 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_7 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "7\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_7 = (smiley_perso_7 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_8 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "8\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_8 = (smiley_perso_8 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_9 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "9\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_9 = (smiley_perso_9 !== null) ? tmp.pop().trim() : null;
-        var smiley_perso_10 = (tmp = smileys.match(new RegExp(regexp_smiley_1 + "10\/" +
-          regexp_smiley_2, ""))) !== null ? tmp.pop() : null;
-        var smiley_perso_alt_10 = (smiley_perso_10 !== null) ? tmp.pop().trim() : null;
-        var date_birth = (tmp = profil.match(new RegExp("<td class=\"profilCase2\">Date de naissance&nbsp;: " +
+        let l_smiley_perso_0 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_0 = (l_smiley_perso_0 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_1 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "1\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_1 = (l_smiley_perso_1 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_2 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "2\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_2 = (l_smiley_perso_2 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_3 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "3\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_3 = (l_smiley_perso_3 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_4 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "4\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_4 = (l_smiley_perso_4 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_5 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "5\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_5 = (l_smiley_perso_5 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_6 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "6\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_6 = (l_smiley_perso_6 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_7 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "7\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_7 = (l_smiley_perso_7 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_8 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "8\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_8 = (l_smiley_perso_8 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_9 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "9\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_9 = (l_smiley_perso_9 !== null) ? l_tmp.pop().trim() : null;
+        let l_smiley_perso_10 = (l_tmp = l_smileys.match(new RegExp(regexp_smiley_1 + "10\/" +
+          regexp_smiley_2, ""))) !== null ? l_tmp.pop() : null;
+        let l_smiley_perso_alt_10 = (l_smiley_perso_10 !== null) ? l_tmp.pop().trim() : null;
+        let l_date_birth =
+          (l_tmp = p_profile.match(new RegExp("<td class=\"profilCase2\">Date de naissance&nbsp;: " +
             "<\/td>\\s*<td class=\"profilCase3\">([0-9]{2}\/[0-9]{2}\/[0-9]{4})<\/td>", ""))) !== null ?
-          tmp.pop() : null;
-        var sexe = (tmp = profil.match(new RegExp("<td class=\"profilCase2\">[s|S]exe&nbsp;: <\/td>\\s*" +
-          "<td class=\"profilCase3\">(homme|femme)<\/td>", ""))) !== null ? tmp.pop() : null;
-        var ville = (tmp = profil.match(new RegExp("<td class=\"profilCase2\">[v|V]ille&nbsp;: <\/td>\\s*" +
-          "<td class=\"profilCase3\">(.*?)<\/td>", ""))) !== null ? tmp.pop().trim() : null;
-        var date_mess = profil.match(new RegExp("<td class=\"profilCase2\">Date du dernier message&nbsp;: " +
+          l_tmp.pop() : null;
+        let sexe = (l_tmp = p_profile.match(new RegExp("<td class=\"profilCase2\">[s|S]exe&nbsp;: <\/td>\\s*" +
+          "<td class=\"profilCase3\">(homme|femme)<\/td>", ""))) !== null ? l_tmp.pop() : null;
+        let l_ville =
+          (l_tmp = p_profile.match(new RegExp("<td class=\"profilCase2\">[v|V]ille&nbsp;: <\/td>\\s*" +
+            "<td class=\"profilCase3\">(.*?)<\/td>", ""))) !== null ? l_tmp.pop().trim() : null;
+        let l_date_mess = p_profile.match(new RegExp("<td class=\"profilCase2\">Date du dernier message&nbsp;: " +
           "<\/td>\\s*<td class=\"profilCase3\">\\s*([0-9]{2})-([0-9]{2})-([0-9]{4})&nbsp;." +
           "&nbsp;([0-9]{2})\:([0-9]{2})\\s*<\/td>", ""));
-        if(date_mess !== null) {
-          date_mess.shift();
+        if(l_date_mess !== null) {
+          l_date_mess.shift();
         }
-        var age;
-        if(date_birth !== null) {
-          var year = parseInt(date_birth.substring(6, 10));
-          var month = parseInt(date_birth.substring(3, 5));
-          var day = parseInt(date_birth.substring(0, 2));
-          var date = new Date();
-          if(((month - 1) === date.getMonth()) && (day === date.getDate())) {
-            age = "<span style=\"color:red;font-weight:bold\">" + (date.getFullYear() - year) +
+        let l_age;
+        if(l_date_birth !== null) {
+          let l_year = parseInt(l_date_birth.substring(6, 10));
+          let l_month = parseInt(l_date_birth.substring(3, 5));
+          let l_day = parseInt(l_date_birth.substring(0, 2));
+          let l_date = new Date();
+          if(((l_month - 1) === l_date.getMonth()) && (l_day === l_date.getDate())) {
+            l_age = "<span style=\"color:red;font-weight:bold\">" + (l_date.getFullYear() - l_year) +
               " ans</span>&nbsp;<img style=\"vertical-align: bottom;\" alt=\"gateau\" src=\"" + img_aniv + "\">";
-          } else if((month - 1) < date.getMonth()) {
-            age = (date.getFullYear() - year) + " ans";
-          } else if((month - 1) > date.getMonth()) {
-            age = (date.getFullYear() - year - 1) + " ans";
-          } else if((month - 1) === date.getMonth()) {
-            if(day < date.getDate()) {
-              age = (date.getFullYear() - year) + " ans";
+          } else if((l_month - 1) < l_date.getMonth()) {
+            l_age = (l_date.getFullYear() - l_year) + " ans";
+          } else if((l_month - 1) > l_date.getMonth()) {
+            l_age = (l_date.getFullYear() - l_year - 1) + " ans";
+          } else if((l_month - 1) === l_date.getMonth()) {
+            if(l_day < l_date.getDate()) {
+              l_age = (l_date.getFullYear() - l_year) + " ans";
             } else {
-              age = (date.getFullYear() - year - 1) + " ans";
+              l_age = (l_date.getFullYear() - l_year - 1) + " ans";
             }
           }
         } else {
-          age = " &acirc;ge non pr&eacute;cis&eacute;";
+          l_age = " &acirc;ge non pr&eacute;cis&eacute;";
         }
         switch (sexe) {
           case "homme":
-            date_insc = "Inscrit le " + date_insc;
+            l_date_insc = "Inscrit le " + l_date_insc;
             sexe = "Homme";
             break;
           case "femme":
-            date_insc = "Inscrite le " + date_insc;
+            l_date_insc = "Inscrite le " + l_date_insc;
             sexe = "Femme";
             break;
           default:
-            date_insc = "Inscrit(e) le " + date_insc;
+            l_date_insc = "Inscrit(e) le " + l_date_insc;
             sexe = "Ange";
         }
-        ville = ville !== "" && ville !== null ? ville : "Ville non pr&eacute;cis&eacute;e";
-        var time_inact = "N'a jamais posté";
-        if(date_mess !== null) {
-          time_inact = div_int(new Date().getTime() -
-            new Date(date_mess[2], date_mess[1] - 1, date_mess[0], date_mess[3], date_mess[4]).getTime(), 1000);
-          if(time_inact <= 360) {
-            time_inact = "moins de 5min";
-          } else if(time_inact < 3600) {
-            time_inact = div_int(time_inact, 60) + "min";
-          } else if(time_inact < 86400) {
-            time_inact = div_int(time_inact, 3600) + "h";
+        l_ville = l_ville !== "" && l_ville !== null ? l_ville : "Ville non pr&eacute;cis&eacute;e";
+        let l_time_inact = "N'a jamais posté";
+        if(l_date_mess !== null) {
+          l_time_inact = div_int(new Date().getTime() -
+            new Date(l_date_mess[2],
+              l_date_mess[1] - 1,
+              l_date_mess[0],
+              l_date_mess[3],
+              l_date_mess[4]).getTime(), 1000);
+          if(l_time_inact <= 360) {
+            l_time_inact = "moins de 5 minutes";
+          } else if(l_time_inact < 3600) {
+            l_time_inact = div_int(l_time_inact, 60) + " minutes";
+          } else if(l_time_inact < 7200) {
+            l_time_inact = "une heure";
+          } else if(l_time_inact < 86400) {
+            l_time_inact = div_int(l_time_inact, 3600) + " heures";
+          } else if(l_time_inact < 172800) {
+            l_time_inact = "un jour";
           } else {
-            time_inact = div_int(time_inact, 86400) + " jours";
+            l_time_inact = div_int(l_time_inact, 86400) + " jours";
           }
-          time_inact = "Dernier post il y a " + time_inact;
+          l_time_inact = "Dernier post il y a " + l_time_inact;
         }
         // remplissage de la div infos
-        var html = "";
-        if(avatarimg && avatar !== null) {
-          html += html_avatar + avatar + html_image_2 + real_pseudal + html_image_4 + "<br>";
+        let l_html = "";
+        if(p_avatarimg && l_avatar !== null) {
+          l_html += html_avatar + l_avatar + html_image_2 + p_real_pseudal + html_image_4 + "<br>";
         }
-        html += sexe + ", " + age + "<br>" + ville + "<br>" + date_insc + " (" + status +
-          ")<br>" + nb_posts + " posts<br>" + time_inact + "<br>";
-        if(smiley_perso_0 !== null) {
-          html += html_smiley + smiley_perso_0 + html_image_2 + smiley_perso_alt_0 + html_image_3 +
-            smiley_perso_alt_0 + html_image_4;
+        l_html += sexe + ", " + l_age + "<br>" + l_ville + "<br>" + l_date_insc + " (" + l_status +
+          ")<br>" + l_nb_posts + " posts<br>" + l_time_inact + "<br>";
+        if(l_smiley_perso_0 !== null) {
+          l_html += html_smiley + l_smiley_perso_0 + html_image_2 + l_smiley_perso_alt_0 + html_image_3 +
+            l_smiley_perso_alt_0 + html_image_4;
         }
-        if(smiley_perso_1 !== null) {
-          html += html_smiley + smiley_perso_1 + html_image_2 + smiley_perso_alt_1 + html_image_3 +
-            smiley_perso_alt_1 + html_image_4;
+        if(l_smiley_perso_1 !== null) {
+          l_html += html_smiley + l_smiley_perso_1 + html_image_2 + l_smiley_perso_alt_1 + html_image_3 +
+            l_smiley_perso_alt_1 + html_image_4;
         }
-        if(smiley_perso_2 !== null) {
-          html += html_smiley + smiley_perso_2 + html_image_2 + smiley_perso_alt_2 + html_image_3 +
-            smiley_perso_alt_2 + html_image_4;
+        if(l_smiley_perso_2 !== null) {
+          l_html += html_smiley + l_smiley_perso_2 + html_image_2 + l_smiley_perso_alt_2 + html_image_3 +
+            l_smiley_perso_alt_2 + html_image_4;
         }
-        if(smiley_perso_3 !== null) {
-          html += html_smiley + smiley_perso_3 + html_image_2 + smiley_perso_alt_3 + html_image_3 +
-            smiley_perso_alt_3 + html_image_4;
+        if(l_smiley_perso_3 !== null) {
+          l_html += html_smiley + l_smiley_perso_3 + html_image_2 + l_smiley_perso_alt_3 + html_image_3 +
+            l_smiley_perso_alt_3 + html_image_4;
         }
-        if(smiley_perso_4 !== null) {
-          html += html_smiley + smiley_perso_4 + html_image_2 + smiley_perso_alt_4 + html_image_3 +
-            smiley_perso_alt_4 + html_image_4;
+        if(l_smiley_perso_4 !== null) {
+          l_html += html_smiley + l_smiley_perso_4 + html_image_2 + l_smiley_perso_alt_4 + html_image_3 +
+            l_smiley_perso_alt_4 + html_image_4;
         }
-        if(smiley_perso_5 !== null) {
-          html += html_smiley + smiley_perso_5 + html_image_2 + smiley_perso_alt_5 + html_image_3 +
-            smiley_perso_alt_5 + html_image_4;
+        if(l_smiley_perso_5 !== null) {
+          l_html += html_smiley + l_smiley_perso_5 + html_image_2 + l_smiley_perso_alt_5 + html_image_3 +
+            l_smiley_perso_alt_5 + html_image_4;
         }
-        if(smiley_perso_6 !== null) {
-          html += html_smiley + smiley_perso_6 + html_image_2 + smiley_perso_alt_6 + html_image_3 +
-            smiley_perso_alt_6 + html_image_4;
+        if(l_smiley_perso_6 !== null) {
+          l_html += html_smiley + l_smiley_perso_6 + html_image_2 + l_smiley_perso_alt_6 + html_image_3 +
+            l_smiley_perso_alt_6 + html_image_4;
         }
-        if(smiley_perso_7 !== null) {
-          html += html_smiley + smiley_perso_7 + html_image_2 + smiley_perso_alt_7 + html_image_3 +
-            smiley_perso_alt_7 + html_image_4;
+        if(l_smiley_perso_7 !== null) {
+          l_html += html_smiley + l_smiley_perso_7 + html_image_2 + l_smiley_perso_alt_7 + html_image_3 +
+            l_smiley_perso_alt_7 + html_image_4;
         }
-        if(smiley_perso_8 !== null) {
-          html += html_smiley + smiley_perso_8 + html_image_2 + smiley_perso_alt_8 + html_image_3 +
-            smiley_perso_alt_8 + html_image_4;
+        if(l_smiley_perso_8 !== null) {
+          l_html += html_smiley + l_smiley_perso_8 + html_image_2 + l_smiley_perso_alt_8 + html_image_3 +
+            l_smiley_perso_alt_8 + html_image_4;
         }
-        if(smiley_perso_9 !== null) {
-          html += html_smiley + smiley_perso_9 + html_image_2 + smiley_perso_alt_9 + html_image_3 +
-            smiley_perso_alt_9 + html_image_4;
+        if(l_smiley_perso_9 !== null) {
+          l_html += html_smiley + l_smiley_perso_9 + html_image_2 + l_smiley_perso_alt_9 + html_image_3 +
+            l_smiley_perso_alt_9 + html_image_4;
         }
-        if(smiley_perso_10 !== null) {
-          html += html_smiley + smiley_perso_10 + html_image_2 + smiley_perso_alt_10 + html_image_3 +
-            smiley_perso_alt_10 + html_image_4;
+        if(l_smiley_perso_10 !== null) {
+          l_html += html_smiley + l_smiley_perso_10 + html_image_2 + l_smiley_perso_alt_10 + html_image_3 +
+            l_smiley_perso_alt_10 + html_image_4;
         }
-        infos_div.innerHTML = html;
-        for(let img of infos_div.querySelectorAll("img.gm_infos_rapides_smiley")) {
+        l_infos_div.innerHTML = l_html;
+        for(let l_img of l_infos_div.querySelectorAll("img.gm_hfr_infos_rapides_smiley")) {
           if(in_title) {
-            img.addEventListener("mouseover", update_title, false);
+            l_img.addEventListener("mouseover", update_title, false);
           } else {
-            img.removeAttribute("title");
-            img.addEventListener("mouseover", show_tooltip, false);
-            img.addEventListener("mouseout", hide_tooltip, false);
+            l_img.removeAttribute("title");
+            l_img.addEventListener("mouseover", show_tooltip, false);
+            l_img.addEventListener("mouseout", hide_tooltip, false);
           }
-          img.addEventListener("click", insert_or_edit_keywords, false);
+          l_img.addEventListener("click", insert_or_edit_keywords, false);
         }
         // affichage de la div infos
         if(info_canceled) {
           return;
         }
-        infos_div.style.display = "block";
-        infos_div.style.left = (event.clientX + 8) + "px";
-        if(event.clientY + 8 + infos_div.offsetHeight >= document.documentElement.clientHeight) {
-          infos_div.style.top = (window.scrollY + event.clientY - 8 - infos_div.offsetHeight) + "px";
+        l_infos_div.style.display = "block";
+        l_infos_div.style.left = (p_event.clientX + 16) + "px";
+        if(p_event.clientY + 16 + l_infos_div.offsetHeight >= document.documentElement.clientHeight) {
+          l_infos_div.style.top = (window.scrollY + p_event.clientY - 16 - l_infos_div.offsetHeight) + "px";
         } else {
-          infos_div.style.top = (window.scrollY + event.clientY + 8) + "px";
+          l_infos_div.style.top = (window.scrollY + p_event.clientY + 16) + "px";
         }
-      }).catch(function(e) {
-        console.log(script_name + " ERROR fetch profil : " + e);
+      }).catch(function(p_error) {
+        console.log(script_name + " ERROR fetch profil : " + p_error);
       });
     }, 450);
   }, false);
   // ajout du mouseout
-  pseudal.addEventListener("mouseout", function(event) {
+  p_pseudal.addEventListener("mouseout", function(p_event) {
     // activation du info_canceled
     info_canceled = true;
     window.clearTimeout(info_timer);
@@ -960,10 +973,10 @@ function add_popup(pseudal, real_pseudal, avatarimg, profileurl) {
 }
 
 // fonction de gestion du masquage de la popup d'info en cliquant en dehors
-document.addEventListener("click", function(e) {
-  if(e.target.id === "gm_infos_rapides" ||
-    e.target.className === "gm_infos_rapides_avatar" ||
-    e.target.className === "gm_infos_rapides_smiley") {
+document.addEventListener("click", function(p_event) {
+  if(p_event.target.id === "gm_hfr_infos_rapides" ||
+    p_event.target.className === "gm_hfr_infos_rapides_avatar" ||
+    p_event.target.className === "gm_hfr_infos_rapides_smiley") {
     return;
   }
   hide_popup_info();
