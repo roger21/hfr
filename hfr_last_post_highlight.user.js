@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Last Post Highlight
-// @version       2.1.2
+// @version       2.1.3
 // @namespace     roger21.free.fr
 // @description   Permet de distinguer les posts lus des posts non lus par l'ajout d'une diode sur les posts et en affichant une ligne de séparation (optionnelle) et répare les ancres cassées (en cas de suppression de post).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -36,9 +36,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1751 $
+// $Rev: 2037 $
 
 // historique :
+// 2.1.3 (16/05/2020) :
+// - correction d'un wtf (copié / collé foireux ?) dans le code
+// - amélioration des styles de la fenêtre de configuration
 // 2.1.2 (12/03/2020) :
 // - adaptation du code de recherche des leds pour fonctionner avec [HFR] Chat
 // 2.1.1 (13/02/2020) :
@@ -266,17 +269,17 @@ style.textContent =
   "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;}" +
   "#gm_hfr_lph_config_window div.gm_hfr_lph_main_title{font-size:16px;text-align:center;" +
-  "font-weight:bold;margin:0 0 8px;}" +
+  "font-weight:bold;margin:0 0 8px;cursor:default;}" +
   "#gm_hfr_lph_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:6px 10px 10px;" +
   "background:linear-gradient(to bottom, #ffffff 20px, transparent);transition:background-color 0.3s ease 0s;}" +
   "#gm_hfr_lph_config_window fieldset.gm_hfr_lph_red{background-color:#ffc0b0;}" +
   "#gm_hfr_lph_config_window fieldset.gm_hfr_lph_green{background-color:#c0ffb0;}" +
-  "#gm_hfr_lph_config_window legend{font-size:14px;background-color:#ffffff;}" +
+  "#gm_hfr_lph_config_window legend{font-size:14px;background-color:#ffffff;cursor:default;}" +
   "#gm_hfr_lph_config_window p{margin:0 0 0 4px;}" +
   "#gm_hfr_lph_config_window p:not(:last-child){margin-bottom:4px;}" +
   "#gm_hfr_lph_config_window div.gm_hfr_lph_led_div_p{display:flex;align-items:center;margin:0 0 0 4px;}" +
   "#gm_hfr_lph_config_window div.gm_hfr_lph_led_div_p:not(:last-child){margin-bottom:4px;}" +
-  "#gm_hfr_lph_config_window span.gm_hfr_lph_led_span{display:block;width:110px;}" +
+  "#gm_hfr_lph_config_window span.gm_hfr_lph_led_span{display:block;width:110px;cursor:default;}" +
   "#gm_hfr_lph_config_window div.gm_hfr_lph_led_div{display:flex;width:161px;align-items:center;" +
   "justify-content:space-around;}" +
   "#gm_hfr_lph_config_window div.gm_hfr_lph_led_div > img{display:block;padding:2px;border-radius:50px;" +
@@ -308,7 +311,7 @@ style.textContent =
   "border:0;}" +
   "#gm_hfr_lph_config_window input[type=\"range\"]::-webkit-slider-runnable-track{background:#888888;" +
   "height:1px;border:0;margin-top:-16px;}" +
-  "div.gm_hfr_lph_save_close_div{text-align:right;margin:16px 0 0;}" +
+  "div.gm_hfr_lph_save_close_div{text-align:right;margin:16px 0 0;cursor:default;}" +
   "div.gm_hfr_lph_save_close_div div.gm_hfr_lph_info_reload_div{float:left;}" +
   "div.gm_hfr_lph_save_close_div div.gm_hfr_lph_info_reload_div img{vertical-align:text-bottom;}" +
   "div.gm_hfr_lph_save_close_div > img{margin-left:8px;cursor:pointer;}";
@@ -664,10 +667,7 @@ split_line_fieldset.appendChild(split_thick_p);
 // section misc_options
 var misc_options_fieldset = document.createElement("fieldset");
 var misc_options_legend = document.createElement("legend");
-var misc_options_label = document.createElement("label");
-misc_options_label.textContent = "Options diverses";
-misc_options_label.setAttribute("for", "gm_hfr_lph_misc_options_checkbox");
-misc_options_legend.appendChild(misc_options_label);
+misc_options_legend.textContent = "Options diverses";
 misc_options_fieldset.appendChild(misc_options_legend);
 config_window.appendChild(misc_options_fieldset);
 
