@@ -1,15 +1,16 @@
 // ==UserScript==
-// @name          [HFR] alerte qualitaÿ mod_r21
-// @version       2.0.6
-// @namespace     http://toyonos.info
-// @description   Permet de signaler une alerte qualitaÿ à la communauté
+// @name          [HFR] Alerte Qualitaÿ mod_r21
+// @version       3.0.0
+// @namespace     roger21.free.fr
+// @description   Permet de signaler une alerte qualitaÿ à la communauté.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
-// @include       https://forum.hardware.fr/*
-// @exclude       https://forum.hardware.fr/message.php*
-// @exclude       https://forum.hardware.fr/forum*cat=prive*
-// @author        toyonos
-// @modifications remplacement de l'image de fond par une image transparente moins gênante et allignement du bouton
-// @modtype       modification de fonctionnalités
+// @include       https://forum.hardware.fr/forum2.php*
+// @include       https://forum.hardware.fr/hfr/*/*-sujet_*_*.htm*
+// @exclude       https://forum.hardware.fr/forum2.php*cat=prive*
+// @author        roger21
+// @authororig    toyonos
+// @modifications refonte du code, modernisation, fenêtre de configuration et compatibilité
+// @modtype       réécriture et évolutions
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_alerte_quali_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_alerte_quali_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_alerte_quali_mod_r21.user.js
@@ -17,16 +18,43 @@
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @connect       alerte-qualitay.toyonos.info
+// @grant         GM.getValue
 // @grant         GM_getValue
+// @grant         GM.setValue
 // @grant         GM_setValue
-// @grant         GM_addStyle
-// @grant         GM_registerMenuCommand
+// @grant         GM.xmlHttpRequest
 // @grant         GM_xmlhttpRequest
+// @grant         GM_registerMenuCommand
 // ==/UserScript==
 
-// modifications roger21 $Rev: 1590 $
+/*
+
+Copyright © 2011-2012, 2014-2020 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+// $Rev: 2100 $
 
 // historique :
+// 3.0.0 (25/05/2020) :
+// - refonte du code et ajout d'une fenêtre de configuration pour les images
+// - simplification de l'interface : alerte 1 <-> n posts
+// - nouveau nom : [HFR] alerte qualitaÿ mod_r21 -> [HFR] Alerte Qualitaÿ mod_r21
+// - ajout de l'avis de licence AGPL v3+ *si toyonos est d'accord*
+// - appropriation des metadata @namespace et @author (passage en roger21)
+// - ajout de la metadata @authororig (toyonos)
+// - réécriture des metadata @description, @modifications et @modtype
 // 2.0.6 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 2.0.5 (11/02/2020) :
@@ -80,266 +108,972 @@
 // - ajout d'un .1 sur le numero de version
 // - désactivation de l'auto-update pour conserver les modifs
 
-var cssManager = {
-  cssContent: "",
-  addCssProperties: function(properties) {
-    cssManager.cssContent += properties;
-  },
-  insertStyle: function() {
-    GM_addStyle(cssManager.cssContent);
-    cssManager.cssContent = "";
-  }
-};
+/* ------------- */
+/* option en dur */
+/* ------------- */
 
-({
-  getElementByXpath: function(path, element) {
-    let arr = Array();
-    let xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
-    let item = xpr.iterateNext();
-    while(item) {
-      arr.push(item);
-      item = xpr.iterateNext();
-    }
-    return arr;
-  },
-  readCookie: function(name) {
-    var begin = document.cookie.indexOf(name + "=");
-    if(begin >= 0) {
-      begin += name.length + 1;
-      var end = document.cookie.indexOf(";", begin);
-      return decodeURIComponent(document.cookie.substring(begin, end == -1 ? document.cookie.length : end));
+// activer les box-shadow (true) ou pas (false) sur la popup
+const box_shadow = true;
+
+/* ---------------------------- */
+/* gestion de compatibilité gm4 */
+/* ---------------------------- */
+
+if(typeof GM === "undefined") {
+  this.GM = {};
+}
+if(typeof GM_getValue !== "undefined" && typeof GM.getValue === "undefined") {
+  GM.getValue = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_getValue.apply(null, args));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+}
+if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
+  GM.setValue = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_setValue.apply(null, args));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+}
+if(typeof GM_xmlhttpRequest !== "undefined" && typeof GM.xmlHttpRequest === "undefined") {
+  GM.xmlHttpRequest = function(...args) {
+    return new Promise((resolve, reject) => {
+      try {
+        resolve(GM_xmlhttpRequest.apply(null, args));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  };
+}
+// info du navigateur pour les différences d'affichage ff / ch
+var ff = navigator.userAgent && navigator.userAgent.indexOf("Firefox") !== -1;
+
+/* ---------- */
+/* les images */
+/* ---------- */
+
+var img_black = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV4AAABwCAYAAABW%2BhjoAAAKtElEQVR42u2d2bLcKgxFGfP%2Fn3xfcm46qW4b0IBwr1XFS1LtYwZthIQhJQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIBXCk0AAOBLpQkAAHz5RRMAAPgLb6YZAAB8hZc4LwCAs%2FAS5wUAcKL8Ft5OU4D17P6uaC61%2BsXfsfAu8s3f0yySeo%2BU%2Fru0332SJwVkR8kG7TBSysQ4by%2F%2F1wbqsbM9oxTCL8qz%2B6%2BbgWkl7lYd6mUkXVhvSbmbrOpGA%2FVsh5FJMN%2BM7zpoA98uvOAkiF7ep3YG2Ut0agCv%2B9Ok1TYZZ9%2Foec9MxH3wHfF6EV53cfLyPrWJsLT1NNKysQ3uvMSy6e%2FejfVR4a1BJrTdhZi3Ywy0OAi8RYfuimXuXOrvaoO7MeMlVFerj3bTZnmyn79ReNnloUBzbOw7z6ttmlROSKytCl4OJLwRE2vvBDWiF09i7Qu9XS1vlMTadd3flfrb2Pvi%2B5T0ZzfEVVnZXXFXIq4%2BRsZem3x%2BQ3jBMv5pLfLaHVoHjVRavOpdjPuqGY6BkXaoxv2RBz3ZkuYnWhJrYOYNFuO%2F5x1GaUHa2aLforVXCWDQZeLvz9pCQXjBwtuVxnnrhg6NsGSyqLeVcVi2147E6uw7zIQbvlV82dGwIfYp8Xh2eJ8RhNei3lbGYdlePe1ffXyyhf7GsRi1kfxl4tuQTztBsvBKvbeoRFjaWohZNmpL6%2FaKnrBZCTd8muSeLL4k1gwEqQwMmnyI4T1VeKtRW1q2Vz7AoPub9yiIL8JrLQR9UCysjFr7U%2BGW4idzZuv95MRaFOH9tdjmfXHCOa1wKPwCNckTC83I8CwN6c5gWvqzV%2Faq1E2CU9L4XtFVAdudWJ3ZH%2FxTipFtlDcC2gffPwvqz46GB5InxLQqN35L%2FpnSCImFJhAc74yzpUdq9YGBpvCWAc9OMvnltO%2FMDHY0bKQlvczs7HLjKWfwVuV6R1kGWoeCTvG%2BRiZZ6Sf25WABZkeDobdrEed9yqfCJYjgnPZxyyneVx1s05mVTL6wydNCECTWFD2vvGAsVUn0TzuDtyjXW0uApO1nGQqymgQtvK88MTa74rvm9Pe5HE0h7ITwbqYsGlRTMsQnncGbAwiOhSFYhoLKYSLQJsb6SqgqB2tHdjRs8HaLwGvU8j5POoM3gtddDUTnWxJrI7%2B5uxpIY1XTFt4%2FgvCCUmcVgcEUBeHfdQbvz8CfLdped%2Ftnablj8FuHgvqgiFr2xeuYXrWbajTB9pfJ9N0FplFiwexoCOD5zSw%2F%2BWJtvP168l%2FufdOnwjN7f2echNO3ibGjQRHrWXJkBox6Bm8E4S2LIlid20vi6exIrN55vE347v2DV%2Fp08SWxFsDbHRUwzuCdr7d3uMEyFBRl9fHvJJMV3v%2FTxNkRXrzd3VnOiGfw1iDtvzpxaNfh6WfwvsZNy8JkUm4mpXzxu9drm17j%2BZzR8EA8D%2Ba4M0rO4J2vt%2BVBON7tFeEM3voSHigDHutKn1ic4cEZDYfhOaM2oeHtOIPXY%2BaWeqxeS79vSKyNfipfbsZzHrCt0a1%2Bp3m97GgQGtLsNippqOAXwrskONXJGHafwesR9ukDfdEm6jq6vaulv7eJlXRumIEdDYJBtmqobVHIZs4xXS2rnkRXKMVQ%2FEfDRVKPcfcZvFp90oSrh9UJOb8I6pN3NZBYEwz04vxc6zhWX%2FBuPAajlhc5%2BgGGpTfocQavpUc2k%2B%2FwXHUhvA9il%2BdSN8WxqsC7sczyah04U5J9tvnET4WtJv%2FuZIvsaPgibzcbDqQu8Ng0jc37mhUPL9Iy%2FpY3i7qH8Na0x7t7mvCCs7c7KiY7Bt%2FOa7UlJ1bNGHZLdh7JiWfwWuyJnt2f%2B23Cy46GxVldY5kwe2BO3mBsnjHF6uRFFuH7SMZNxDN4Lb4CvGuDkuIdB8qOhs1kp0abjfPuSKydElO08p4iJdZKEGGQ9O%2B7kh8ivLsuFH2U8GofnXc1oEYH5N17SUteaAvNstof2aCPV%2Fva4l1fn%2B3VH3lxzJaX93wtAAAAAAAAAAAAAAAAAAAAn%2Fn3AOnXg1Ck2fZPf0%2Ba0dfeFeD9%2FE9%2Fw5IsqJPljomobZkNxkHZ0O%2FHipL1vr2rE6A%2BFY16zezDbYrCY7XXNisKlMfBJd6fijZBnaz2ymp8pVWN2rIk3b36LfHBhMg4Tv6WW3pJYDESNe9n7DaQvEF4JZOV1ccyzagdtSbirvTsiujKG%2BvUb7m1vBaJ%2BBaFwVcMB3BOPt%2FQlw1GKBH6qMcftmR7%2BI6G11sSZzKoGOCJ33KPiG5P4wdMrw7qd5NZ3fCMWQ%2FHw6u2jPUVoeFHFN6SfD7fl3i9xdgjfxyRrwwpigO0petzELqyCHWF%2BvTk691YiGN3Ft6q4LVdlZ4%2B34dmlVi7myS1PMpP4%2BJuss%2BI7p4leQThLQrPaYoiFDmxZnUqmVU7RPKwvcXF%2B2bovvB8bpcwMMATTqfXnHE1lnKRE2ufPEKL5etpibWIE8knD9dK5MqkiHZEV26Ap%2B5oaIoGp7FlJ2pi7UoIvbYpRU6srdSnO9toufh3a4fMcoX4FUROqM0OaO29qBpeWtTE2tUy3EKwTkus7eiTlXFoPaGNeL2r8eCv5oTropvAuKXGJvWeIybW7kTJQiRPS6xFmkiu2s4jhHPlDGl%2FcPEVnHJ9SBEMkGIw6LLw97tjlXfPs%2FDmSKzZee7WbXvl9bJX94EhhhmDKUYDUPLMiIm1kaWp9vKVxJptPTxWE1xaaegRnJxYs1haSsU8WmItDxryDrH3ECxPL9QzXNIc4qujq2P26j4gxDBjMBazvtTAoiXWZgxU06hIrNlNkp4TG6Ir5ISE2qzBWAwEqScRKbE2671rTmQk1mzHnlWYbcZhY9vYwqB8wo4Gr%2FhuEf5%2BV6xSY7Ktiu3oHUY7KbGmtSK18EARXcXly%2BmJNYvkjdSLiJRY0zLkrjjmLDk9sdaT726gyH35CBrC%2B%2FH3I20lPRavKwhmUxIKrzORSaztmSS9EmzsYnDs0IifCktFuw%2B0VXYWHI3YqHZoadZz%2FIbEmuZEEu2mi7u683WaY4eeIryzR9j1C%2B%2B5ORtoVhC%2BfNEuI%2FeCaSxfSazJ3r0P9lXbFAIhvuvo9US8dWJ24M2uALKSEUkGuYbH3IS%2Fn%2FVwSKz5TLQ57Ylts4VsskNOKDNGPvv54ozwam7fGhmoVeE9NMIl0smDxJrvRGuZYCOxptChT0qsjYRT%2BodnjYjvagxrds%2Fjz7XaXSlep1EXiy%2F3RpfOq1eLn5hY05gktVYo3nV%2FJOVg0dW%2B7ufdFfTWeyF3JbW0rv6WLl%2Bbc91PTaxpearNsP4k1jYZ%2FinXuZcAE4D2u2gk1MoGUejO4%2BDExFpVHPuazxrpSxJrht7GacIbTXwlic2edLZvSbwe7a8JvROskRNr2pNkSXYxbhJrgx3aDy8aV9vMTD4t3d9M7DUR9KSb0JOIz6qQayV1ayBx0PYmtSfJnGwSbCTWYGnQ%2FOxzbP8I%2B89%2B1nwzyLSWqz93ZLU3k8y7d1mtq%2BZ14qvP%2FPQ7y8Sadt2tny%2Btr9czPdoW4P8VA1eYAAA4w6wOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABCK%2FwD%2Ba9aP166N7wAAAABJRU5ErkJggg%3D%3D";
+var img_white = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV4AAABwCAYAAABW%2BhjoAAAK%2BUlEQVR42u2d2W7EKBBFhy3%2F%2F8eZGakTtaK2zVIb9jkST1HcBsOtoorln38AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAfvn%2B%2Fs60AgCArfAWWgEAwFZ4v2gFAABj4f2vJFoCAMBWeInzAgAYCy9xXgAAI9HNL%2BFttAZoW%2FdPJQv%2BRjv5HXHv4v%2F43MXviZXFeveU9ir1JQppUEA8SlJoh56SB%2Fp5fftbvaqHc3tGKYRfhK3711nHVBR3lQ9qOEjaYr1XSrn47eI1QI3b4dIIHhji2tFW1aMeUQuKaSSIht5nEq6XleiUAF53Pvj96jRAm5fnPWiIW%2Bc74vUivLbiZOV9KtQtwtQ2e04BDdvgykvMHr%2Fb0dd7hbcEMWjehZi3YQw0Gwh8U6ifSyzTc6rv2AanfcZQqM5mH%2FWszTrGQyLkwCoPCWGqVo3d4XlVJ6OyQ2JtSvAs26BDeCMm1j6FESJ68STWHujtinijJNbO635Qyss4tpn3eT2jdZSZ1RWnJejso8dY1UGvtyK8oBb%2FNBB5aeHtmeKn1WJV7xFDojX7Uf7%2BRfN7XLxDHWhnT6NCYu3Gy8fEhdEpsVYtQxsW9e79btHay%2BP7j77DyuzsSSEH1NM%2B218Wfq84CK%2F7lEmj3orCq2l4zROrE%2B8wEm54qviyosEh9rni8Zh7n0GEV7zeWoNDWXib9%2BzjZCy0v47FwBhJDxPfioLqCZJGjM90iUqEqa2GmPXGSqO1V%2FSEzWS44Sjem0mswUinyB2dJu0w8G4svEWjLTXbyyOxuuCR5wkBfZL4IrzCQtA6xUJlUCtsFa7Rkzmj9b5zYi2Q8H5NCmibNDi7FQ6FF04u9CYWqsbA0xxIHWtS69ta2bNSPATn9Zyq6ZF4J1ZH1ge%2Flaw0NvIHAW2d758W6s%2BKhhuKbuoV06uOouBN7bJVuArX%2B0xwTDPOyom1Gn3a%2B8FIpoV65IPx11jR8DzhrYKZ2TT423c5g7cI1zvENFA7FLSL99VjZFe32P9ZRcGKBrzdocGShQfeLluFcwTB2W1zyy7e14eZ3uoxm%2B3IYL3GZCGxdm%2FhbaOejJTnd7MzeLNwvUUEaLX9NENBikZQY913GhgfTepdX7%2F7fi5HFQg7IbzOoptnBtTFYGySA88xsaY2lTdaTpSN2qsEFN6sNF7qwBgZDlUph4NY0bCJt5tnvUZB73ObM3iDeN1FITTziMRa5wqSNBCOm53V1ImwVWZFwz283SvhrRIdP%2BgZvPXkGMbDouB11z9TS4%2BEUlJOrPXUS%2FVbvPfphXFTlAxs%2BzGmny4wDRQLZkVDkOROEXqHp%2B5YK5MilXZqr0hxw5G1v4OJ6N2XibGiYYMEU7cFjHoGbxDhzZPTyWLcXiuJtRQpbvgzu1h893bgld5dfEmsBfB2uwSMM3inbsE1DTdohoKizD4%2BGJkk8P5HhrMhvHi7rlnOoGfwlgjtv5iMKobttfsZvL9x0zchrULGo54sN%2Ft7bdN7PJ8zGm4ouimKFeQM3qnrx7Ol13v3M3hf4tfe1sqeeqyT30TjDA%2FOaNhMeGuUgLvDVuEcwXKveqxWU78nJNZ6t8r%2FHER04dBcja2upX4ber2saFgcSKPLqJZCBREPPw8ivFczhWIxGAKcwWsR9rky%2Fr8nvw3Uq%2Bf71D%2FLxPLGYQZWNCx0stnrYOqMkI2cYzpbFjyJJlCylvgPhIvyYn%2FxPoNX6pvUxdnDlEF%2BC1%2FUm69qILG20NGz5XMN4lhtwrtR74xSXmTvBgxlb9DiDF41j2wk32E860J4byS8Xp5LcYpjlQXvRi3LK3XgzOxli4ESa3UHI6gRx%2BTWCbxdkYab6bAG3mee9W40s7ySXqRm%2FM1gq%2FBXAOEtHt7d3YQXhTX2dnvFxKnzeV6rvXJi1cjRklUxPrnjGbwaa6KH1uc%2BUHhZ0TBp1ZPAb9Ro3qdzTLFYeJEDxqQo9JuIZ%2FCK7wLsSPjlgMeBsqLBWXSTRaONxnmdEmv1Lom1GfEIlljLEYRh5fselHQT4XW5UPRuwit6dN5Fh%2BrqkFfvJVDSaFtIltnvsbhkSfSYRI13%2FfNsq%2B%2BRJvtsfnvP34KqAAAAAAAAAAAAAAAAAADAMR8OkG5vB0nnb507x5Yy%2BtKrAqyff%2FQbyt85zdZJc8VE1LY8qXMS7lcsHztoKO11e4cnQB0VoXpVq51Ff35ba61tEhQoi7vqTLeKHnzvrDwOLI7aLBpteVLnKtj%2BbJgYGODb7uUWuCQwa4ia9TO8B4h2HaSNleJmmarRjoI7SJvEs092LSK6A4215V5uQa9l5QStvNr5JJ4xOZAlT9PK1oNwReijHn94YRA0bwyRuEOOMxkGB%2BB2e7k7RbcNHDCdBY1ZsX7GhIdj4VVnxf6cVwZ%2BROHtuf1FuU%2Bsbmdm157h1Mq8s3bc2np2DkKTFKGD52XrZywYp6w4mDWFtwh4bWelHd2HppVY63AQmqLR6rnHLyG6PlNyd%2BG9qEteNEIz5xWETaxpnUqm1Q6RPGxrcXG4GboJ3n%2FIKgbjaZXp6fSSFldiKhc5sXbkESqdtbxVYi2oITkKlWnNUPLgqXkN0V0fgFuuaDjxVJNUuwh0XvfE2pkQGi5TCptY044fC%2FXFoxu6tb36L80Z4lNEN23g7bbFumRpcVocMO6JtbNpuJLwbpVY8%2Fgmk0YyKy8BvPR6Z%2BPBTxfeHa6LrguDuy22z%2BrtDuESa1eipCGSuyXWIhmSs7azCOGcOUPSGy6eIrq7XB%2BSFzpIdhbecIm1q%2Bcpedgk1pQ8dwPhzSc3aLBW94Yhhu4Bc9QJPOOEERNrPVNT6ekriTXdeljMJri0Utcj2DaxpjG1XBXzaIm1E2ObvMXeQrB2iR%2BP9umDsVyE3yVLrj4ixHAf4W0KYYbVnU%2BhEmsjA1RyUJFY0zOSloYN0dUJ1u%2B%2BokG8I6x6EpESa6Peu6QhI7GmbiSzRehDYmPSk0W37OTtDqxoMInvDu6gC5NYEzK2RaodHcJo2yTWBGekGsk%2BRFdw%2BrJ7Yk08eSMQ3w2TWBMcyE2qz1nHd3dKrAnOSLOFfqCsc57A44X3IG62tHVWIs4oFbvzPBOZxJpr%2FsUiwcYqBsMPGnGr8Kpot462SpaCIxQjlg4tjZ538YTEWtU0Gp43XXTUnd1phh90F%2BEdPcKunYRjquUAHclqTzzj8ujC0QNSNI1HMGFUMyQH7946v1V1CoEQ3zX0esLdOjHa8SZmABLXnrTFTi7hMdfF%2Fx9dDkdizcDQShhq79j53UQ37ertDi7dGtq%2BOCi8Ysu3Ok%2FwL4pnEidD40FizdbQah5iT2JN4IPeJrHWGU5pn57VKb6zS6iG1jy%2BXavdJOJ1EnVR2rnXO3Weulp8x8SahJGUmqF4xc7vJrp5Y9GVvu7n0xX0qmshvZJaUld%2FC0x%2Fq2Xdd02sCc6yqlb9Saw9IKG2eL9Z9jYACu8ikVDL1qIgNdu6c2JNykhKP4vEmmwnub3wBhTflcRmE1q%2B1YSNdzU0%2FM1TGDXjxwpGMism%2F0isdX7QtnmRuNpmxPjUq5uJDQ1BE07oZWED3hZERTPBulViTcFIJo0EG4k1mO00P%2Bsc67uwv61nTRedrAq9y88dWfWvkfn0Lgt1lbxOfOqZR%2F%2BnnFgTrbv281fra%2FVMi7YFeJ8xcIUJAICxAGPVAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABC8S%2FyZa4ySaprLAAAAABJRU5ErkJggg%3D%3D";
+var img_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADYAAAAQCAIAAADS0huhAAAE%2F0lEQVR42tVWTWgTTxQf6MWD14onQaF%2BgFgEL3opvfQgHlooePADLKU1pSZQSolpaAyhCtYQYtAgsYVopNiSutAgqT2sBlNDG0NkQ5aGNKVrQw0Ss6WrS13L%2BuZNEre13v%2F%2F4RHeZN%2FM%2FOZ9%2FN4Q8r8Y91DGUNyEeAnxERIgZJyQICGThEwRMkNIhJAoIfOE8ITECIkTkiAkSUgaRUBhehIlgTYxXBLF5RzuFsJtoz09fjxrDE93EGInZAhlkJABFEsd4mgN5WgNKKxMz8wo%2BTwDmvR4dE3jaij1XE7%2F%2BVPf3gZROK704AHTdUVRI5HiyEh1qmlgpqZSmihSHeTXL%2Bn1a%2BH58%2BL797qu5969o%2Fug2S5hlsvL%2FXWILgTHfhlcX2OjjsOP7pSXl0Gv%2B5J90rJZPZOR7HY9n6fTt2%2F1799BUcJhbWmJ2ahLSzm4Hg45k1Gy2ZjdrhQK6pcv8I8Yj%2Bv%2FHsX1dZMRYl0ciFLKZJgdNzAAKPWdHbhcCCPOt7TQD58%2FF6en052dEE16adjx7l19YwMUobExgdfQcjlweez8eWq%2FsSFOT893dUFMYMPCwkIRj0i%2FefMviPzcXLcRosMg3tZWsJj3%2B%2Bl5c3NePK%2F06VMIM0nw%2Beq7FNzuRM2pbEDQWSJSneMgC8WaF2EkHj2CmAQPH%2BYsltLaWiGVondbXRU%2BfiwUCnsgjns8fyCyVGUCehmdUY1UpRI6dYpeNxgMYqYXFxdhyuoGSiHd1ATT8tOnLMqsYiRIR9D7%2BsBMRvspLBFw4WRzc3ltLXTpEkRZkeViPq9sbe3rxcGmpn0g2iDzenrgc%2BDyZXCtEItRNPfv%2F1kH221uGjeSHj%2Bm7mxvVyYmaMI9eQIQFZ4HndWyXqkY7eNoT4%2B4cMF94IDRHXsG4NsF0VYTb1vbeH%2B%2FA6MPIeZstuCZM9Hh4Xm7PTYyEr14Md7bm3Y4BIdDvHNHuHZNaG6WnE6RkBy43%2BkqdHYCRLGjozA8zCPEhNmcdLkSTmfc6YzcuDF59mwUFJvNf%2FQoJL2vrS04OBgwm30mk9dkcptMY93dYzdvjl6%2Fvj%2FEEAaIFYeuqvqPH0q5DEwZOnZMwRqUeH4G6U1dXWXsCHWQREYsXr2qy3KVGg8d0vL5WI0Ocy9fJjyeSUPW5hYWGB1KKytBq5VxYVmWgQsHDx4sff1qaWjoJaR3D0T77sSvDx%2F%2BP282h5jS0sKhAhBFkwniyNibEiHmIkyle%2Feg5JkXKUkpCt%2FVFcJUBpvgkSM%2BZN%2Fow4c0yxMJGzK2KAhxntd2dvyjowDOhLILYno%2FlpLX17m%2BPrVcZp2GQmxtjV%2B5AqfC8cVwWP3wATCVAgFaLqpaxIpWFxdLr17Vmwqsmqn1Fca1rIHR1Jyd1ba3WV9xHT9OLV%2B8YOD6jRDBwtvevq8LgXQiQ0Nw%2FFRDgypJlCkhcBMT2soKLQVVzVmtjGJ0QYD00OJxSkObm1DODCJ%2F8mQdIm%2B1apVKAKkRYq1ubhZgla6zSh3CfVjfsyDEfqMXk9EoOAYKVpPlatnC79YWd%2BsWbMfAUTaWJIAYO3euOk2loAuXQiFldpbG9%2FZtPZulEJGAaFGfOJEeGJBTKQ47k%2FjsmRgOVwOiKKxBa9%2B%2BuU%2BfBgzujg5IzXp3thh7dJ26XbU2yF4VPryu8TER%2Besxkag9GoxSf0DwKH%2B%2FIViP8RmeEa5avrGXxN5nxH98%2FAYDFsrQFD2vjwAAAABJRU5ErkJggg%3D%3D";
+var img_reset = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs%2B9AAABhklEQVQY0wXBT0iTcRjA8e%2Fz%2FN537%2FvamjVa7lSUhUbsEiQRQf%2BoQ3gL6hSskA5Bt%2FQSXTz0%2F2xBl7okZR6EqEgiAvFgCAW1SPLPlGluilubZsv29PmQe37SAUw2u75Swv%2F%2BeXt7R2ve3I27K8GTzoObf8RTF78kU8e4NtTrAGa9qL9GaFVhfrDzdOvibt23rMGrCtiMyABX3g7JARt3b1KZPX%2FAKoLVnI6VHTMVxJZ8ffb4fHYb514Umi58uxMArBOzNYdVBVsiqFd8yY2dOpra%2Fy6nPBg%2F67%2B%2FetkBTGzhUx3sl9Cogk3HwiMA2Q8PHY8u%2FfQApoOwpwYbNaGxBraAtwrQvbwjlh0eUd04cV8Wo3TX1r%2F12%2F8UJyAIjYiwafYmLQPJUYt3jChTiebjZbAavq2KFuckdq%2BM%2FK56NArivmLmBruGPQoufLkuWMkxlffjhwAWktGZkmq96HS072l3lJlfUT6md%2B3Ma9A%2Fp24vQC6f8TFzk4lN6ddtbS2HbUKvF2%2Fpf4cUlw8oMuVkAAAAAElFTkSuQmCC";
+var img_select = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA0AAAAIAQMAAAAY6OeMAAAABlBMVEV1bGWIiIhRreupAAAAAXRSTlMAQObYZgAAAB9JREFUeNpjYGBgqP%2FAYP%2BAQf4AA38DAzsDAxNQiAEAP1wEBmEVxtQAAAAASUVORK5CYII%3D";
+var img_info = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg%3D%3D";
+var img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
+var img_save = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
+var img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
+var img_throbber = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAACGFjVEwAAAAYAAAAANndHFMAAAAaZmNUTAAAAAAAAAAQAAAAEAAAAAAAAAAAAB8D6AEAHV58pwAAAWlJREFUeNpjYMABREVFeYBgJQiD2AykAmZm5hYg9R%2BEoWz8QENDw1JRUXGPkpLSHCsrK16gpqlIBkz9%2F%2F8%2F1%2BbNmxu3bNkye9u2bXoomoGSjCDNQPwfhFVVVdO5uLgkgRqXgjBQidS%2BffuCgZpvAw25CcSzMVwAshmkWUFB4Z%2BysnIAujxQsyMQX4Ya0ojNFxxAQzKgmpnQJUGuhBoSeubMGVa4hIeHB7uLi0u5q6tre1RUlCChsAL6nw9oSAkQp69atYqNwc3NbbqTk9M3Z2fn30A8g5ABQOe3gLwBxNeBuJ5yA2BeAOJ2CwsLIZK9AAMgTlZWVmx2drY7KMCIDkQYAGruBeJ3QPwMiD1IjkagplWZmZmvgfh9RkZG7MyZM0WmTJnSCcI9PT0iQKeH4E1IeXl5xiBDoC7hmTZtWgVQ82MQnjx5ciXQ2biTMjYA1JQ9derUeyAMYpOcG3t7ezmBmltBGMTGpQ4AtqrwBlDMdgwAAAAaZmNUTAAAAAEAAAAQAAAAEAAAAAAAAAAAAB8D6AEB8Sqm5QAAAXpmZEFUAAAAAnjaY2DAAURFRXmEhYWXgTCIzUAq4OXlbeLi4voPwkB2I0ENRkZGFrq6ujv19PRmWVlZAfXwToIZwMPDM%2Fn%2F%2F%2F9cmzdvbtyyZcvsbdu26WEYANKsra39T0dH57%2B%2Bvn4qUKMkUOMSEAZKS%2B3evTsYqPk20JCbQDwbwwCQzSDNQPwTaJg%2FujxQsyMQX4YagukleXl5DqDGNENDQ7%2F6%2BnomdHmgFxihhoSeOXOGFS7h4eHBHhAQUBoYGNiSn58vQCisgP7nAxpSAsTpq1atYmMICgqa4u%2Fv%2F9HPz%2B8b0KCphAwAOr8F5A0gvg7E9ZQbAPMCELfa2NgIkuwFGABxKioqooHYDRRgRAciDJSXl3cD8SsgflRWVuZOcjQCNS4H4udAza9KS0uj161bJ7x48eI2EF64cKEw0OkheBNSVVWVEcgQoBe6srKyeJYsWVIG1HwfhEFsoLPxJ2V0ANSUAdR8C4RBbJJzIzBQOYEam0AYxMalDgDCHPiOgVAEawAAABpmY1RMAAAAAwAAABAAAAAQAAAAAAAAAAAAHwPoAQEcvHUMAAABbmZkQVQAAAAEeNpjYMABtLS0eGRlZReDMIjNQCqQkJCoFxUV%2FQ%2FCIDZBDTY2NuYWFhbbLC0tp%2Fv5%2BfGKi4tPEBMT%2Bw%2FCQEMm%2FP%2F%2Fn2vz5s2NW7Zsmb1t2zY9DANAms3NzX8B8V9ra%2BtkoCYJoCGLQJiLi0ty9%2B7dwUDNt4GG3ATi2RgGgGwGaQbir0DDfNHlgZodgfgy1JBGDAPk5eU5gBpTgLaDNDOhywO9wAg1JPTMmTOscInc3Fz22NjY4ri4uKb8%2FHwBQmEF9D8f0JASIE5ftWoVGwNQ48SYmJi3QPwJaNBkQgYAnd8C8gYQXwfiesoNQPaCt7e3IMlegAEQp7W1NQqIXUEBRnQgwgBQY0dLS8tzIL7f3NzsRnI0Ag1YAsRPQIY0NTVFAROOMMi%2FILxu3TphoNND8Cak9vZ2Q6ghHfX19TwgfwIV3gFhEHvTpk34kzI6AGpIh4b0dRCb5NwIDFROoI0NIAxi41IHAFxMAhn8b9WWAAAAGmZjVEwAAAAFAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfF2B3YAAAGfZmRBVAAAAAZ42mNgwAG0tLR41NXVF4AwiM1AKlBSUqpVUFD4D8IgNkz8%2F%2F%2F%2FjFg1uLm5mbm4uGwG4qmhoaE8QE19ioqK%2F0FYRUWlF6iEj5mZeTEQH%2BDg4LDBMACk2cnJ6buzs%2FMvoGFJ8vLyEkDNC0AY6AUJFhaWHJADQJiJiekohktANoM0A%2FEnoAE%2B6BawsbGFMjIygg0AumIJhguAzmQHuiAZpLm%2Bvp4Jiy%2BZgIaEAGmQS7jgorm5uexZWVmF2dnZDR0dHfyEAhfodIEdO3aUbNmyJX3VqlVsDECNfZmZma%2BA%2BD3QoAmEDNi8eXMLUPNtIL4OxPWUGwDzAtCABn9%2FfwFCBmzbto0PqBHhBSS%2FsU6bNi1iypQpztgSC0gMqMkRiEPPnDnDimEyUGMbED%2BePHnybaBBLujyUM2XQc4HeqMRmwELp06d%2BgBqSMTu3buFQf4F4XXr1gkDnR4C1XwTiGdjM8AAakhrd3c3N8ifQIV3QBjE3rRpExfIZiB7NtAwPYKZCaghHRrS10FsknMjMIQ5gTY2gDCIjUsdAEaa8bn5NffYAAAAGmZjVEwAAAAHAAAAEAAAABAAAAAAAAAAAAAfA%2BgBARzg1J8AAAGgZmRBVAAAAAh42p2Tv0sCYRjHr8Dk7tLzx1B%2FgJN3XiCEQ1OOBf6qXK1JuJCW8AcRFbYJDm0iBqk4OEjo4eIQNLsFSSSNLUFL0BbX96mjzFMOe%2BHLfXnv%2FX6e53nhZZgpS5Zl3u%2F3V0jkmVmXz%2Bc7EkXxg0TeNBCNRlfD4fB1JBK5UBRlEaGCJEkaibzL5bJjXdlsthun07lmAFA4FAq9Qe%2BxWGzX6%2FUuI1ghBQKBJYT3eZ7XOI7TALnVNG3uD4AqUxigV3SzOV5AEIQtApCoE0MHHo%2FHCsAeqm8Y6N9rniAsyyrw3M9uKpWyZjKZg2w2e1wqlQSzuwLc0e12D1VVTTabzQUml8sVAHiGXtLpdNEM0Ol0zhF%2BhAbQyRcAwf8DRkdIJBIOMwDatyP4O8LIbJZGoxGvVqvBSZdIewitQzv9ft9iINdqtXy9Xn%2BC7gEKjv%2FXw3fUPsY4mwS4hIYEwTfe6%2FXcNC%2Bp1Wq50fq2Hn6AygYAWl%2FRIXl4nubEwSGJfLvd5qgyfBkw2fRtIJDUb3pAfubXiBtmUfGURH7auU%2FutPojzjsHHQAAABpmY1RMAAAACQAAABAAAAAQAAAAAAAAAAAAHwPoAQHxk%2BXDAAABg2ZkQVQAAAAKeNqlU79LAmEYvgINKzQM9bzZuSlQDhwSHBqL2rxrFIVwaYmCS7xTo6FZHdoFHfS4sf6B2xpEbGsIGhraWrqeh65fenJIHzx8D%2B%2F3Ps%2F7Az5BmHPy%2BfxaNpttE%2BTCoieTyZym0%2Bk3gtxXoCjKtqqqPeC6XC6vQ3gJvBOyLDej0WhYFMWbeDx%2BK0mSPGNQKBR6MHnB%2FQoTFcIEKreJXC6XgLgEsROLxRzcd47jLP0xYGWKgWfw3ekCMNinmGAnMx2kUqkVdHBE8Yz751lOJpN7MCiBh76jmqYFDcM4rtfrZ61WK%2BK3K5hHLMs6MU2z2O12g0Kj0Wjquv4IPMHoys9gOBzqEE%2BAEaD93%2BBrhFqtdl6pVDb8DNB%2BGMKfEX7NFkDwENjxWiJjfGOObdsBr9aqbmv3TJx%2Bd8V8mzDXy6ADjJmANg%2F6%2Ff4m5yXIGXPFY%2BZ6zbaFBJpUB4PBKucEfyDIGXO77DDX929AUHQ3PSJf%2BDdiwyFUvCDI5%2BV9ABJsBKxZnW%2FPAAAAGmZjVEwAAAALAAAAEAAAABAAAAAAAAAAAAAfA%2BgBARwFNioAAAGKZmRBVAAAAAx42qWTu0%2FCUBjFW4mi2ODga%2BSdMLk4OcrLjpLgZlwJz8nEMCHx1YXFAprgbuzAAISp%2F4WDIZg4mLiY6OZiYj0nFgYKAeJNfunX755z7qOpIIwZ0Wh0ORaL3RDWwqwjEomchEKhL8J6oiGfz2%2Bn02kNlIvFogTTVTgc%2FiaoL%2F1%2Bv9Pr9d55PB49GAzuWAJoTqVS7%2BAzm80eYuVNGG9JPB7fgDkJs2GiG4YhDgeUwQd4A%2FLwAj6fb9%2Ftdv8wgDux7ECWZTtWP8pkMnuW9L8xx5BAIJDM5XL2QVfTtAVVVTPVarXQ6XScU9zvms1muwZnLpdrUYDxolKpvIDXWq2mTHLDeI%2BHQSRJevh%2FQP8IoKAoysoUR1gXRVEdHKE%2FcHHz7Xb7AOyOukT2OKfregK1wxLbarVKEPTAI4XD8%2ByZcz1qRwXUQZcCfI1Eo9FYxfs5Yc2eae5SawmAYAsChpSazaYD9THqZ8KaPXOXdWon3hQMSYifCOuZ%2F0Z8nSWseEpYj9P9AmHJ8O96azpYAAAAGmZjVEwAAAANAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfHPRFAAAAGYZmRBVAAAAA542pWTv0sCYRzGLeiHp95y5OrooJ56U2uD5ZQ%2FsKlb%2B7G41Z24mCENORW15KZW4OCgIgT%2BAQ5uDWEGQUvg1hQtXc8DKuQp6gsf%2BN73%2BzzPe%2B97nMUyZamqaovH4zeEtWXRFY1GTyORyBdhPdOQTqcVXdcfU6nUZT6ft8GYA98kFovl3G63Q5blO5%2FP96QoyqYpgGbwqWlaHyH7oVDIiZ1vCY7ghPHA6%2FUaHo%2FnlyGmAO6MgD74QMjO%2BDwQCEQQ8MMQvokpIBwOr8GsImjbMIyl8Xkmk1kOBoO7fr%2F%2FMJlMro0GlUpltVwuHwOt3W6Lc9yvJIrilcPhyLpcrnULjOelUukVvIOLWW4Y7wVBMIgkSQ8LB9jt9v8BwyMUi0UdAfMcYQMh16MjDFen01lpNBp7YGvSJbLHWavVSqC2mmLr9XoWgh54pnB8zt5g1qN2UkABdCloNpuJarUq4TlHWLM3MHepNQVAIEPAkGytVhNQn6B%2BI6zZG7xlgdqZNwXDEcQvhPXCfyO%2BjhU7nhHW03R%2FhFP4ipu3x5gAAAAaZmNUTAAAAA8AAAAQAAAAEAAAAAAAAAAAAB8D6AEBHFmXuQAAAYZmZEFUAAAAEHjapZOxSwJxFMevIEvjXOzyFvE%2FCJpOT5eG2hoEbyjUSXRyyt0uz1NwKRoa3KrJwUHlwP%2FAwa1BpKAlaGoJWoK4vl84g7yTS%2FrBBx7v977fe%2B%2FdnSAsOaVSKVQoFK4IY2HVk8%2Fnz3K53Bth7CtoNpv7jUbjHrTa7fY2hBfgnaALXVVVMZlM3iQSCSudTisuA0f8YhjGq2maJ5lMZhdPviaVSkWCsKgoyhf4pImXQYti8Fyv148W71Op1DHEHzRhJy4DTdMCMDkFh7Ztr3lMuU4TjFJER5s%2F2W63GxgOh2XLsqrj8TjstytRFCPRaPRSluVaPB7fEiCugSl4HAwGhp8BxLeSJNkkFovd%2Fd9gPgKoYozwHz6RnV8jzM9kMtmAiQYOvJbIHO9Go1EWcdBli%2FZ1jgEeWLh4z5xzx1F1L4MOmLEAo2R7vV6EOyGMmXPEM9a6DFCwhwKa6P1%2BP8SdIH4ijJlzuuyw1ndTEJSdtzNlvPLfiLcTxBPPCeNldd%2BFTAEoC6ckLQAAABpmY1RMAAAAEQAAABAAAAAQAAAAAAAAAAAAHwPoAQHwWCCpAAABqGZkQVQAAAASeNqlkz9IAnEUx%2B9Ou06jAsXFxb%2FgFk0h0pInTo0eteqgaN4Qubh0CtVYgZ4ILWlNDg4q4tgSOLg1SNgQtrUELUHL9X2QBd7JET34cI979%2F2%2B33s%2FjmEWRDqdtudyuQuCcuavAeFhNpt9JSg3FVSr1U3QUFX1tNlsrkBYAm9EPp9XIpHIaiwWU0E3Ho9vGRmQ%2BBnPl3q9vpdMJl3ofEkUi0WXKIop8BmNRj%2FIxMjgjMSVSmVSq9Vi83V03YXBO5nQSXQGkiTxEO%2FDRNQ0jZ2vK4rCkQlIybK8%2FFNotVp8r9fL9Pv9wnA4XDPbldvtdvr9%2FvNgMHjs8XgEBmIFjMGk2%2B2emBkEAoFrn8%2Bneb1eLRQKNf5vMBsBFDCG6QjhcNgBk98RZjEajZZgIoEdoyUiOJ7nE1ar9QC5TVfF8cs0Bnggk%2Fk6iVmW1ZBqFovl1sjgCjySCUZJtNttJ%2B2EmE6nDo7jZBITyO91p4RoA2IyKXc6HTvtBPkTMRgMjvDJOjrfgDtBELZN%2Fw2YZL5vZ0z57P2C%2FegDt2ND9xJB%2BaLvvgDI3vA4tCR%2FkQAAABpmY1RMAAAAEwAAABAAAAAQAAAAAAAAAAAAHwPoAQEdzvNAAAABkWZkQVQAAAAUeNqlk79LAnEYxq8g8U7u5Kw2%2FwO14KCpQaqtA3%2F1Y3YTCmko%2FEHIJbYZDa5hkDo5SKiIW9DsFiSRNDi0BC1BW1zPA%2BagJ4f0hQ%2F33r33PO%2F3fb93gjBjGYYhZbPZImEszLvS6fRJKpV6J4xtBZVKZb1ard6CQrPZlCDMQfhBMplMLhQKyZFIpBQOh%2B%2Bj0ejGlMFIPKjVam%2B4HiaTyVWYXBO0sAJhHCbf4IsmVgYFisEz4p3JPKrqEH7ShDuxGpqDldHKtmmaC5N5PovFYrsgXq%2FXHeMEb9rtdgKcdTodxW5WXq%2FXEwgErsB5MBh0ChAaoA9eW63WpZ0BhGW%2F32%2F6fL4fTdPK%2FzeYtwVd11WYFMct%2FK1er7cEkwOwZTVErEW3272nKMoRYudUFtvPsw3wRJPJPMUul8skMLmzMrgBLzRBK%2FuNRmOZMyHD4dAjiuIxxZIkmbIsP07tEqI1iGmS56fMmSAekG63e8pNsDLED6qqbtr%2BGzBJjE6nz3juvxGnI6L6BWE8671fIqf6HRySx%2B0AAAAaZmNUTAAAABUAAAAQAAAAEAAAAAAAAAAAAB8D6AEB8ASBOgAAAWxmZEFUAAAAFnjaY2DAAerr67na29s7QBjEZiAVtLa25ra0tDwGYRCboIZt27bpbdmyZfbmzZsbz5w5wwXUWA3U%2BByE29raqkNDQ3ni4uL6gXhtbGysCYYBQI0gzTeBhtwGGhYCdLYIUHM3CPf09IjExMTEAfEnoOZ3QHotNgMaQZqB%2BDIQO6LLA232BGp8BTIE5BIMA4DOZgVqDAVp%2Fv%2F%2FPyO6PEgMZAjQBfGrVq1ig0uAOEBN6UBcAnQ6H6Gw0tLSEjI3N%2B%2B0sLCo9PDwYGcAaqwH4usg5wO90ULIAKDGWUAD%2FgHxT1tb21mUG0CqF6KiogQtLS0RXiA2EIGASVJSMlBCQiITyOYgORqBGoNERUX%2FgzCQPZ9gQlq3bp0wKExA%2BNGjR0LCwsKZYmJiYAOA9H4MVyIn5U2bNnGBwgTIvgPCQLkSoBJ%2BkM1AzfukpKSsCOYNoCHp0Ni5DmKTnBuBscMJtL0BhEFsXOoAUt0FcAi6YW0AAAAaZmNUTAAAABcAAAAQAAAAEAAAAAAAAAAAAB8D6AEBHZJS0wAAAXNmZEFUAAAAGHjaY2DAAXp7ezmnTp3aCsIgNgOpYPLkydlAzfdAGMQmqGHbtm16W7Zsmb158%2BbGM2fOcAE1VU6ZMuUxCE%2BbNq0iKyuLB4h7gXhVXl6eMYYBQI0gzTeBhtwGGhbS09MjAtTcCcIzZ84UycjIiM3MzHwPxK9BhmAzoBGkGYgvA7EjujxQkwcQPwPidyCXYBgAdDYrUGMoSPP%2F%2F%2F8Z0eVBYtnZ2e5AzbGrVq1ig0uAOEBN6UBcAnQ6H6GwsrCwEHJxcWkH4nIPDw92BqDGeiC%2BDnI%2B0BsthAwAapzh7Oz828nJ6Zubm9t0kg0AakY1gFQvREVFCbq6uiK8QGwgAgGTsrJygJKSUgaQzUFyNII0Kygo%2FFNUVPwPNGQO3oS0b9%2B%2BYKCQFDMz81IQ5uLiklRVVU0HaYbiPRiuRE7KQEkuoMapoOgHYRDbysqKF2QzSLOGhoYlwbwB1NSCZEALyblRVFSUBwhWgjCIjUsdAJsS8AnByX%2BOAAAAGmZjVEwAAAAZAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfDhY48AAAF5ZmRBVAAAABp42mNgwAFWrVrFuWTJkiYQBrEZSAVAjRmLFy%2B%2BBcIgNkEN27Zt09uyZcvszZs3N545c4YLqKkMqPk%2BCIPYWVlZPBUVFV3l5eXLq6qqjDAMAGoEab4JNOQ20LCQhQsXCgM1t4HwunXrhEtLS6PLyspeAQ14DjIEmwGNIM1AfBmIHdHlgZrdgRofAfErkEswDAA6mxWoMRSk%2Bf%2F%2F%2F4zo8iAxoEY3II4GBiobcmizATWlA3EJ0Ol8hMLKxsZGMCAgoBWISz08PNgZgBrrgfg6yPlAb7QQMgCocaqfn983f3%2F%2Fj0FBQVMoN4BUL%2BTn5wsEBga2wL1AbCDW19czGRoa%2Bunq6qbJy8tzkByNQI3%2BOjo6P4H4v56e3iy8CWn37t3BQCEpHh6eJSDMxcUlqa%2BvnwrSrK2t%2FQ9o2E68SRnoBS6gxslAjf9BmJeXd5KVlRUvyGaQZiMjIwuCeQOoqRHJgCaSc6OoqCiPsLDwMhAGsXGpAwBEpviQbN5BdAAAABpmY1RMAAAAGwAAABAAAAAQAAAAAAAAAAAAHwPoAQEdd7BmAAABbmZkQVQAAAAceNpjYMABVq1axbl58%2BYGEAaxGUgFmzZtSt%2ByZct1EAaxCWrYtm2bHlDxbKCNjUANXEB2CZB9B4RB7Pr6ep7W1tYOIF7S3t5uiGEAUCFI802g4ttAw0LWrVsnDOS3gPDu3buFm5qaolpaWp4DDXgCMgSbAY0gzUB8GYgd0eWbm5vdgAbchxrSgWHAmTNnWIEaQ0Ga%2F%2F%2F%2Fz4guDxIDanQF4ihgoLIhhzYbUBMowEqATucjFFbe3t6CcXFxTbGxscW5ubnsDECN9dDQvg3yLyEDgBonx8TEfALit0CDJlJuAKleyM%2FPF0DxArGBCARM1tbWvhYWFiny8vIcJEcjUKOvubn5VyD%2Ba2lpOR1vQgImnGAuLi5JcXHxRSAsKioqAbQ9GaQZiH8BDduGNykDvcAF1DRBTEzsPwgDDZng5%2BfHC7IZpNnGxsacYN6QkJCoBxryH4RBbJJzo5aWFo%2BsrOxiEAaxcakDADqJAhkT68NIAAAAGmZjVEwAAAAdAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfC9whwAAAGhZmRBVAAAAB542qWTPUgCcRjG7049zcQEFzc%2FEASHaGpqyTucAhcPnGsIv4bANVSoEKQI%2FFhajJocHDwRwaWlza0hwoagrSVoCVqu54EiuVNE%2BsODz93%2F%2F%2FzufV%2FvBGHB6na7a7quVyh6YdXV7%2FcPB4PBI0W%2FNDAcDjdx%2BApPrCLghi%2FBP1P09Xp9vdVqnTabzWtoywLAQYafcHgKWLrX6%2FlxfUKNx2N%2Fo9HIIPgKyAsh8wBVhqEHaNe83263VUCmhEBnFsBkMnEgqDFsGIZo3uc9BBWAMvCO2WnLCHFgJZTuXTarVCrly2azlVwud1QsFp0CguWfaU%2FZ7zIAgpcAvENv%2BXz%2B4v%2BA3xZGo1EJvfmWAWq12gaCfy3MLDdUkGU5jV%2FJHCyXy1IymdxLJBIH0WjUaSHbbLZbDlsURQMQzbzPsKIoH9CXqqoty18kSdI9LWW32wvxeDwQDoc7VDAYDACwzzAq%2BARAt1Tgcrl2UMUddINLL8o8R9igIpHIhaZpHj6ZYcC25w5o9gVC6DgUChkU%2FcpfI1rwxGKxDkW%2F6Nw37k3xuSzoMScAAAAaZmNUTAAAAB8AAAAQAAAAEAAAAAAAAAAAAB8D6AEBHSsR9QAAAZ9mZEFUAAAAIHjaY2DAAVatWsW5efPmBhAGsRlIBZs2bUrfsmXLdRAGsQlq2LZtmx5Q8WygjY1ADVxAdgmQfQeEQexFixZxL168uBmI5wHZ%2BhgGABWCNN8EKr4NNCxk3bp1wkB%2BCwjv3r1bGKgxbMmSJfeA9B2QIdgMaARpBuLLQOyILr9s2TInoAHXoIY0Yxhw5swZVqDGUJDm%2F%2F%2F%2FM6LLg8SATncCGhQGZLMihzYbUBMowEqATucjFFbx8fECFRUVteXl5fm5ubnsDECN9dDQvg3yLyEDysrK%2BoCaXwPpZ5WVld2UGwDzAtD5JUC%2FCRAyYObMmfwoXkACXJycnFn8%2FPzBQDYTtkAMCgry8vPzS1RRUWHHMJmPj28hNzf3fxCGGoICAgMDvf39%2Fd8BDfgWEBAwCcN0Xl7eQ1xcXGADgIZlm5ubi%2Bvq6s4FYS0tLQmg7QkgzUD8GWjQBgwXCAoKWgMN2Q9yiZCQEB9QY7eOjs5%2FEAaxs7KyeEA2gzQDXWNKMG8ANVVra2v%2FBWEQm%2BTcqKenx21kZDQXhEFsXOoAfEH6IOWuH2wAAAAaZmNUTAAAACEAAAAQAAAAEAAAAAAAAAAAAB8D6AEB88%2BqfQAAAYJmZEFUAAAAInjapVOxSwJhHLVAwwoN40692bkpODlwSLihschNrzEUwsUlCi65OzUamrWhXdDhPBzrH7itIcK2hqChoa2l6z24QjzlkD543Lvf7733%2Fb4Pvkhkwer3%2B%2FHRaHRJkEeWXbZtnziO80SQhxrG4%2FEOxLfYsQnDOngD%2FIUgZ409aqgNBKBJ8zMEEwiOhsPhNv5Ngpw19qihdl4A0yfAI7A322fN7zGkGQhwXTeKZolCz%2FNWZvus%2BSEl8Oj0bcdQ5IU1MGYi7K7q9fqWYRgXlmWd6roe42i6f9sczQwLgPHaNM034LXdbnf%2BH%2FB7BIzfwNmSYQHdbjfZarXO%2F44wteKCIFSz2ewB%2BOq8S9Q0bb9SqRzncrm1QHImk7lDgEeAH872aS6Xy%2B%2FAJ%2FhNIF0UxQea8WVAtVgspvP5fI%2BQZTkNk0YzJvjAdxCYQJIkBeZ7TpJKpRKKonRg%2FPZxVavVNrkzMEDIbujbwM5nMH4R5Eu%2FRlVVNwqFQo8gX6T7AfzqBKx3VEm7AAAAGmZjVEwAAAAjAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAR5ZeZQAAAGNZmRBVAAAACR42qWTvUsCYRzH75Ky7LCht1E9FZxamhp9ObsxobZoFT11CqLJpLdbWjq1oPboBgcVp%2FsvGiIMGoKWoLaWoOv7BS3qlEt64APf5%2Fn9ft%2Ff88IjCEOGaZpTrVZrj1ALo45ms5ltt9u3hNq1oNPpLCH5Ah0rKPBBb0PfE2quMcYc5joMEGTxHRK6SFhvNBqzmB8Qaq4xxhzmDjKgexfcgPjvONd6MZpUHAa2bfssy2KXOLQ4IC72TDagx78CgUBg0uPx7IuiaGA673ZXuq7PGIaxCzS8zoQgSZLJBgRGV24G9Xpdr1arj%2BChVqsd0uD6Xwb9I4BTxOf%2B8Nx%2BFH4foT%2BKxaI3Go1mw%2BHwGqZjgy5R07TVXC63paqq1%2BEsy%2FJlKBSyg8HgR8%2Fkx8jn8yp4Ai%2FgxOGOYosGBGbZTCazkEqlzkkikVgsFAqb6P4KnmFgOnYQi8VWaMKdRCIRPwqPksnkO4E%2BLpfLEjuzuFQqLbv%2BDRTtoPMboR75NyqKMp1Op88I9bC8T5%2BU8PAz88iaAAAAGmZjVEwAAAAlAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAfOTC%2B4AAAGWZmRBVAAAACZ42qWTu0%2FCUBjFwcQHhXZpZGVkAMpjcmVAmSwQnezqY2FTSlgQQxxk0uiiG6AmDAxASEz4AxjYHIxiYuJiwuZkXKznJMBAIZV4k5Oce8%2F3%2FW7vba7NNmPUajVHs9k8puht845Go7HfarWeKHrLhna7raD4BjsW0CDAH8K%2FUvRcY8Ya1poACNn8jII%2BCrbq9bqMeZGi5xoz1rB2GoD0PvQIRSdzrg0zQgomgGEYjk6nw12i8PYpuX0I2e71eovjwOPxrIiiWHC5XBeYrlrdVaVSkcrlsl6tVg%2Fwd5ZssizfCYJgUIDc%2FgFwCr1BL4Cc%2FB8wOoIkSefIZStAt9uV0JgZH2E00un0cjAY3AuHw5v5fH5h2iVms9l1Xde1eDy%2BbCIrinLt9%2FsN6DsUCqmTeSaT2UDzOzQA6MwECAQCDz6f74cQ%2BF1N09yJROKKisVibjTtADIA4AO6NwEikcgaIfwSr9crJpPJoqqqX0MVS6WSkzuzOZfLRSzfBnY%2BQuMnRT%2F3a8QRnKlU6pKin1X3C2Zv%2BIepEdLNAAAAGmZjVEwAAAAnAAAAEAAAABAAAAAAAAAAAAAfA%2BgBAR4F2AcAAAGGZmRBVAAAACh42mNgwAFWrVrFuXnz5gYQBrEZSAWbNm1K37Jly3UQBrEJati2bZseUPFsoI2NQA1cQHYJkH0HhEFskBhIDqQGpBbDAKAkSPNNoILbQAUh69atEwbyW0AYxAaJgeRAakBqsRkAMv02EF8GYkd0eZAYVA5kSCOGAf%2F%2F%2F%2BfcuXMnyBZHIJsRizwj1JDQM2fOsMIl5OXlOSQkJOpFRUUnALkiRIQVHyhMgDgdGDtsDLKysouBmv%2BDsLi4%2BCJCBoDCBOpVUAzVU24AzAtAzRN4eXmFCRlw4sQJPqA3EF6AgdzcXHYrK6sUa2trXyCXCVsgtra2ugJxVGhoKBuGyZaWltPNzc3%2FAvFXqCEooLm52a2lpeU%2BED8HGtKBYYCFhcU2oOZfIEOA7BSgi0RjY2Mng3BgYKBYW1tbJFTzEyBegmGAjY2NOcgQkEuAXuGNi4trjImJ%2BQTFTd3d3dwgm0Ga29vbDQnmDaDNxUCNb0EYxCY5N6alpXEBXTERhEFsXOoALlABImtNWOoAAAAaZmNUTAAAACkAAAAQAAAAEAAAAAAAAAAAAB8D6AEB83bpWwAAAaRmZEFUAAAAKnjaY2DAAVatWsW5efPmBhAGsRmIAf%2F%2F%2F2eEsTdt2pS%2BZcuW6yAMYhPUzMHBYcPMzHwAiBcDufw7duwoBtp%2BB4SBhpQADeECshuB7Nnbtm3Tw7CZiYnpKIgJwkB27qNHj4SAGlpAeN26dcJATSFAzbeB%2FJtAPBvDBUCbl4A0MzIy%2FmdjYwtBlwdqdgTiy1BDGrH5gpOFhSUbqpkJW%2FhADQk9c%2BYMK1xCXl6eQ0VFpU5ZWbnPwsJCiFBYAb3CBwoTIE4Hxg4bg7q6%2BkIFBYX%2FioqK%2F4GGLCBkAChMQN6AxlA95QbAvKCkpNQnJSUlTMiAEydO8AG9gfACDOTm5rK7ubklAbFPfX091kCcMmWK8%2BTJkyNCQ0PZMEx2cXGZ6uzs%2FAuIP4EMQZefNm2aC1DzbaAhj4G4DZsBm52cnL5DDUmqrKwUzcrKmgDCiYmJojNmzAgHaZ46deoDIL0QwwCgrWYgQ0AusbKy4s3JyanPzMx8D8UNixYt4gZqbgVpBmIDgnkDaHMhUOMrEAaxGUgFaWlpXECN%2FSAMYuNSBwBOIvA4wVgLqgAAABpmY1RMAAAAKwAAABAAAAAQAAAAAAAAAAAAHwPoAQEe4DqyAAABkWZkQVQAAAAseNpjYMABVq1axbl58%2BYGEAaxGUgFmzZtSt%2ByZct1EAaxCWoQFBS05uXl3c%2FHx7cQyOXfsWNHMdD2OyAMNKQEaAgXkN0IZM%2Fetm2bHorm%2F%2F%2F%2FMwI1H%2BLi4vrPzc39n5OTM%2FvRo0dCQA0tILxu3TphoKYQoObbQP5NIJ6N4QKQzSDNIMzPzx%2BMLg%2FU7AjEl6GGNGLzBQfQkCyoZiZ0SZAroYaEnjlzhhUuYW9vz6Grq1sNxN3e3t6ChMIK6BU%2BUJgAcTowdtgYjIyM5mpra%2F%2FV0dH5DzRkLiEDQGEC8gY0huopNwDJCz0yMjJCJHsBKeWxBQUFJQCxFyjAsAXiokWLnBYvXhxWX1%2FPhmFyQEDAJD8%2Fv2%2F%2B%2Fv7vAgMDvdHlgRqdlyxZcg2I7wHZzRgGADVuABrwGWpIAtAWkbKysj4Qzs3NFQXZDNV8B4jnYRgAtNUUZAjUJbwVFRW15eXlr0EYaEgtKCmDbAZpBnpFn2DeAGrMB2p8BsIgNsm5EegFrsrKym4QBrFxqQMANXn6HYPJ7D8AAAAaZmNUTAAAAC0AAAAQAAAAEAAAAAAAAAAAAB8D6AEB8ypIyAAAAWtmZEFUAAAALnjaY2DAAVatWsW5efPmBhAGsRlIBZs2bUrfsmXLdRAGsQlqkJKSshITE9snISExH8jl37ZtWwnQ9jsgDDSkBGgIF5DdCGTPBsrpoWj%2B%2F%2F8%2FI1DzflFR0f9A%2Br%2BwsHDmo0ePhIAaWkB43bp1wkBNIUDNt4H8m0A8G8MFIJtBBoAwkB2ELg%2FU7AjEl6GGNGLzBQdQY6akpGQgkM2ELglyJdSQ0DNnzrDCJTw8PNgtLCwqLS0tO6OiogQJhRXQK3ygMAHidGDssDHY2trOMjc3%2FwnE%2F4AGzSJkAChMQN6AxlA95QbAvAA0oFNLS0uIZC8gpTy22NjY%2BLi4OE9QgBEdiDAA1NgfExPzCYhfgQwhORqBGtcCXfAOakhcT0%2BPSGtrazcI19fXixBMSEDNJkCb14JcEhoaytPW1lYN1PwchFtaWqqBzsadlLEBoMZcoMbHIAxik5wbgc7mam9v7wBhEBuXOgDZvgVwR0IA4QAAAABJRU5ErkJggg%3D%3D";
+
+/* ------------------------- */
+/* les paramètres par défaut */
+/* ------------------------- */
+
+var hfraq_img_black_default = img_black;
+var hfraq_img_white_default = img_white;
+var hfraq_img_icon_default = img_icon;
+
+/* ---------------------- */
+/* les variables globales */
+/* ---------------------- */
+
+var hfraq_img_black;
+var hfraq_img_white;
+var hfraq_img_icon;
+var topic_id = "";
+var topic_title = "";
+var pseudal = "";
+var topic_alertes = {};
+var color_1;
+var color_2;
+var hfraq_img_1;
+var hfraq_img_2;
+var alerte_default = null;
+
+/* -------------- */
+/* les constantes */
+/* -------------- */
+
+const script_name = "[HFR] Alerte Qualitaÿ";
+const get_alertes_url = "http://alerte-qualitay.toyonos.info/api/getAlertesByTopic.php5";
+const add_alerte_url = "http://alerte-qualitay.toyonos.info/api/addAlerte.php5";
+const answer_time = 2500;
+
+/* -------------- */
+/* les styles css */
+/* -------------- */
+
+var style = document.createElement("style");
+style.setAttribute("type", "text/css");
+style.textContent =
+  // style pour les boutons de signalement d'une alerte qualitaÿ sur les posts
+  "img.gm_hfraq_r21_aq_button{cursor:pointer;height:16px;}" +
+  // styles pour la fenêtre d'aide
+  "#gm_hfraq_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
+  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;z-index:1003;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;text-align:justify;}" +
+  "img.gm_hfraq_r21_help_button{cursor:help;vertical-align:text-bottom;}" +
+  // styles pour la fenêtre de configuration
+  "#gm_hfraq_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
+  "#gm_hfraq_r21_config_window{position:fixed;min-width:200px;height:auto;background-color:#ffffff;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;z-index:1002;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;color:#000000;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_main_title{font-size:16px;text-align:center;" +
+  "font-weight:bold;margin:0 0 10px;position:relative;cursor:default;}" +
+  "#gm_hfraq_r21_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:8px 10px 10px;}" +
+  "#gm_hfraq_r21_config_window legend{font-size:14px;cursor:default;}" +
+  "#gm_hfraq_r21_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;height:16px;}" +
+  "#gm_hfraq_r21_config_window input[type=\"checkbox\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_div_img{display:flex;justify-content:center;" +
+  "align-items:center;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_div_img > *{display:block;}" +
+  "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img_button{margin:0 5px 0 0;height:16px;}" +
+  "#gm_hfraq_r21_config_window img.gm_hfraq_r21_reset_img{cursor:pointer;margin:0 0 0 3px;}" +
+  "#gm_hfraq_r21_config_window p.gm_hfraq_r21_p_img{margin:0 0 4px 4px;cursor:default;}" +
+  "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img{display:block;margin: 0 auto;}" +
+  "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img:not(:last-child){margin: 0 auto 8px;}" +
+  "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img.gm_hfraq_r21_light{background:#efefef;}" +
+  "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img.gm_hfraq_r21_dark{background:#3f3f3f;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div{text-align:right;margin:16px 0 0;" +
+  "cursor:default;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div div.gm_hfraq_r21_info_reload_div{float:left;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div div.gm_hfraq_r21_info_reload_div img" +
+  "{vertical-align:text-bottom;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div > img{margin-left:8px;cursor:pointer;}" +
+  // styles pour la popup de signalement
+  "div#gm_hfraq_r21_alerte_popup{display:none;position:absolute;right:0;top:0;width:auto;height:auto;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;font-size:12px;padding:4px 6px;" +
+  "background:linear-gradient(#ffffff, #f7f7ff);color:#000000;z-index:999;min-width:400px;" +
+  "background-color:#ffffff;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div{font-size:11px;font-weight:bold;" +
+  "margin:0 0 4px;white-space:pre-line;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div.gm_hfraq_r21_disabled{color:#808080;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div.gm_hfraq_r21_pixel{padding-left:1px;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div " +
+  "input[type=\"radio\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
+  "div#gm_hfraq_r21_alerte_popup input[type=\"text\"]{padding:1px 4px;border:1px solid #c0c0c0;margin:0 0 4px;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;box-sizing:border-box;" +
+  "width:100%;height:20px;}" +
+  "div#gm_hfraq_r21_alerte_popup select{padding:0 20px 0 0;margin:0;border:1px solid #c0c0c0;margin:0 0 4px;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;box-sizing:border-box;" +
+  "width:100%;appearance:none;-moz-appearance:none;-webkit-appearance:none;background-repeat:no-repeat;" +
+  "background-image:url(\"" + img_select + "\");background-position:right 5px center;height:20px;}" +
+  "div#gm_hfraq_r21_alerte_popup select option{appearance:none;-moz-appearance:none;-webkit-appearance:none;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_title{margin:0 0 4px;white-space:pre-line;" +
+  "padding:0 1px;}" +
+  "div#gm_hfraq_r21_alerte_popup textarea{padding:1px 4px;border:1px solid #c0c0c0;margin:0 0 4px;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;box-sizing:border-box;" +
+  "width:100%;height:50px;resize:none;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_save_close{height:16px;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_save_close " +
+  "img.gm_hfraq_r21_throbber{display:none;float:right;cursor:default;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_save_close " +
+  "div.gm_hfraq_r21_answer{display:none;float:right;text-align:right;font-size:11px;" +
+  "color:#ff0000;font-weight:bold;cursor:default;padding:0 1px;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_save_close " +
+  "div.gm_hfraq_r21_answer.gm_hfraq_r21_success{color:#007f00;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_save_close " +
+  "div.gm_hfraq_r21_answer.gm_hfraq_r21_meh{color:#ff7f00;}" +
+  "div.gm_hfraq_r21_buttons{float:right;text-align:right;}" +
+  "div.gm_hfraq_r21_buttons > img{margin-left:8px;cursor:pointer;}";
+if(box_shadow) {
+  style.textContent += "div#gm_hfraq_r21_alerte_popup" +
+    "{box-shadow:4px 4px 4px 0 rgba(0, 0, 0, 0.4);}";
+}
+if(!ff) {
+  style.textContent += "div#gm_hfraq_r21_alerte_popup select:not(.ff){padding:0 24px 0 4px;}"
+}
+document.getElementsByTagName("head")[0].appendChild(style);
+
+/* --------------------------------------- */
+/* création de la fenêtre de configuration */
+/* --------------------------------------- */
+
+// création de la fenêtre d'aide
+var help_window = document.createElement("div");
+help_window.setAttribute("id", "gm_hfraq_r21_help_window");
+document.body.appendChild(help_window);
+
+// fonction de création du bouton d'aide
+function create_help_button(p_width, p_text) {
+  let l_help_button = document.createElement("img");
+  l_help_button.setAttribute("src", img_help);
+  l_help_button.setAttribute("class", "gm_hfraq_r21_help_button");
+  l_help_button.addEventListener("mouseover", function(e) {
+    help_window.style.width = p_width + "px";
+    help_window.textContent = p_text;
+    help_window.style.left = (e.clientX + 32) + "px";
+    help_window.style.top = (e.clientY - 16) + "px";
+    help_window.style.visibility = "visible";
+  }, false);
+  l_help_button.addEventListener("mouseout", function(e) {
+    help_window.style.visibility = "hidden";
+  }, false);
+  return l_help_button;
+}
+
+// création du voile de fond pour la fenêtre de configuration
+var config_background = document.createElement("div");
+config_background.setAttribute("id", "gm_hfraq_r21_config_background");
+config_background.addEventListener("click", hide_config_window, false);
+config_background.addEventListener("transitionend", background_transitionend, false);
+document.body.appendChild(config_background);
+
+// création de la fenêtre de configuration
+var config_window = document.createElement("div");
+config_window.setAttribute("id", "gm_hfraq_r21_config_window");
+document.body.appendChild(config_window);
+document.body.appendChild(config_window);
+
+// titre de la fenêtre de configuration
+var main_title = document.createElement("div");
+main_title.setAttribute("class", "gm_hfraq_r21_main_title");
+main_title.textContent = "Configuration du script " + script_name;
+config_window.appendChild(main_title);
+
+// section button
+var button_fieldset = document.createElement("fieldset");
+var button_legend = document.createElement("legend");
+button_legend.textContent = "Icône du bouton de signalement d'une Alerte Qualitaÿ";
+button_fieldset.appendChild(button_legend);
+config_window.appendChild(button_fieldset);
+var button_div = document.createElement("div");
+button_div.setAttribute("class", "gm_hfraq_r21_div_img");
+var button_test_img = document.createElement("img");
+button_test_img.setAttribute("class", "gm_hfraq_r21_test_img_button");
+button_div.appendChild(button_test_img);
+var button_input = document.createElement("input");
+button_input.setAttribute("type", "text");
+button_input.setAttribute("spellcheck", "false");
+button_input.setAttribute("size", "50");
+button_input.setAttribute("title", "url de l'icône (http ou data)");
+button_input.addEventListener("focus", function() {
+  button_input.select();
+}, false);
+
+function button_do_test_img() {
+  button_test_img.setAttribute("src", button_input.value.trim());
+  button_input.setSelectionRange(0, 0);
+  button_input.blur();
+}
+button_input.addEventListener("input", button_do_test_img, false);
+button_div.appendChild(button_input);
+var button_reset_img = document.createElement("img");
+button_reset_img.setAttribute("src", img_reset);
+button_reset_img.setAttribute("class", "gm_hfraq_r21_reset_img");
+button_reset_img.setAttribute("title", "remettre l'icône par défaut");
+
+function button_do_reset_img() {
+  button_input.value = hfraq_img_icon_default;
+  button_do_test_img();
+}
+button_reset_img.addEventListener("click", button_do_reset_img, false);
+button_div.appendChild(button_reset_img);
+button_fieldset.appendChild(button_div);
+
+// section images
+var images_fieldset = document.createElement("fieldset");
+var images_legend = document.createElement("legend");
+images_legend.textContent = "Images de fond pour les posts de qualitaÿ";
+images_fieldset.appendChild(images_legend);
+config_window.appendChild(images_fieldset);
+
+// img_black (fond clair)
+var img_black_p = document.createElement("p");
+img_black_p.setAttribute("class", "gm_hfraq_r21_p_img");
+var img_black_label = document.createElement("label");
+img_black_label.textContent = "\u25cf image de fond pour fond clair (sur fond clair) : ";
+img_black_label.setAttribute("for", "gm_hfraq_r21_img_black_input");
+img_black_p.appendChild(img_black_label);
+var img_black_input = document.createElement("input");
+img_black_input.setAttribute("id", "gm_hfraq_r21_img_black_input");
+img_black_input.setAttribute("type", "text");
+img_black_input.setAttribute("spellcheck", "false");
+img_black_input.setAttribute("size", "30");
+img_black_input.setAttribute("title", "url de l'image (http ou data)");
+img_black_input.addEventListener("focus", function() {
+  img_black_input.select();
+}, false);
+
+function img_black_do_test_img() {
+  img_black_test_img.setAttribute("src", img_black_input.value.trim());
+  img_black_input.setSelectionRange(0, 0);
+  img_black_input.blur();
+}
+img_black_input.addEventListener("input", img_black_do_test_img, false);
+img_black_p.appendChild(img_black_input);
+var img_black_reset_img = document.createElement("img");
+img_black_reset_img.setAttribute("src", img_reset);
+img_black_reset_img.setAttribute("class", "gm_hfraq_r21_reset_img");
+img_black_reset_img.setAttribute("title", "remettre l'image par défaut");
+
+function img_black_do_reset_img() {
+  img_black_input.value = hfraq_img_black_default;
+  img_black_do_test_img();
+}
+img_black_reset_img.addEventListener("click", img_black_do_reset_img, false);
+img_black_p.appendChild(img_black_reset_img);
+images_fieldset.appendChild(img_black_p);
+var img_black_test_img = document.createElement("img");
+img_black_test_img.setAttribute("class", "gm_hfraq_r21_test_img gm_hfraq_r21_light");
+images_fieldset.appendChild(img_black_test_img);
+
+// img_white (fond sombre)
+var img_white_p = document.createElement("p");
+img_white_p.setAttribute("class", "gm_hfraq_r21_p_img");
+var img_white_label = document.createElement("label");
+img_white_label.textContent = "\u25cf image de fond pour fond sombre (sur fond sombre) : ";
+img_white_label.setAttribute("for", "gm_hfraq_r21_img_white_input");
+img_white_p.appendChild(img_white_label);
+var img_white_input = document.createElement("input");
+img_white_input.setAttribute("id", "gm_hfraq_r21_img_white_input");
+img_white_input.setAttribute("type", "text");
+img_white_input.setAttribute("spellcheck", "false");
+img_white_input.setAttribute("size", "30");
+img_white_input.setAttribute("title", "url de l'image (http ou data)");
+img_white_input.addEventListener("focus", function() {
+  img_white_input.select();
+}, false);
+
+function img_white_do_test_img() {
+  img_white_test_img.setAttribute("src", img_white_input.value.trim());
+  img_white_input.setSelectionRange(0, 0);
+  img_white_input.blur();
+}
+img_white_input.addEventListener("input", img_white_do_test_img, false);
+img_white_p.appendChild(img_white_input);
+var img_white_reset_img = document.createElement("img");
+img_white_reset_img.setAttribute("src", img_reset);
+img_white_reset_img.setAttribute("class", "gm_hfraq_r21_reset_img");
+img_white_reset_img.setAttribute("title", "remettre l'image par défaut");
+
+function img_white_do_reset_img() {
+  img_white_input.value = hfraq_img_white_default;
+  img_white_do_test_img();
+}
+img_white_reset_img.addEventListener("click", img_white_do_reset_img, false);
+img_white_p.appendChild(img_white_reset_img);
+images_fieldset.appendChild(img_white_p);
+var img_white_test_img = document.createElement("img");
+img_white_test_img.setAttribute("class", "gm_hfraq_r21_test_img gm_hfraq_r21_dark");
+images_fieldset.appendChild(img_white_test_img);
+
+// rechargement de la page et boutons de validation et de fermeture
+var save_close_div = document.createElement("div");
+save_close_div.setAttribute("class", "gm_hfraq_r21_save_close_div");
+var info_reload_div = document.createElement("div");
+info_reload_div.setAttribute("class", "gm_hfraq_r21_info_reload_div");
+var info_reload_img = document.createElement("img");
+info_reload_img.setAttribute("src", img_info);
+info_reload_div.appendChild(info_reload_img);
+info_reload_div.appendChild(document.createTextNode(" sans rechargement "));
+info_reload_div.appendChild(create_help_button(255,
+  "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement à la validation, " +
+  "il n'est pas nécessaire de recharger la page."));
+save_close_div.appendChild(info_reload_div);
+var save_button = document.createElement("img");
+save_button.setAttribute("src", img_save);
+save_button.setAttribute("title", "Valider");
+save_button.addEventListener("click", save_config_window, false);
+save_close_div.appendChild(save_button);
+var close_button = document.createElement("img");
+close_button.setAttribute("src", img_close);
+close_button.setAttribute("title", "Annuler");
+close_button.addEventListener("click", hide_config_window, false);
+save_close_div.appendChild(close_button);
+config_window.appendChild(save_close_div);
+
+// fonction de validation de la fenêtre de configuration
+function save_config_window() {
+  // récupération des paramètres
+  hfraq_img_black = img_black_input.value.trim();
+  if(hfraq_img_black === "") {
+    hfraq_img_black = hfraq_img_black_default;
+  }
+  hfraq_img_white = img_white_input.value.trim();
+  if(hfraq_img_white === "") {
+    hfraq_img_white = hfraq_img_white_default;
+  }
+  hfraq_img_icon = button_input.value.trim();
+  if(hfraq_img_icon === "") {
+    hfraq_img_icon = hfraq_img_icon_default;
+  }
+  // fermeture de la fenêtre
+  hide_config_window();
+  // enregistrement des paramètres
+  Promise.all([
+    GM.setValue("hfraq_img_black", hfraq_img_black),
+    GM.setValue("hfraq_img_white", hfraq_img_white),
+    GM.setValue("hfraq_img_icon", hfraq_img_icon),
+  ]);
+  // mise à jour de la configuration
+  update_config();
+}
+
+// fonction de fermeture de la fenêtre de configuration
+function hide_config_window() {
+  config_window.style.opacity = "0";
+  config_background.style.opacity = "0";
+}
+
+// fonction de fermeture de la fenêtre de configuration par la touche echap
+function esc_config_window(p_event) {
+  if(p_event.key === "Escape") {
+    hide_config_window();
+  }
+}
+
+// fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
+function background_transitionend() {
+  if(config_background.style.opacity === "0") {
+    config_window.style.visibility = "hidden";
+    config_background.style.visibility = "hidden";
+    document.removeEventListener("keydown", esc_config_window, false);
+  }
+  if(config_background.style.opacity === "0.8") {
+    document.addEventListener("keydown", esc_config_window, false);
+  }
+}
+
+// fonction d'affichage de la fenêtre de configuration
+function show_config_window(p_event) {
+  // initialisation des paramètres
+  button_input.value = hfraq_img_icon;
+  button_do_test_img();
+  img_black_input.value = hfraq_img_black;
+  img_black_do_test_img();
+  img_white_input.value = hfraq_img_white;
+  img_white_do_test_img();
+  // affichage de la fenêtre
+  config_window.style.visibility = "visible";
+  config_background.style.visibility = "visible";
+  window.setTimeout(function() {
+    config_window.style.left =
+      parseInt((document.documentElement.clientWidth - config_window.offsetWidth) / 2, 10) + "px";
+    config_window.style.top =
+      parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) + "px";
+    config_background.style.width = document.documentElement.scrollWidth + "px";
+    config_background.style.height = document.documentElement.scrollHeight + "px";
+    config_window.style.opacity = "1";
+    config_background.style.opacity = "0.8";
+  }, 100);
+}
+
+// fonction d'ouverture de la fenêtre de configuration sur un clic droit
+function mouseup_config(p_event) {
+  p_event.preventDefault();
+  if(p_event.button === 2) {
+    show_config_window(p_event);
+  }
+}
+
+// ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
+if(typeof GM_registerMenuCommand !== "undefined") {
+  GM_registerMenuCommand(script_name + " -> Configuration", show_config_window);
+}
+
+/* ---------------------------------------------------------------- */
+/* création de la popup de signalement / association / plussoiement */
+/* ---------------------------------------------------------------- */
+
+// création de la popup de signalement / association / plussoiement
+var alerte_popup = document.createElement("div");
+alerte_popup.setAttribute("id", "gm_hfraq_r21_alerte_popup");
+document.body.appendChild(alerte_popup);
+
+// radio de signalement d'une nouvelle alerte qualitaÿ
+var new_div = document.createElement("div");
+new_div.setAttribute("class", "gm_hfraq_r21_plus_new_post_div");
+var new_radio = document.createElement("input");
+new_radio.setAttribute("id", "gm_hfraq_r21_new_radio");
+new_radio.setAttribute("name", "gm_hfraq_r21_new_post_radio");
+new_radio.setAttribute("type", "radio");
+new_radio.addEventListener("change", new_post_changed, false);
+new_div.appendChild(new_radio);
+var new_label = document.createElement("label");
+new_label.textContent = " Signaler une nouvelle Alerte Qualitaÿ";
+new_label.setAttribute("for", "gm_hfraq_r21_new_radio");
+new_div.appendChild(new_label);
+alerte_popup.appendChild(new_div);
+
+// radio d'association du post à une alerte qualitaÿ existante
+var post_div = document.createElement("div");
+post_div.setAttribute("class", "gm_hfraq_r21_plus_new_post_div");
+var post_radio = document.createElement("input");
+post_radio.setAttribute("id", "gm_hfraq_r21_post_radio");
+post_radio.setAttribute("name", "gm_hfraq_r21_new_post_radio");
+post_radio.setAttribute("type", "radio");
+post_radio.addEventListener("change", new_post_changed, false);
+post_div.appendChild(post_radio);
+var post_label = document.createElement("label");
+post_label.textContent = " Associer ce post à une Alerte Qualitaÿ existante";
+post_label.setAttribute("for", "gm_hfraq_r21_post_radio");
+post_div.appendChild(post_label);
+alerte_popup.appendChild(post_div);
+
+// entête du signalement quand il n'y a pas encore d'alerte qualitaÿ sur le topic
+var new_only_div = document.createElement("div");
+new_only_div.setAttribute("class", "gm_hfraq_r21_plus_new_post_div gm_hfraq_r21_pixel");
+new_only_div.textContent = "Signaler une Alerte Qualitaÿ";
+alerte_popup.appendChild(new_only_div);
+
+// entête du plussoiement de l'alerte qualitaÿ correspondante
+var plus_div = document.createElement("div");
+plus_div.setAttribute("class", "gm_hfraq_r21_plus_new_post_div");
+plus_div.textContent = "Plussoyer l'Alerte Qualitaÿ";
+alerte_popup.appendChild(plus_div);
+
+// input text pour le nom de la nouvelle alerte qualitaÿ à signaler
+var new_title = document.createElement("input");
+new_title.setAttribute("type", "text");
+new_title.setAttribute("spellcheck", "false");
+new_title.setAttribute("placeholder", "Nom de l'Alerte Qualitaÿ (obligatoire)");
+new_title.setAttribute("title", "Nom de l'Alerte Qualitaÿ (obligatoire)");
+alerte_popup.appendChild(new_title);
+
+// select pour le choix de l'alerte qualitaÿ existante à associer à un post
+var post_alerte = document.createElement("select");
+alerte_popup.appendChild(post_alerte);
+
+// nom de l'alerte qualitaÿ à plussoyer
+var plus_title = document.createElement("div");
+plus_title.setAttribute("class", "gm_hfraq_r21_plus_title");
+alerte_popup.appendChild(plus_title);
+
+// textarea pour le commentaire de l'alerte qualitaÿ
+var comment = document.createElement("textarea");
+comment.setAttribute("spellcheck", "false");
+comment.setAttribute("placeholder", "Commentaire (facultatif)");
+comment.setAttribute("title", "Commentaire (facultatif)");
+alerte_popup.appendChild(comment);
+
+// throbber, message et boutons
+var save_close = document.createElement("div");
+save_close.setAttribute("class", "gm_hfraq_r21_save_close");
+var throbber = document.createElement("img");
+throbber.setAttribute("class", "gm_hfraq_r21_throbber");
+throbber.setAttribute("src", img_throbber);
+save_close.appendChild(throbber);
+var answer = document.createElement("div");
+answer.setAttribute("class", "gm_hfraq_r21_answer");
+save_close.appendChild(answer);
+var buttons = document.createElement("div");
+buttons.setAttribute("class", "gm_hfraq_r21_buttons");
+var save = document.createElement("img");
+save.setAttribute("src", img_save);
+save.setAttribute("title", "Valider");
+save.addEventListener("click", save_alerte, false);
+buttons.appendChild(save);
+var close = document.createElement("img");
+close.setAttribute("src", img_close);
+close.setAttribute("title", "Annuler");
+close.addEventListener("click", hide_popup, false);
+buttons.appendChild(close);
+save_close.appendChild(buttons);
+alerte_popup.appendChild(save_close);
+
+// fonction de la gestion du changement du choix entre les radios de signalement et d'association
+function new_post_changed(p_event) {
+  if(new_radio.checked === true) {
+    new_title.style.display = "block";
+    post_alerte.style.display = "none";
+  } else {
+    new_title.style.display = "none";
+    post_alerte.style.display = "block";
+  }
+}
+
+// fonction de gestion du log de la réponse, de l'affichage de la réponse et de la fermeture de la popup
+function do_answer(p_message, p_response, p_alerte_id, p_title, p_topic_id, p_topic_title,
+  p_pseudal, p_poster, p_post_id, p_post_url, p_comment, p_class) {
+  console.log(script_name + " : " + p_message + " (" + p_response + ")\n" +
+    "alerte_id : |" + p_alerte_id + "|\n" +
+    "title : |" + p_title + "|\n" +
+    "topic_id : |" + p_topic_id + "|\n" +
+    "topic_title : |" + p_topic_title + "|\n" +
+    "pseudal : |" + p_pseudal + "|\n" +
+    "poster : |" + p_poster + "|\n" +
+    "post_id : |" + p_post_id + "|\n" +
+    "post_url : |" + p_post_url + "|\n" +
+    "comment : |" + p_comment + "|");
+  if(typeof p_class !== "undefined") {
+    answer.classList.add(p_class);
+  }
+  answer.textContent = p_message;
+  throbber.style.display = "none";
+  answer.style.display = "block";
+  window.setTimeout(hide_popup, answer_time);
+}
+
+// fonction de gestion de l'enregistrement de l'alerte
+function save_alerte(p_event) {
+  // détermination de l'id de l'alerte
+  let l_alerte_id = save.getAttribute("data-alerte");
+  if(l_alerte_id !== "") {
+    l_alerte_id = topic_alertes[l_alerte_id].id;
+  } else if(alerte_default !== null && post_radio.checked) {
+    l_alerte_id = post_alerte.value;
+  } else {
+    l_alerte_id = "-1"; // i.e. nouvelle alerte
+  }
+  // vérification de la présence du nom de l'alerte en cas de nouvelle alerte
+  let l_title = new_title.value.trim();
+  if(l_alerte_id === "-1" && l_title === "") {
+    // si le nom n'est pas renseigné, affichage de l'erreur et arrêt de l'enregistrement de l'alerte
+    new_title.required = true;
+    new_title.reportValidity();
+    return;
+  }
+  // récupération des paramètres transmis
+  let l_poster = save.getAttribute("data-poster");
+  let l_post_id = save.getAttribute("data-post-id");
+  let l_post_url = save.getAttribute("data-post-url");
+  // récupération du commentaire
+  let l_comment = comment.value.trim();
+  if(l_comment === "") {
+    // construction d'un commentaire par défaut si le commentaire n'est pas renseigné
+    l_comment = "post de " + l_poster;
+  }
+  // affichage du throbber
+  buttons.style.display = "none";
+  throbber.style.display = "block";
+  // vérification des paramètres
+  if((l_alerte_id === "-1" && (l_title === "" || topic_id === "" || topic_title === "")) ||
+    pseudal === "" || l_poster === "" || l_post_id === "" || l_post_url === "") {
+    // si il manque un parramètre, affichage de l'erreur et arrêt de l'enregistrement de l'alerte
+    do_answer("erreur : un des paramètres est absent", "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
+      l_poster, l_post_id, l_post_url, l_comment);
+    return;
+  }
+  // construction de la requête
+  let l_params = new URLSearchParams();
+  l_params.append("alerte_qualitay_id", l_alerte_id);
+  if(l_alerte_id === "-1") {
+    l_params.append("nom", l_title);
+    l_params.append("topic_id", topic_id);
+    l_params.append("topic_titre", topic_title);
+  }
+  l_params.append("pseudo", pseudal);
+  l_params.append("post_id", l_post_id);
+  l_params.append("post_url", l_post_url);
+  if(l_comment !== "") {
+    l_params.append("commentaire", l_comment);
+  }
+  // envoie de la requête
+  GM.xmlHttpRequest({
+    method: "POST",
+    url: add_alerte_url,
+    data: l_params.toString(),
+    mozAnon: true,
+    anonymous: true,
+    headers: {
+      "Content-type": "application/x-www-form-urlencoded;charset=UTF-8",
+      "Cookie": ""
+    },
+    // gestion de la réponse
+    onload: function(p_response) {
+      let l_response = p_response.responseText;
+      switch (l_response) {
+        case "1":
+          do_answer("Ce post a été signalé avec succès !", l_response, l_alerte_id, l_title, topic_id,
+            topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment, "gm_hfraq_r21_success");
+          break;
+        case "-2":
+          do_answer("erreur : l'alerte spécifiée n'existe pas", l_response, l_alerte_id, l_title, topic_id,
+            topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment);
+          break;
+        case "-3":
+          do_answer("erreur : un des paramètres est manquant", l_response, l_alerte_id, l_title, topic_id,
+            topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment);
+          break;
+        case "-4":
+          do_answer("vous ne pouvez pas signaler plusieurs fois la même alerte", l_response, l_alerte_id, l_title,
+            topic_id, topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment, "gm_hfraq_r21_meh");
+          break;
+        default:
+          do_answer("une erreur imprévue est survenue", l_response, l_alerte_id, l_title, topic_id, topic_title,
+            pseudal, l_poster, l_post_id, l_post_url, l_comment);
+          console.log(p_response);
+      }
+    },
+    // gestion des erreurs
+    onerror: function(p_response) {
+      do_answer("une erreur inconnue est survenue", "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
+        l_poster, l_post_id, l_post_url, l_comment);
+      console.log(p_response);
+    },
+    ontimeout: function(p_response) {
+      do_answer("erreur : la demande n'a pas aboutit", "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
+        l_poster, l_post_id, l_post_url, l_comment);
+      console.log(p_response);
+    },
+  });
+}
+
+// fonction d'affichage de la popup de signalement / association / plussoiement
+function show_popup(p_event) {
+  // fermeture de la popup (si elle est ouverte ailleurs)
+  hide_popup();
+  // réinitialisation du contenu de la popup
+  new_radio.checked = true;
+  new_div.style.display = "none";
+  post_radio.checked = false;
+  post_div.style.display = "none";
+  new_only_div.style.display = "none";
+  plus_div.style.display = "none";
+  new_title.required = false;
+  new_title.value = "";
+  new_title.style.display = "none";
+  post_alerte.value = alerte_default;
+  post_alerte.style.display = "none";
+  plus_title.value = "";
+  plus_title.style.display = "none";
+  comment.value = "";
+  throbber.style.display = "none";
+  answer.textContent = "";
+  answer.classList.remove("gm_hfraq_r21_success");
+  answer.classList.remove("gm_hfraq_r21_meh");
+  answer.style.display = "none";
+  buttons.style.display = "block";
+  // transmission des données de l'alerte (si le post est déjà signalé)
+  // et des données du post sur le bouton valider de la popup
+  save.setAttribute("data-alerte", this.getAttribute("data-alerte"));
+  save.setAttribute("data-poster", this.getAttribute("data-poster"));
+  save.setAttribute("data-post-id", this.getAttribute("data-post-id"));
+  save.setAttribute("data-post-url", this.getAttribute("data-post-url"));
+  // affichage des éléments de la popup en fonction du type
+  if(this.hasAttribute("data-alerte") && this.getAttribute("data-alerte") !== "") {
+    // le post est déjà signalé, on ne peut que plussoyer
+    let l_alerte = topic_alertes[this.getAttribute("data-alerte")];
+    plus_div.style.display = "block";
+    plus_title.textContent =
+      l_alerte.nom + " (par " + l_alerte.pseudal + ", le " + cuter_date(l_alerte.date) + ")";
+    plus_title.style.display = "block";
+  } else {
+    // le post n'est pas déjà signalé
+    if(alerte_default === null) {
+      // il n'existe pas d'alerte qualitaÿ sur le topic, on ne peut qu'en signaler une nouvelle
+      new_only_div.style.display = "block";
     } else {
-      return null;
+      // il existe des alertes qualitaÿ sur le topic on autorise le choix entre signalement et association
+      new_div.style.display = "block";
+      post_div.style.display = "block";
     }
-  },
-  get imgUrl() {
-    return GM_getValue("hfr_aq_imgUrl", "");
-  },
-  setImgUrl: function() {
-    var imgUrl = prompt("Url de l'image ? (vide = image par défault)", this.imgUrl);
-    if(imgUrl === null) {
-      return;
-    }
-    GM_setValue("hfr_aq_imgUrl", imgUrl);
-  },
-  getAlertesUrl: "http://alerte-qualitay.toyonos.info/api/getAlertesByTopic.php5",
-  addAlertesUrl: "http://alerte-qualitay.toyonos.info/api/addAlerte.php5",
-  nomAlerteDV: "Nom de l'alerte",
-  comAlerteDV: "Commentaire (facultatif)",
-  currentPostId: null,
-  currentPostUrl: null,
-  generateStyle: function() {
-    cssManager.addCssProperties("#alerte_qualitay{position:absolute;border:1px solid black;background:white;" +
-      "z-index:1001;text-align:left;padding-bottom:5px;}");
-    cssManager.addCssProperties("#alerte_qualitay select, #alerte_qualitay input[type=text], " +
-      "#alerte_qualitay textarea{display:block;margin:5px;font-size:1.1em;}");
-    cssManager.addCssProperties("#alerte_qualitay select{font-weight:bold;}");
-    cssManager.addCssProperties("#alerte_qualitay input[type=text], #alerte_qualitay textarea{margin-top:0;}");
-    cssManager.addCssProperties("#alerte_qualitay input[type=image]{margin-right:5px;float:right;}");
-    cssManager.addCssProperties("#alerte_qualitay p{font-size:0.95em;margin:0;margin-left:5px;margin-right:5px;" +
-      "text-align:justify;width:100%;}");
-  },
-  generatePopup: function(topicId) {
-    var self = this;
-    var newDiv = document.createElement("div");
-    newDiv.setAttribute("id", "alerte_qualitay");
-    newDiv.className = "signature";
-    var inputNom = document.createElement("input");
-    inputNom.type = "text";
-    inputNom.tabIndex = 2;
-    inputNom.value = self.nomAlerteDV;
-    inputNom.addEventListener("focus", function() {
-      if(this.value == self.nomAlerteDV) {
-        this.value = "";
-      }
-    }, false);
-    inputNom.style.width = "300px";
-    var inputCom = document.createElement("textarea");
-    inputCom.tabIndex = 3;
-    inputCom.rows = 3;
-    inputCom.value = self.comAlerteDV;
-    inputCom.addEventListener("focus", function() {
-      if(this.value == self.comAlerteDV) {
-        this.value = "";
-      }
-    }, false);
-    inputCom.style.width = "300px";
-    var inputOk = document.createElement("input");
-    inputOk.type = "image";
-    inputOk.tabIndex = 4;
-    inputOk.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAABGdBTUEAAK%2FINwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAKfSURBVDjLpZPrS1NhHMf9O3bOdmwDCWREIYKEUHsVJBI7mg3FvCxL09290jZj2EyLMnJexkgpLbPUanNOberU5taUMnHZUULMvelCtWF0sW%2Fn7MVMEiN64AsPD8%2Fn83uucQDi%2Fid%2FDBT4Dolypw%2Fqsz0pTMbj%2FWHpiDgsdSUyUmeiPt2%2BV7SrIM%2BbSss8ySGdR4abQQv6lrui6VxsRonrGCS9VEjSQ9E7CtiqdOZ4UuTqnBHO1X7YXl6Daa4yGq7vWO1D40wVDtj4kWQbn94myPGkCDPdSesczE2sCZShwl8CzcwZ6NiUs6n2nYX99T1cnKqA2EKui6%2BTwphA5k4yqMayopU5mANV3lNQTBdCMVUA9VQh3GuDMHiVcLCS3J4jSLhCGmKCjBEx0xlshjXYhApfMZRP5CyYD%2BUkG08%2Bxt%2B4wLVQZA1tzxthm2tEfD3JxARH7QkbD1ZuozaggdZbxK5kAIsf5qGaKMTY2lAU%2FrH5HW3PLsEwUYy%2BYCcERmIjJpDcpzb6l7th9KtQ69fi09ePUej9l7cx2DJbD7UrG3r3afQHOyCo%2BV3QQzE35pvQvnAZukk5zL5qRL59jsKbPzdheXoBZc4saFhBS6AO7V4zqCpiawuptwQG%2BUAa7Ct3UT0hh9p9EnXT5Vh6t4C22QaUDh6HwnECOmcO7K%2B6kW49DKqS2DrEZCtfuI%2B9GrNHg4fMHVSO5kE7nAPVkAxKBxcOzsajpS4Yh4ohUPPWKTUh3PaQEptIOr6BiJjcZXCwktaAGfrRIpwblqOV3YKdhfXOIvBLeREWpnd8ynsaSJoyESFphwTtfjN6X1jRO2%2BFxWtCWksqBApeiFIR9K6fiTpPiigDoadqCEag5YUFKl6Yrciw0VOlhOivv%2FFf8wtn0KzlebrUYwAAAABJRU5ErkJggg%3D%3D";
-    inputOk.addEventListener("click", function() {
-      if(confirm("Signaler ce post ?")) {
-        var parameters = "";
-        var alerteId = newDiv.firstChild.value;
-        parameters += "alerte_qualitay_id=" + encodeURIComponent(alerteId);
-        if(alerteId == "-1") {
-          if(inputNom.value == "" || inputNom.value == self.nomAlerteDV) {
-            alert("Le nom de l'alerte est obligatoire !");
-            inputNom.value = "";
-            inputNom.focus();
-            return;
-          }
-          parameters += "&nom=" + encodeURIComponent(inputNom.value);
-          parameters += "&topic_id=" + encodeURIComponent(topicId);
-          parameters += "&topic_titre=" +
-            encodeURIComponent(self.getElementByXpath(".//table[@class=\"main\"]//h3", document).pop().innerHTML);
-        }
-        parameters += "&pseudo=" + encodeURIComponent(self.readCookie("md_user"));
-        parameters += "&post_id=" + encodeURIComponent(self.currentPostId);
-        parameters += "&post_url=" + encodeURIComponent(self.currentPostUrl);
-        if(inputCom.value != "" && inputCom.value != self.comAlerteDV) {
-          parameters += "&commentaire=" + encodeURIComponent(inputCom.value);
-        }
-        GM_xmlhttpRequest({
-          method: "POST",
-          headers: {
-            "Content-type": "application/x-www-form-urlencoded"
-          },
-          url: self.addAlertesUrl,
-          data: parameters,
-          onload: function(response) {
-            var newP = document.createElement("p");
-            switch (response.responseText) {
-              case "1":
-                newP.innerHTML = "Ce post a été signalé avec succès !";
-                break;
-              case "-2":
-                newP.innerHTML = "L'alerte spécifiée est inexistante !";
-                break;
-              case "-3":
-                newP.innerHTML = "Un ou plusieurs paramètres d'appel sont manquants !";
-                break;
-              case "-4":
-                newP.innerHTML = "Vous avez déjà signalé cette qualitaÿ !";
-                break;
-              default:
-                newP.innerHTML = "Une erreur imprévue est survenue durant la signalisation de ce post !";
-            }
-            newDiv.insertBefore(newP, inputCancel);
-            inputOk.style.display = "none";
-            inputCancel.style.display = "none";
-            setTimeout(function() {
-              newDiv.style.display = "none";
-              inputOk.style.display = "inline";
-              inputCancel.style.display = "inline";
-              newDiv.removeChild(newP);
-              inputNom.value = self.nomAlerteDV;
-              inputCom.value = self.comAlerteDV;
-            }, 3000);
-          }
-        });
-      }
-    }, false);
-    var inputCancel = document.createElement("input");
-    inputCancel.type = "image";
-    inputCancel.tabIndex = 5;
-    inputCancel.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAABGdBTUEAAK%2FINwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAIhSURBVDjLlZPrThNRFIWJicmJz6BWiYbIkYDEG0JbBiitDQgm0PuFXqSAtKXtpE2hNuoPTXwSnwtExd6w0pl2OtPlrphKLSXhx07OZM769qy19wwAGLhM1ddC184%2Bd18QMzoq3lfsD3LZ7Y3XbE5DL6Atzuyilc5Ciyd7IHVfgNcDYTQ2tvDr5crn6uLSvX%2BAv2Lk36FFpSVENDe3OxDZu8apO5rROJDLo30%2BNlvj5RnTlVNAKs1aCVFr7b4BPn6Cls21AWgEQlz2%2BDl1h7IdA%2Bi97A%2FgeP65WhbmrnZZ0GIJpr6OqZqYAd5%2FgJpKox4Mg7pD2YoC2b0%2F54rJQuJZdm6Izcgma4TW1WZ0h%2By8BfbyJMwBmSxkjw%2BVObNanp5h%2FadwGhaTXF4NWbLj9gEONyCmUZmd10pGgf1%2FvwcgOT3tUQE0DdicwIod2EmSbwsKE1P8QoDkcHPJ5YESjgBJkYQpIEZ2KEB51Y6y3ojvY%2BP8XEDN7uKS0w0ltA7QGCWHCxSWWpwyaCeLy0BkA7UXyyg8fIzDoWHeBaDN4tQdSvAVdU1Aok%2BnsNTipIEVnkywo%2FFHatVkBoIhnFisOBoZxcGtQd4B0GYJNZsDSiAEadUBCkstPtN3Avs2Msa%2BDt9XfxoFSNYF%2FBh9gP0bOqHLAm2WUF1YQskwrVFYPWkf3h1iXwbvqGfFPSGW9Eah8HSS9fuZDnS32f71m8KFY7xs%2FQZyu6TH2%2B2%2BFAAAAABJRU5ErkJggg%3D%3D";
-    inputCancel.addEventListener("click", function() {
-      newDiv.style.display = "none";
-    }, false);
-    newDiv.appendChild(inputNom);
-    newDiv.appendChild(inputCom);
-    newDiv.appendChild(inputCancel);
-    newDiv.appendChild(inputOk);
-    return newDiv;
-  },
-  launch: function() {
-    var self = this;
-    var root = document.getElementById("mesdiscussions");
-    var tmp
-    var topicId = (tmp = self.getElementByXpath(".//input[@name=\"post\"]", document)).length > 0 ? tmp.pop().value : null;
-    GM_registerMenuCommand("[HFR] alerte qualitaÿ -> Url de l'image (vide = image par défault)", function() {
-      self.setImgUrl();
-    });
-    GM_xmlhttpRequest({
-      method: "GET",
-      url: self.getAlertesUrl + "?topic_id=" + topicId,
-      onload: function(response) {
-        var alerteNodes = new DOMParser().parseFromString(response.responseText, "text/xml").
-        documentElement.getElementsByTagName("alerte");
+    // par défaut le choix signalement est sélectionné et le champ nom (input text) est affiché
+    new_title.style.display = "block";
+  }
+  // positionnement de la popup
+  alerte_popup.style.right =
+    (document.documentElement.scrollWidth - window.scrollX - p_event.clientX + 16) + "px";
+  alerte_popup.style.top = (window.scrollY + p_event.clientY + 16) + "px";
+  // affichage de la popup
+  alerte_popup.style.display = "block";
+}
 
-        var postsIds = new Array();
-        Array.forEach(alerteNodes, function(alerteNode) {
-          var ids = alerteNode.getAttribute("postsIds").split(/,/);
-          postsIds = postsIds.concat(ids);
-        });
-        self.getElementByXpath(".//table//tr[starts-with(@class, \"message\")]//div[@class=\"toolbar\"]", root).
-        forEach(function(toolbar) {
-          if(postsIds.indexOf(self.getElementByXpath(".//a[starts-with(@name, \"t\")]",
-              toolbar.parentNode.previousSibling).pop().name.substring(1)) != -1) {
-            toolbar.parentNode.parentNode.style.backgroundImage =
-              "url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcwAAACZCAYAAACi7wp2AAAmyklEQVR42u1dC3NUx5W2BBixRsBYZYIRmkHGSDBstmzf32rNSBADduwkDibvxM7Dm2CTJYR1qlKb7CbZWjveSsrxr4h66B4dWv1%2B3%2BH7qrpA0sztvn379nfO6fN45hkAAAAAAAAAAAAAAAAAAAAAAAAAKI%2BdnZ3Bfttg%2F2I2AAAAAEBPlh1pIE0AAAAAUBDmcL%2BNHv7q3mn2L%2FsZswIAAAAAhwlzzIiS%2F58R5hizAgAAAAAgTAAAAAAIIsyrjCj%2F8Y9%2FLHHC7DArAAAAAHCYMDuhYU5ef0yY%2B%2B0IZgYAAAAANIR55%2B13XoTjDwAAAABYCJP%2FjHNMAAAAAABhAkD4yzLgcVhbAS15ZpD965136HeTN%2FHzlf12IfM8PR8xTzHtJd6c7nX%2FbyfY3%2FnnYvql8zsi%2F2fPZynx3G5wx5PNQnM6ku5T%2FMzGsGEY35b0LHK2TfIMxbyw53omJ2ESx5%2Br2B0B4DBZdgnaINF4LkWO43JGsuwaa5c0ZFlyDFd5SAITJE4Fzu3lBudW1rZaG98Zw3wO%2BTO5qvh3g3zuGGlzL1n2t5t71zfEOabhemhpGp1PnBs3TpizzeDRvXun%2F%2FCHP6z4NpIZZDsVee9NpkNbv48e%2FGaVNfHzZ59%2BepS%2F5GwzWckwT7NMKI%2FufRw0TzHtk4cPT7JG7%2FX6%2Fhzxez0mjXObjfOD737vLPtcTL90fn99%2F%2F4p8f%2Fp4%2Betah3%2Fd9V3Xtmz%2B%2Fvf%2F75M%2B8zZ6P2wPsXPbAzkXpaIoDRifxPPo8QYHzx4sCqeIfv%2FbNy%2F%2BFAIuBua%2Bdzc0T8fcV%2BbGsF0pNgbxpbroaVvIM2WtUvmRs42g1jSTUdK906HfJ%2B4wy9nmKuxvKHUxBt7e0I4OG46i8oNsW4%2B%2BtnPB4pN%2BUTf5lVez1RQamFs3FzaqcylYqy7O5O5aVX%2Bd5cINjem06HcdIRJrxOzVwD6dyjlXgrk2RiiCCo1UcVunjkXW2kicr1X%2BSyx9jh%2F%2Bf4Ha2zDJuMb9IkwiYZ5tcXxWQjTOlZKmLa%2BpuSzTAPHjlnk2eLsuFGyPJJqcyWm0I0GCHOcYa6WZ5p4e4Q5ln63ysYpNIyaYCZhF9JsTRCR57Y1wrz7zjde1L1rqQmTHLc094xAmEAV7ZIFKbfyoGNfzIyEORMIvn7z1nrLL5Z4pkzLa2Gc0oY7UMzrUg8I8wlnmNrg2jubs6OKcVvHundw9j3ymIvZ56cgzSqCMNDGg0kqOad40A0TZlObpkHDbO480ESa4gz96zdvrrcyXqIZD1vUgHWmeNexsnNKeoZp64%2BZYoVw1to7sGj4wZ07X4HTT8Pa5Ru7exsprpdCw5ybPV8P25zYpptrsTV6jqXSMMctms4IaY5Umjv7eytjJefxJxo2xXeh2johzM6FMCWS7kCYGdfewTwfx2wssHYpO0rEkPit%2FfPQyMWWw0O2KemahJRstK4JK4ho0APNvaOEzjySW7YsUG39puX94YQ58iFMZuKnoSfwki0rDAF1H8rsxUp9HhH7sFN5yKbOQMOvDQ%2FZdFrmsGWNWHV%2B2QpBmCw5Ptq6WD97jnNPS36xxmJDsZOWE4aAug9lKBIVpLwucUE%2FEjiuJkNK%2BmKWa3Gctg2hB4TZ9PhCrQtyfKULWNIEeMyCMJ9K7TKHGYyfIQaHlsRsTjndsfevOTNHfev2m%2BuhY0vxPaHlMOme3%2BsVaZwXZubDgHPpL774Yun%2F%2FudPx3%2F%2F%2B9%2BfYI39nzbWN%2FtM7FwSs%2FmgJx6yUYQpJw7wXQ%2FyZ3lIifKc3meslPh8vOTp91py1FoEIKSkXe1ylFq7FBu6LqDacWytesjONolPPr5%2FKuL7qVsnJ1%2FnSbpHIeayqVuu1BEjPEagoXNJzbLUyYttFqyxsYtUcOL%2F7PcsdV2MgMeuJ4QN2tiaFX2wv9P8qbFrMmPatH%2FThJQ4EyYRujofwvzdY49ZkT94xLI7YVdNA16DNDqWHUi7%2BWczMcVISCKJQui5KknLlsND9mqodyCL2yTmr5iEzPRnZaWSmGdLSPhl3i5L7QpvMwKJIU1JgxuFJEMPsHzIwsaha5N2mY9tKQFhqp7l1Yg1MFSRZQi5i7n45i13ywl5x%2BeaZksezn3GniY3NFBZu8xpSgnV8liVC9%2BXl4JkGjqV4Z6CPTljz3VLCEPM1Koy8Wr6EFLwKNREqzjHFGWzrhJi3iL%2Fv5qAuDoibFyRrn2FVlwh35slXf%2Fa7u5GyXchsK9Vn%2FNrKcH8KGJOQZqJLVk5nBaBxrRL%2BaEHfG9GeKEmnlY9ZEu%2BBKHj5ITZuRAm72emaYZ6joYQSQpNL1TADEm6Xvo8SggyPhmeKGEKk7UriGn9cg6P%2B6eYMOHw08jDGMQkBShAmFHxeBk9ZIPNciliUwuO04cwWfmw7vPPPz9a4lmxIO5KhBksYKbKrewrcDIik0uvsXeeCaLyu8WPMbpQQZWc915k%2F7IsNUhqAMJcpIfh7Ozz8fs%2FXWMeeb79EC%2FIU6U2p5yLbf%2Ba%2FxITqlHqJYgxt3%2F762%2Bf589s3bGvFIQ59r03tiGXFFr6YoqnArHtDJi%2BY7%2B999ETidVD7pN8%2F1X2L0srCNIEYfb9Qaz6SOhkk%2FEmiVDnm4Y9ZGeb9c%2B%2B9%2F0XfL9b0iwXI3D4OhsIk2zIGWYIgSUIN%2BpiCDPE9FzjPIqT5oYiX%2B8p%2FvtD80hCwYK0TClPcNdamsO%2BACElbRGmVwULkgZr9OWXX4ZKncXOqHKaPlNpvpJDyxXFz1c0DiljF%2BEjkYesS8D7udROP4WEgY2AcaY4u74S0S4kXsuHBADq%2FHMzMCWlgjRnTkDQNMusU6Diph%2FrPRe4Ic7MSWzRhPQXmzAh12b94MGDVc%2BwCVOow9BlM4wxq3mQZceSG4TMCRfGvCwQpYQB6XvLCUzxXYK2lXAtbzzOH7s71Ah1wXGVxLIETbPgOgUyaZeuZ1s8%2FVXH3fq9vecCTW5RyRRIfcAjGeYvyhlJBOCLAHk5YN7UhCbgIoAk0oa2uWazrdB25iT%2B4Y9%2FshaqXZIE7KslNb1QcglNus6eO02%2BENKI49BKorWsrAbEQrno801ImnAEyrxOgcoaEnHamTmCvBXgRBLgBdlkDtnYzTrxyzQ2%2FH0pEWEaNV22FkI1ywjrQ%2FC9RSbSqF5FJYfjkOpdI%2FU%2Ft8VchxYgl8yzr8ZYjp4W4PyyHbJc9Y2RIuaZpVCTlK95oWEP2SO1Y8x0eWOVmkPEGTBrzOuVaY7iX9pS3IuqWknOZxBJmONGBKUu8TWV98XyD5OUhd45Zg2keUkIXEijB8Lsg5rvLC2%2BkSiPpq9knCgGM5uHbGjS9RRgWWZUeWOlcW7EOG2UJgDZi9PlGYRmp6oRg1nKshCzplV7Ank%2BzKv2q%2BxndtyRgDRHsebep2SvRkhJbe0yILckTVkWRJjE4%2BuCY79do1VKqm%2BaLsJHy0WjxTNiZ1mB4UbBzyBEo02xJhsnzNm%2BoCJCkshgxDX7TfZ%2F5iQUsrbY%2FJMz61epeR8OQWnWKVBAklSB1Lrbit2sXMyIpI9jMeccfLE15yGbQStbanmcjs%2BIbZrHSz0D4gw28OzzVImsWKkJc%2F%2Bzz%2B03Jpg8FzKnUpHoU%2FyzL8e8n0RY6mRtkz0fhJ88WfIOzFXnRTsiTCoBG%2FN58rtZuahPA8pFub7swpwYanIj2uwgwzz2wizXMmFKprlByWcQ4SE7EzbvffDT52vNm1xmzJEsqaPWcyHCNPF0nQs34hwy1DzLBGiyDkbcIrIpxiqIMzQ38QLs1%2FCQbUG7dD20Z8kJVBtzgs3KhTCT5JBtLel6YcLsWiTMWLKMvbc%2Bn18SU%2Bayzzv%2F8%2B%2F%2F4AUb0dqcAYn5%2FCL5zsw8G1pNSICUWut4DtpNOQzladqrS%2BabBhK98OyMgi%2FYYQzxhkhNrYaUxIZqpIDL%2Bez%2B3060WC2Cr6lYslyNubcIwqx%2BJhzjae4oZBnvUZUTOja5AdVip0%2FW1BxT71yaNJ6tIxb2ImufbNzsd%2BwoiZFwzpKFLQjFQL7JH%2BgO9W0PjIcnLJEWfL5YgjAzO%2FxEBa6nACsrpRJkVEIN21RaWH88CF5sei%2FHmMp9z%2BEXScMMOL%2BcE6DLO2E7CpGSEIjzzFMpvV3ZNaTi3p1UMFuX9UouBD7qc6wnCLP%2B5HeuWXOkVHjKNokLLRnkMrnFJNbOrWWw78VqKMQs93zLm7u09kau%2BW9zEhfZiIt7yPqexcnr5Ifv3T0bkz4wlbBqI82Ua0dVlsw1dWSfzbgx6xRIpF36bvSMEHUtVMJ3cZWONXtmJszYWoijVK1186EkeF1t4RmEZslJlDUpRXvNJyUenavr07kj3JqLBi%2FnlnUgzdn3WLKDHOtI7B%2FsKEg3P0yYXITzTmL6fiodnmoTZlRO1tKmBkHwoQH3xF29qZASohlS81JIy1qlhIddHGqh3pCpTUspEsoHJF1PklnI8znLnx%2F65o%2Blc%2FXJx%2FeFFnjR4Xsv20ysGtK8jEQE6SyCmIk6k9%2BUt6QDYUYRPJHOjmcYey9qIWbKITtq4eWvmXQ9NLtT6fMopkVyb9O54OSj7buaWGXSpN9DcvV8eySQWbuMdfsuTJgL6SFbUmpMHXYRo9URz9hhzWdQK%2Bn6r3%2Fx4aDkeRQnyycEHSHgEevB0HEdWCuLKEhzZvoNzTn7tAM5ZOuSU3PB6zbiaNhD9qivp3GNl0CElKQ0ocbmpU0lMYtxlDYPJzo3PVPo%2FWKaZbdvgp2T5n8%2BevSc7xwwC41IXWdLWSeR5kgkSGFe2tA0oWH2ZdIHqsKwrRCmzjTZMGHyhN%2B3mjbLxYSU8AxJI0XsbRXNTqfphWZ%2FqRGDWfo8io717Vu312UnsVvX1dmCePjYkJ6TU4dBF9Lk5%2FTCOakT4WcgTXcgh2xlYmrF2UfA5AGWIjFAxiolwUTOYyeLvAS50saFXjcxYQbfW2iid95vL0zxqrGqvKqJ0Hqa%2F8zMuP8qOXp5kybDT%2B5%2B5yy5xldpqAcjz88MKTUFsT7NBEsKhMNxqrR2GSONF1gQG4pxR9Wa%2FPX9mSfgKIcZOmazfv873z3L7%2FmFHhNmsJZFnvmpWvdGvJR9E72v1DADB%2FZ1Wn5%2F%2Fvzok%2BeuS3P20U9%2F9jwf1yY58xy9%2B%2BZb66ox%2B5ImAw%2F%2F6EjWnrEh2cChdnN3r%2BmydLkVHbBY2Ukftqhd2jSO2LMyqQJCbBumJqLIcBKnEJME5sOx5m8boc4cpETURuS6Lm4aFSZuljggYq0nf%2B6qxBVirIwQbWOT0tCNWNjJzCT4y3tnNCbbgU9uV6ZJvrvvVbyrTzww1r1704ar7IAwF1i7bNW0oduYYwPuqYaZqA0TmuVytWEK86HNdCo0rRBhhoc0RCeT6GPS9YzP%2FVC2J9%2BxzutQ7pOkQrh7XrO3vCpySfu%2Bp48e%2FGbVdl%2BMaJ9mkywcfupol15xjGyBsoTFLo0taLbw2f8zEGZrKd3G%2FP8nWqiFaJvHmDy%2FLhmSap5jilJVoQm1%2B5xD9hDxaPIJxwqcE4dMUtx79qu%2BJloAhNnqhHu%2F4I45GpU5G1OaHRomzJkQws4iGyfMmdk0JO6WJ0g3mk2jzhAP1thq4L3O7i0k9VlMir4WCZMUwX4%2B2fM58HC96DAnR8TzEPsAM7s%2FrbUrU4EpI3w%2Br2A2CmqXPvkciRvzlmO7wp0FkqcoaykrkUSYTRZjVhBmcNiFS57VmHlguYdjPIVj1puLMGDot2s1ljnl%2B0OuuebxnQEpwdXRNIpC8xQlt7A720EK31%2FAbDSoXRJTmbcbc8zmTLwmV8n1mjF7ypXtWyRMlZkzl4esLJCFZo6KMTfF3BvZiI559rnUMmFKv1uOeX%2BIs0%2FnK9TwDD8bfE9Qlt7C7uys5SPpeqGXaOBbdoudc4a8IIm0jSckfhZywX7XQg1HWYJvkTDvvvONFxVzGDROV5Nl7KZcizAjkq4PYxLPl7Is8N%2FNhFBWlST0ujxBuyC5l3y0TY3mOW6lck5P9nB4yBacbG9nn2mgdhmrYaocTFoKhZEXbotaBpFGj6YYp0fKtBTnmCHJ63vnIVuYMK%2BmirsmOWc7nmpvLWKsY2iY%2BQVKIEC79FmYsbUKbdXZHQhTNic2I4lK55e9MMslSg6flTB5YVzvs8RS99Zzwkw6Vknb7FKUGMNODcLsrXYZunmRPp%2BNyVWrcFhp1UP2SIvB1DoP2ZCQEmYG96hiMQwNJwgNLxF9hsSA1qpSkgvcFD9KHVLiSJyUPJ00TxBmGQUGyCwJx0ozsUTSstlTFVISmnS9IGEGb0wkTOGEQ79roeEdoesuUfKAoknXc4GYtY9KY03y%2Fnzx%2Bf8fffDzXwxkoYP9%2B6P37p5VkOdaH7X01pCz8D2gkL59TKPc2Sc6GXgiN%2FallghTDn9o8YVXxWvl9pAlnz2e6Lmf8vhO8L2F1uPsmYfsWqqxXieE%2BCNDOkCueXa2uE0QpqMg9Hq%2BwvdAGu0yOiN%2BzMtAtJojQlttwRuRb7DzkJcWX3gSlnMhIWGOSzx3klf2fIn%2BQl31Rdak65Npi%2BXx5PNLUQPzVMI%2BOsf0fGuG60RlZ3rK9nGcX5bUMFmyAmYetbVQidvUNzs3Y2Q3ceh%2Fwj9PNzIarsCuIz6n%2Bi79%2F2Tn8Ofl300U1xBjZf%2FSz5J6kNvyPX5td9dpflVN9KH62XXeRLt%2BMMYnwiRoCMREM2fy%2FYv%2BfdeD6rlPNM9I7jukcgntb2LoYz4Gvo74Of0TzzNEwxTrRL5P1X3Lf5%2FaPvP64TU9kdaJ%2BAw7FtCcX675VAJxbNskNETVvM4w0fzzQgP5SPOyZ1q7lxP2fSmiIshIIdXWbtvyWR6br0bGpq2mwse5GXitzcLP%2FXJATGRof2zDPilaoKbVUhvT%2ByFtja%2FdVO%2FASZfmMIcnEo5rUdsYZFmeNI8T86apPZuh72P82ssO%2FS%2Fzz6sKSC9Ln1N9l%2F27Lr2EcynNpJ1pygwNeVjOsikTDPcKPhLQbCR2zXHeRDtmIhtpnrZsRGlKhef53JfJ%2F7ccNolrLk5Giv6WDetkmW%2FQY19hw6JpHuVNvk%2F55yOKv9Pf2dbClvS9o%2FzfYeMbvu%2F58MDhGYUKcrbrbhXck9cd7xNnvIVMseMeSlPbvhul5p5nxHdjOh3%2B9S%2F%2F6yUEsM%2Bz70nk6R1j5mxKZMV5b7%2B5rmoxCcld%2Bn7z%2Bo0NVb97DrljI85itP2S%2Bw4ylTr0vy3S96larWwqByZz9dhuHZiqVxTf7Uz3VLP5zieNGTddd%2Fdgfa77Xlt3zVtSyssCZGm9z8nBvoh0eLlfvh63zoc0iUY5EgTkS5I6EI9h1l5L%2BTLZnFUyE6axby4weOdXddkkXNIz5iAuce44MZenquJcYXseJEH8SdWchubvLXBfvoTpFMfL3m9foUrEIpuuncrh0TKOFb6XGPcpfo9dDsERUEicfRw7D5Jn43%2FB4wXrBFHmGtdP7n7nbOrDd9smmUvLc1kjk8D8qi7anYswE5Mmz7JRdTcM%2BVRbJUzdfPjMaUXCHDt%2Bdt1n7wrw3rZmPCPVmYYZ54SZ1kdsT3ERNny0aCBQuwzJetICiHesS5D8RUFipTYMQpqXcpNWLvOg8DqeFtS0qPnZ5fPMZKszQcaOQbdR%2FfbeR6dreSM6roWmi6rHaoG%2B5B%2BY5MKqwebUMsX%2BccuyP0%2FgGduGpNqD8buUkVriXpEj30xCf%2Fvb35Z1zfUa5HzzUsR9zmJL9yqYB4Ukz0y%2BJfrmz%2Buaz7ok55jFTODknHBQeM2vPI4zDiLMZq1JxIy87jAHs3fKp5pSiBWkppbpeo%2Fk7BfOPplfvEHfvapsGzXdfG84lipiZPjwl786s3vYA%2FYJTzT2d%2FY5F%2FKkTkExL4%2BOtELOaDz6NkryqcnKdq8Ftdwgs2cpq5BO89Vt4PP45Ebfd5%2F5DBH0dwOPLGpoma7mZvLeI0lBqRevhRJYIXBJhC00yztvvWXNBMOI7%2Fb1uecb9cLVtTl5uhBnjNnEw%2BFnPcM6KXZ26iLE%2FfW%2F%2FniigJa73FeHH5Pmm8LJztJvtuvL%2B5bOTPmjb757LlaDrallujr5SESNc8vaL17fNUwep2bVLBnR%2FfDOe18hi4%2BR4YX9dsbS9xka08YkWBtpEu%2FZlZTPappR2yl5dio2Q3Y%2BqPr7%2B%2B9%2B%2B9ydW7fXCxDmbJM0nR31zeFHmuNxYHPpN%2FTaLtVt5mSi%2BvuXX345E6LZvymtMCW1TFcnH5xbln3pVmPKabUA4ok61C1wm9MIIzhCNq%2BESGqcOEUQuZE0TWM2XN81vCGHw0%2Bxs1ObGUpYFHTzkNJEaiPukOeY6HlUCXVpJcTGZo7%2Bzb6lh41TRZgxYyylZbo6%2BVBtHmxW5sWbLTxWTaOv90A8ZFd8Nl6Bv%2Fzxv1ekxNDPJphTK2m6ljKSpOoq4Q0u54kJCdN4Vio2Q92mnTIW1CPudKXwe1tlLQjCqBliYyMtoV2yz7C1knqMubVMVycfQsxbzwBFXroji5BCSadVubibS2S5nnBMQ1GVQkeav7t%2FUEQ3hVSdM7zB8ew0RWm3ocmLmZxXa9dtSucjD%2FPjUuE1b1wLuTRfG1kUikccmcYgBCrWvqEx28c8t5xaZoCTT3Hv7Kdeu7zz9jsvLgBhjlX3ZpKEGZGRRXcuw7heYtf%2Bjw%2F%2FfeBL9iGbN4lBzBEHVuTs1NYP2QyvmIowp9By%2Buzwk0vzrR1iY8v6RLVL09nzbqSDWg4tE04%2B7RPNQhRhlTctl%2Fg96cxyPdO4TttMs5zkRo6ODgvt8EPz1Dpol4wwu8yEaU0f1wOHn6VF6NfVakQEqqGJWImn7CBwHMm1TFcnHxKaBiefgi%2FcqqgV2ef7UJnf5pqzIYSEhF%2BMMs%2FzrIQXM%2F3GbLo1suxIkm%2FWcyub1yPDtw6e2YVChGncnEmgeGmHn%2BVKDj9VNW6b1UjSLgemsSZyzEmmZbo6%2BRBT%2B6VngKIvXe%2BdfR6bViaHTCs2KZiYYscF5vlcaDYWlUSr074yE6bxvCxFsgRbH0S7HPPPXzA5daTwlLWto92MOXtd1kLpUJfaITYe5voh%2F%2FxVXWhJIiEviZbp6uRD3rPXSjuZgTAXyxw7NwHZpFBGlswRp6T9X2gqOrOsiynVllwiZ3hD7mQJto2HkSXVLvl3ZpvjtzReuyk8ZW33Xbukl06zqeXwk3kNDkVJKxftkhBml4swU2iZPonjcW5ZWbtk2tmCEObYU7ssWvpGZAOynGMaHTRqhjfkPjsVyfB1sY5cu%2Byk53zEpLnHesrarp9bm0qk%2BRZ1%2BMnoaGTV5Jg3LP%2FMBvmeC2F2ucdm0jLFnNqcfHaRnADaZSxUKfFsi7e0dsnHNDMfPtSYD100tBpltXi%2FWZMlCAnbFEZCntmFgHFFxdr10eEnY%2FKKWv0aw0iIdil7ys8EUZ2Zf5LOsztIyxT3ZatJSjT3TbBX%2BZdtdRFiL1Wbls3Lkpxdbhce45nH3pa3gxKmV3b4yXp2anOs%2BfRPfxLFcLcU380WWuJYmBkOP%2Fn7tYaR3DgQqDak7540xWLGesrGaJk4t%2BwPwSyEsw%2FDD%2B7c%2BYq0CI2bHE9SwBb2y4Xn%2FDkTYdo2m9JltVTrRWcujUmWYDtvZkRItIAXNYTZ1SDMihVKqoS6VOzXKFB99ue%2FmASq5dyesoFaptUjXPEdnFtWIszxomiX5OzsuMu9EdPeucJzfjKG8EqX1fJZL6HJElxiZYnX40hzDSNhxpBaaGHmAmupSqhLjX5dwkjIMz5f8zm6aJm0XiWSqveDLAct18ELuJ%2F5mUnNxOQFNMxiZbV8%2Bw51%2BLHlppWSFOjygc7Ohn%2F83l3lxhPqKRtTmLm2wJsr1KVGv7Y%2BTdoluUbW0JJQLRPFoPtBMNYH2kPCFOeXxmoatc4vE2mYXSVniyxnpy7SOCNBGlNnIrbbmvPVUM27RNxpxDOpovmWXoOeYSTnLYSZ1VPWZ12LLD0mr1hiKkYx6Irkcny%2FvbpIEotEmCyReafL7lMjnISM03gGadqAS5bV0o07tcOPYxjJiK%2FX44brZPGUdXT4KX6uVCvUpXS%2FLsQjJykwXIulm%2BuYNqr6e%2BqzaBelxOYVi6TqDWmXzFFmEe7ns08%2FPcoX1hW6uesIkxeGrnJ4bovDNIWVlCyrpRm3VhoOrOlpDSORkxSU1rgadvgxal25NN%2FS%2FXqEkbiknDtfwlPWh%2BxNwLllO4Q5XiTt8o3dvQ0p84uLYwz7%2FMmGCXPV97nVdPgJCVS3PSdVkgLL9ZKGlrRSILklzbdkv7YwEgZVkoJQ7ThHObLQoy%2BSVB3nlpXJcmUREq2bpHyP9G21CDMoNV7LFUp8kyW4hJGokhQ4EGYyT9maRbpb1XxL9msTqHRJCgzXKx4%2FGqJlIql6W4Q5dHFj7tk9PXFY3yphihJfu4EOE4vi8OMSRkKTFPD%2BaVtS%2FLxkS8Lu6ylbs0h3i5pvyX4PUna6JSlQrBFdK%2BYpG6JlIjlBe%2BQyXjQ13zeHbEXCXHcsIj3WmZMqOfwkPTt1uR7RVLybLgm7r8m6doHk1jTfkv16hJEEtRKesiFaJpITtEUsswe3N5kuzCGyJofszPb%2Fu%2Fv3TzVGmEZzLKs%2BYkjMbCSZnOENKc9OXTePXZ4qLKTpYjEDiL1phx%2Bd5pvjLK5kvy65e9kYJhFrREeYGU3ZVi0TxaDbI8yZCUNXFqqP4CTTSUWj10xesoQwzxWc%2B1ktzOsGYWXPXPona1mtGOLwSZYghBldGElpa4Thc8t9dfjJpfmW6DfWszQWqT1lA4QNnFs2QpbC41DrRdhHTNWZ%2F41xmDXyyLK%2BWJ%2Bs75ANuJbDjzDD7SU4O3XxemyIMKsWSG5R8y3Rry2MJDcyaudNmvcBi4RjOjfq6X0d2qxtTiqxiQt8U34J7XIaaI51eeEyOvxYncQ8SGjbpd5fTrh689oSzecskOwi%2BC6iw08LAlXG%2BWvSvA8EPrBFIkz%2Be61Zh6TG6wL62yTOA0NdbtNA7VJnjq0WD5jq%2FFIQ0F7lNeia57Rmke4WNd8S%2FbYgUOWYv5bjeQH1wzixSInWXRaabcO7fX1uAln36Gudh4XIXnfrDt%2FRapet1sAUm%2BQ0Mv7SJYxEkG%2Bq5pC0wpaSbFyjSLerxq8zWebSfG39xpoyXWpCsj7YGWOK5mAx6VK%2FRy2a9wHDYvzgu987u0j3pfKQle9Z92L4mmVF4Wfh5craw8c5LMXGyTTPZ03fcdh81xsjzKHNQcelX5fjAOIh2KVoutAHF2%2FiPjv85NJ8Pfod5Li%2BZIVJ0YqZR3MLG0Dhl6yv4EWjlWmx5hmNDGZZkklm3WEOZy%2FRQykonl2HmPleoaS5%2F%2F%2FLqu9QsNAXWwqsGoTp4q3I61%2BOLFVErNehJMZSAiZoUWRXq0Byinc5l%2Babs19BKCYNjIZc8Io%2FMc1IYBlyymYVNoAMZrUb092Fk152dyZPFI32Xaj0LNN0FknOIJQ5YNnvSEL3V7iTz0uPy01d3zBpl6T%2FNctzdMryk2qj5Bqzi3bZxWqp08TB2o4OUibCrFKY2eG%2Blis5%2FGTrlwu2r7kKVCn3RJ1AlFrja9W8D%2Bg3rIWKvXTdsG35Smcvx0FpoFdkkyq5zlEeQ6lNmi6RZidiLk1kuedRjaBk4nUXBx2XtHBCU9txu87FVrShWoWZHe6riuYr%2Bs1xBufihT1JL1AtF0zxtwyHn%2F4QykLGXvosNBctU9YONdd5ScwlI1mdpsljPEc2siTOGZs%2BG4tJ8EmRVmvngMRdz5MGoZqa63VSE6aN8Grl7HW4ryqab47Sbq4CVcYyZUWKb%2BcUNoD0L9jAVKz4KSFMq7ak0A7XLS%2B4VXs0ISTB8jytodvmIkJeljxf7G2bp6KrNivmfVqhHJnNychSc7RKYeYSgkCufkMdjTwFqqJlylIJRbmEDSDPCzY3x9LG%2Fqb6HYXt87rm89nY63uYMzdNuWVl7VDUYOTVL85Q4uE%2Fz7VNU2ylA6mtp3zJpeuPeCjHkJPtssL6sML%2FPhb3wxx5HK9%2FzRJK4ur1eC2Dg8qxUE9Zlzymib015TZuMHlF8n5dkhTk9B4tlUig1XhewKCVyO7UpKl%2BJ%2F9d9Xmtq7bHZ7tE1x84zMOa%2BL4tKJoRJ9F8otzTU5Klq9am0N5GLnO65xgw7jJ%2BMU4T%2Bbp42Eas%2B%2BBzI9sGRzSC7C3VPdWay4Ta5SDDGjGenZJUdSuR%2FYxbNO8DZtIcSm2s%2BR1tts%2Frms9nY68%2F8JiHdR%2BCE3GWomoG3cim%2FIySmXFdzbJko409Y7zoU8%2BUOdUwKXYq3cOEk6RPXdQdByclF6%2FHEmbNUE%2FZFkKwVE5JHppvFoeflP26OOPl9kQWYWe6s8UUplI4%2FACLYKIe1Ui%2FRc4s1xO86K%2BVLgK%2B4%2BjR6%2BL16OMdXMDktiR9r9tpMJep7X5qOfyE9Othrs8pUC2Xyo3bYjwvAPiQ5mxT1FUzyQESeL2VwMwzJ83cDl0k7MOFLAe1vB59N2WVg4xLgeRWCbNWhRJfRyMXTblUXcjcnrKtxvMCQIjkd81WaDo1yLldKk3zmjAR59CY9548A3VxrrpYOkmBbWP28ZR10Y5zQ2cKLBUGEUgqneO1mhGoXISB2PPFVuN5ASBkMS9RbTOFxsmId2oJy5DOMocJ7uGiuIdUxEkk%2FBH3MHZxrLKm78uRpMAwHmN4CN%2BYn8gl3ML5pcprslaoS%2Bp%2BWQrLWapIQ63LSSGBqoTW3mo8LwDEvDRrKo9gtnG5aBrsM3saz2IHKdo5cYGDxrwte726mmsZkRHtV7Sx57nUvITRVNNyej2aTGITTdNpmJOKzRDu0u3Yv5fD4zhZv0LDdLj%2FUaH1MdwJeBYJ1x%2FMsUDvNc6xQ7jNyBCes0adi0x97jnmkQ0kzs4zjMEaB%2BjQvy2EZbtkgmle1m7bJyQoc4ylS2PjPaHZ3JOENwWQSrJ%2BXcKcCr%2F3I99nkXP9AUBfCXRFCrdRBZiLEJcVnfRqeil4pZIsLw43p8nhQqZ7SFWZYYmbZw%2B1is%2FSazy6z5doqe%2Bl1hyGXKvWGtGt2RbnDgAWmXSNYSw7iTVMAAAAAOg7aXay9yXOMAAAAADgMGmui7jJPZ4yrqRzAwAAAAD0iTRXeIiGOD%2FcwqwAAAAAgJ44j6AyAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwMLhn54xzB4CfISCAAAAAElFTkSuQmCC\")";
+// fonction de fermeture de la popup de signalement
+function hide_popup(p_event) {
+  alerte_popup.style.display = "none";
+}
+
+// fonction de fermeture de la popup de signalement par la touche echap
+function esc_popup(p_event) {
+  if(p_event.key === "Escape") {
+    hide_popup();
+  }
+}
+document.addEventListener("keydown", esc_popup, false);
+
+/* ------------------ */
+/* fonctions globales */
+/* ------------------ */
+
+// fonction de désactivation de l'action par défaut sur un événement
+function prevent_default(p_event) {
+  p_event.preventDefault();
+}
+
+// fonction permettant de choisir l'image de signalement en fonction de la couleur de fond du post
+function mj(p_color) {
+  let l_r = parseInt(p_color.substr(0, 2), 16);
+  let l_g = parseInt(p_color.substr(2, 2), 16);
+  let l_b = parseInt(p_color.substr(4, 2), 16);
+  return (((0.299 * l_r) + (0.587 * l_g) + (0.114 * l_b)) / 255) > 0.5 ?
+    hfraq_img_black : hfraq_img_white;
+}
+
+// fonction de mise à jour de la configuration
+function update_config() {
+  hfraq_img_1 = mj(color_1);
+  hfraq_img_2 = mj(color_2);
+  let l_posts = document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable > " +
+    "tbody > tr.message");
+  for(let l_post of l_posts) {
+    if(l_post.hasAttribute("data-alerte") && l_post.getAttribute("data-alerte") !== "") {
+      l_post.style.backgroundImage = "url(" + (l_post.classList.contains("cBackCouleurTab1") ?
+        hfraq_img_1 : hfraq_img_2) + ")";
+    }
+    l_post.querySelector(":scope > td.messCase1 + td.messCase2 div.toolbar > div.right > " +
+      "img.gm_hfraq_r21_aq_button").setAttribute("src", hfraq_img_icon);
+  }
+}
+
+// fonction de remplacement des - en / dans les dates des alertes reçues
+function cuter_date(p_date) {
+  return p_date.replace(/-/g, "/");
+}
+
+/* --------------------------------------------------------- */
+/* récupération des paramètres et mise en place des éléments */
+/* --------------------------------------------------------- */
+
+Promise.all([
+  GM.getValue("hfraq_img_black", hfraq_img_black_default),
+  GM.getValue("hfraq_img_white", hfraq_img_white_default),
+  GM.getValue("hfraq_img_icon", hfraq_img_icon_default),
+]).then(function([
+  hfraq_img_black_value,
+  hfraq_img_white_value,
+  hfraq_img_icon_value,
+]) {
+  // initialisation des variables globales
+  hfraq_img_black = hfraq_img_black_value;
+  hfraq_img_white = hfraq_img_white_value;
+  hfraq_img_icon = hfraq_img_icon_value;
+  // récupération des couleurs de fond utilisées pour les posts
+  let l_the_style = document.querySelector("head link[href^=\"/include/the_style1.php?color_key=\"]")
+    .getAttribute("href").split("/");
+  color_1 = l_the_style[13].toLowerCase();
+  color_2 = l_the_style[14].toLowerCase();
+  // détermination des images de signalement à utiliser pour les posts en fonction des couleurs de fond
+  hfraq_img_1 = mj(color_1);
+  hfraq_img_2 = mj(color_2);
+  // récupération de l'id du topic
+  if(window.location.href.indexOf(".htm") !== -1) { // url verbeuse
+    topic_id = /sujet_([0-9]+)_[0-9]+\.htm/.exec(window.location.href);
+  } else { // url à paramètres
+    topic_id = /&post=([0-9]+)&page=/.exec(window.location.href);
+  }
+  topic_id = topic_id !== "" && topic_id !== null && typeof topic_id[1] !== "undefined" ? topic_id[1] : "";
+  // récupération du titre du topic
+  topic_title = document.querySelector("div#mesdiscussions.mesdiscussions table.main " +
+    "tr.cBackHeader.fondForum2Title th div.left h3");
+  topic_title = topic_title !== null ? topic_title.textContent.trim() : "";
+  // récupération du pseudal si connecté
+  pseudal = document.querySelector("div#mesdiscussions.mesdiscussions form[name=\"hop\"] " +
+    "input[type=\"hidden\"][name=\"pseudo\"]");
+  pseudal = pseudal !== null ? pseudal.value.trim() : "";
+  // récupération de la liste des alertes qualitaÿ du topic
+  if(topic_id !== "") {
+    GM.xmlHttpRequest({
+      method: "GET",
+      url: get_alertes_url + "?topic_id=" + topic_id,
+      mozAnon: true,
+      anonymous: true,
+      headers: {
+        "Cookie": ""
+      },
+      onload: function(p_response) {
+        // traitement de la liste des alertes qualitaÿ du topic
+        let l_alertes = new DOMParser().parseFromString(p_response.responseText, "text/xml")
+          .documentElement.getElementsByTagName("alerte");
+        for(let l_alerte of l_alertes) {
+          // enregistrement de la première alerte qualitaÿ du topic (la plus récente)
+          if(alerte_default === null) {
+            alerte_default = l_alerte.getAttribute("id");
           }
-          var newImg = document.createElement("img");
-          newImg.src = self.imgUrl == "" ? "data:image/jpeg;base64,%2F9j%2F4AAQSkZJRgABAQAAAQABAAD%2F7QAcUGhvdG9zaG9wIDMuMAA4QklNBAQAAAAAAAD%2F2wBDAAICAgICAQICAgICAgIDAwYEAwMDAwcFBQQGCAcICAgHCAgJCg0LCQkMCggICw8LDA0ODg4OCQsQEQ8OEQ0ODg7%2F2wBDAQICAgMDAwYEBAYOCQgJDg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg4ODg7%2FwAARCAAWAEUDASIAAhEBAxEB%2F8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL%2F8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4%2BTl5ufo6erx8vP09fb3%2BPn6%2F8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL%2F8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3%2BPn6%2F9oADAMBAAIRAxEAPwD86dE0LQm8BaJLJomkO7afCzMbKMlj5a5J45Nfo54h%2FYb8H6L%2ByL8I9RuPCOpWvxM1nxho2n%2BI5LiyCWf2fUyxWKAFcF4g0KOw6PuH08V%2FYn%2BEtr8YP2lfAWj6w7Q%2BGNJ0qLVtYlEgT93EieWgJ4y0rRj%2FAHd3pX6tfHTwT4U%2BF3hQ674Q8U%2BNrnxPr3iZvEF7bjXfts2pT6bZ3WoBIUlV1jdmhRBsXChshSQor5LB4eUoTqS223P6n4qz2jh8Tg8BhklPlUnaKs9NFJ9Fbmk9H9n1Pzs8H%2FsxfAbXv%2BCj37QPhHUNCsrP4U%2FD7SL24i%2B3aotkvnQNDComvDG2yMyGXLbTgdjjB9H%2BFn7IP7O%2FxKs%2FEes23w60e4sP%2BE3g8N6Ra2PxFRoJIorRbi%2BvLe6a1BvCqsWESxgkRtyACa19L%2BOnxn17SbX4m%2BIrnUPA%2Bux6TrRk0q1tAE1zS7bTftsEyJOryYW6lgVpVbbIr9tjV514T8XfFPUdG%2BFXjbxP4yvbO80e81P4ga1dXNzaaYJWmxp9hbI0oSGOW7%2Bz3CqW%2FwCWTu4BCCuqnOmntf5f1tc8zGYLMKkJNzjBqMY6Sb96Kd9kk3OUdZXv7yW9zl4%2FgZ%2Byiv7LHjPxbpPgHxJ40ni%2BJzeCPCOrjXFtU1Z5yz29z5IgGFiRowy4zIVJ%2BTdgO%2BPnwE%2FZU%2BF%2Fx60rwNo3gr%2B3rW21V01680HxsuoaraW0FsWuDcWBtgLXEjq24yMdkT4GTxz3xUuvE3w2%2BG3ivT9H1K8g0vTfjX%2Fa%2FgeC32TQWTLZ%2FbZboEKRMSt3YKrOWXCnH3jn1mH9or4m2Pxgil8XajB4q1Dwl8IpPEGr32oR%2BTLDf3lkJPLXyPLXEjXdhA6urcI23aWYm41I7PR6dDSWXYhSjiKUueD53bnab0jy9LaN2a0XNJ2TSR714U%2F4J%2B%2Fsf%2BLV%2B1TaB43UXUu63ksLoPGuSPkdEhYx4J%2BWQ%2FupUKSI5DELl%2FtC%2FwDBO%2F8AZZ%2BEf7FHxJ%2BI%2BmaR4qbVdD0WSbTxc6ojxG5YiOHcvlDcvmOmR3rw7RviP8Tvgv8Asaa9q%2FhnXYPDPii3vdN8Var4Z0zWIXh0qwuZ0tzpf2WR5LmAMj287scBDOqqQd2eA%2Fac%2BP3jq5%2BF958Lr74peKvH9p4pa016ePUreK3TSdLmRLuwsGVI0MlyVeKSaQ5UbY1Xq5reVakoO8dTwcDw%2FnNXMafJir0lPVXeqjyuWyaWj72fQ%2FK%2Fx1Y2MA0ryLKzh3ebu8uBVz9z0FFW%2FiB00j%2Ftr%2F7JRVYWT9kjk42oU451WSikvd6f3YnoGj%2FEzQrXwhpNs1trPmRWUUblIkwSqAHHz9K0IPi1ptlqtvfWDeI7G%2Bt5BJb3MBWOSJxyGVlkypHqDmiivBdCHM3Y%2FVcNneN%2BrQXPpyrou3obmo%2FtH%2BI9U1%2FSdXv%2FABb8QbzV9LDjTdQmvi1zaB%2FvLHL5u9VP90HHJ45Oeb1j403GvSXra3q%2FjDWGvLhLi7N9cmbz5UQojvukO5lVmVSeQCQMA0UVvGnGxgszxEbcrSt%2Fdj3v276%2Bpdt%2F2h%2FFVjo0%2Bm2PjT4j2enTLtmtYNWlSKQeWsWGUS4I8tETn%2BFVHQAVy83xYea71CeXUPE8k9%2FCsV9I82WuUQoUSQmTLqpjjIByAUXHQUUV0KnE5%2F7TxEXdNL%2Ft2P8AkQzfFRrnUdXvLjUPE093qqsuqTSTbnvQzrIRMxkzIC6qx3Z5UHqBVa9%2BI9rqWoteajLrt%2FdsiI09yRI5VFCINzOThVVVA7AADgUUVXsojWb4pbS%2FBf5HAeL%2FABLYakNO8iK8Xy%2FM3eYijrt9GPpRRRXpYeCVNH4%2FxVja1TNKspS107fyo%2F%2FZ" : self.imgUrl;
-          newImg.alt = newImg.title = "Signaler une alerte qualitaÿ";
-          newImg.style.cursor = "pointer";
-          newImg.style.marginRight = "3px";
-          newImg.style.height = "16px";
-          newImg.addEventListener("click", function(event) {
-            var newDiv;
-            self.currentPostId = self.getElementByXpath(".//a[starts-with(@name, \"t\")]",
-              toolbar.parentNode.previousSibling).pop().name.substring(1);
-            self.currentPostUrl = self.getElementByXpath(".//div[@class=\"right\"]//a",
-              toolbar.parentNode.previousSibling).pop().href;
-            if(document.getElementById("alerte_qualitay")) {
-              newDiv = document.getElementById("alerte_qualitay");
-            } else {
-              self.generateStyle();
-              cssManager.insertStyle();
-              newDiv = self.generatePopup(topicId);
-              root.appendChild(newDiv);
+          // construction des options du select pour le choix de l'alerte qualitaÿ existante à associer à un post
+          let l_option = document.createElement("option");
+          l_option.textContent = l_alerte.getAttribute("nom") + " (par " +
+            l_alerte.getAttribute("pseudoInitiateur") + ", le " +
+            cuter_date(l_alerte.getAttribute("date")) + ")";
+          l_option.setAttribute("value", l_alerte.getAttribute("id"));
+          post_alerte.appendChild(l_option);
+          // construction de la liste des alertes qualitaÿ du topic par post associé
+          let l_post_ids = l_alerte.getAttribute("postsIds").split(",");
+          for(let l_post_id of l_post_ids) {
+            if(typeof topic_alertes[l_post_id] === "undefined") {
+              topic_alertes[l_post_id] = {
+                id: l_alerte.getAttribute("id"),
+                nom: l_alerte.getAttribute("nom"),
+                pseudal: l_alerte.getAttribute("pseudoInitiateur"),
+                date: l_alerte.getAttribute("date"),
+              };
             }
-            var defaultAlerte = true;
-            newDiv.style.display = "none";
-            newDiv.firstChild.nextSibling.style.display = "block";
-            var alerteDiv = document.getElementById("alerte_qualitay");
-            var inputAlertes = document.createElement("select");
-            inputAlertes.tabIndex = 1;
-            inputAlertes.addEventListener("change", function() {
-              this.nextSibling.style.display = this.value == "-1" ? "block" : "none";
-            }, false);
-            var newAlerteOpt = document.createElement("option");
-            newAlerteOpt.value = "-1";
-            newAlerteOpt.innerHTML = "-- Nouvelle alerte --";
-            inputAlertes.appendChild(newAlerteOpt);
-            self.alertes = new Array();
-            Array.forEach(alerteNodes, function(alerteNode) {
-              var alerteOpt = document.createElement("option");
-              alerteOpt.value = alerteNode.getAttribute("id");
-              var ids = alerteNode.getAttribute("postsIds").split(/,/);
-              if(ids.indexOf(self.currentPostId) != -1) {
-                alerteOpt.selected = "selected";
-                defaultAlerte = false;
-              }
-              alerteOpt.innerHTML = "[" + alerteNode.getAttribute("date") + "] " +
-                alerteNode.getAttribute("nom") + " (" + alerteNode.getAttribute("pseudoInitiateur") + ")";
-              inputAlertes.appendChild(alerteOpt);
-            });
-            if(alerteDiv.firstChild.nodeName.toLowerCase() != "select") {
-              alerteDiv.insertBefore(inputAlertes, alerteDiv.firstChild);
-            } else {
-              alerteDiv.replaceChild(inputAlertes, alerteDiv.firstChild);
-            }
-            if(!defaultAlerte) {
-              newDiv.firstChild.nextSibling.style.display = "none";
-            }
-            alerteDiv.style.display = "block";
-            alerteDiv.style.left = (event.clientX - newDiv.offsetWidth) + "px";
-            alerteDiv.style.top = (window.scrollY + event.clientY + 8) + "px";
-          }, false);
-          var lastDiv = toolbar.lastChild.previousSibling;
-          if(lastDiv.className == "right") {
-            lastDiv.appendChild(newImg);
-          } else {
-            var newDiv = document.createElement("div");
-            newDiv.className = "right";
-            newDiv.appendChild(newImg);
-            toolbar.insertBefore(newDiv, toolbar.lastChild);
           }
-        });
-      }
+        }
+        // désactivation du radio d'association d'un post à une alerte qualitaÿ ->
+        // si il n'y a pas encore d'alerte qualitaÿ sur le topic (la fonctionalité est en fait masquée au final)
+        if(alerte_default === null) {
+          post_radio.disabled = true;
+          post_div.classList.add("gm_hfraq_r21_disabled");
+          post_div.setAttribute("title", "Il n'existe pas encore d'Alerte Qualitaÿ sur ce topic");
+        }
+        // récupération de la liste des posts pour la mise en valeur des posts signalés
+        // et l'ajout du bouton de signalement d'une alerte qualitaÿ
+        let l_posts = document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable > " +
+          "tbody > tr.message");
+        for(let l_post of l_posts) {
+          // récupération de l'auteur, de l'id et de l'url du post
+          let l_poster = l_post.querySelector(":scope > td.messCase1 > div b.s2");
+          l_poster = l_poster !== null ? l_poster.textContent.trim().replace(/\u200b/g, "") : "";
+          let l_post_id = l_post.querySelector(":scope > td.messCase1 > a[name^=\"t\"]");
+          l_post_id = l_post_id !== null ? l_post_id.getAttribute("name").trim().substring(1) : "";
+          // gestion de la compatibilité avec [HFR] Chat pour récupérer l'url du post
+          let l_post_url = l_post.querySelector(":scope div.right > a[href^=\"#t\"] > " +
+            "img[src^=\"https://forum-images.hardware.fr/\"][alt][title]");
+          l_post_url = l_post_url !== null ? l_post_url.parentElement.href.trim() : "";
+          if(l_post_id !== "") {
+            // vérification si ce post est signalé
+            let l_data_alerte = "";
+            if(alerte_default !== null && typeof topic_alertes[l_post_id] !== "undefined") {
+              // ajout de l'image de signalement en fonction de la couleur de fond du post
+              l_post.style.backgroundImage = "url(" + (l_post.classList.contains("cBackCouleurTab1") ?
+                hfraq_img_1 : hfraq_img_2) + ")";
+              l_post.style.backgroundPosition = "center";
+              l_data_alerte = l_post_id;
+              l_post.setAttribute("data-alerte", l_data_alerte);
+            }
+            // ajout du bouton de signalement d'une alerte qualitaÿ sur tous les posts si connecté ->
+            // et que les autres champs nécéssaires pour faire une alerte qualitaÿ sont présents
+            if(topic_title !== "" && pseudal !== "" && l_poster !== "" && l_post_url !== "") {
+              // récupération de la toolbar du post
+              let l_toolbar = l_post.querySelector(":scope > td.messCase1 + td.messCase2 div.toolbar");
+              // construction du bouton
+              let l_aq_div = document.createElement("div");
+              l_aq_div.setAttribute("class", "right");
+              let l_aq_img = document.createElement("img");
+              l_aq_img.setAttribute("class", "gm_hfraq_r21_aq_button");
+              l_aq_img.setAttribute("src", hfraq_img_icon);
+              l_aq_img.setAttribute("alt", "AQ");
+              l_aq_img.setAttribute("title", "Signaler une Alerte Qualitaÿ\n(clic droit pour configurer)");
+              // ajout des données de l'alerte (si le post est déjà signalé) et des données du post sur le bouton
+              l_aq_img.setAttribute("data-alerte", l_data_alerte);
+              l_aq_img.setAttribute("data-poster", l_poster);
+              l_aq_img.setAttribute("data-post-id", l_post_id);
+              l_aq_img.setAttribute("data-post-url", l_post_url);
+              // ajout de la gestion des clics pour signaler ou ouvrir la fenêtre de configuarion
+              l_aq_img.addEventListener("contextmenu", prevent_default, false);
+              l_aq_img.addEventListener("click", show_popup, false);
+              l_aq_img.addEventListener("mouseup", mouseup_config, false);
+              // ajout du bouton
+              l_aq_div.appendChild(l_aq_img);
+              let l_spacer_div = l_toolbar.querySelector("div.spacer");
+              l_toolbar.insertBefore(l_aq_div, l_spacer_div);
+            }
+          }
+        }
+      },
     });
   }
-}).launch();
+});
