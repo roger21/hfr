@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Alerte Qualitaÿ mod_r21
-// @version       3.0.0
+// @version       3.0.1
 // @namespace     roger21.free.fr
 // @description   Permet de signaler une Alerte Qualitaÿ à la communauté.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -44,9 +44,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2107 $
+// $Rev: 2134 $
 
 // historique :
+// 3.0.1 (09/06/2020) :
+// - correction de la gestion du blocage du menu contextuel
 // 3.0.0 (25/05/2020) :
 // - refonte du code et ajout d'une fenêtre de configuration pour les images
 // - simplification de l'interface : alerte 1 <-> n posts
@@ -328,12 +330,13 @@ var config_background = document.createElement("div");
 config_background.setAttribute("id", "gm_hfraq_r21_config_background");
 config_background.addEventListener("click", hide_config_window, false);
 config_background.addEventListener("transitionend", background_transitionend, false);
+config_background.addEventListener("contextmenu", prevent_default, false);
 document.body.appendChild(config_background);
 
 // création de la fenêtre de configuration
 var config_window = document.createElement("div");
 config_window.setAttribute("id", "gm_hfraq_r21_config_window");
-document.body.appendChild(config_window);
+config_window.addEventListener("contextmenu", prevent_default, false);
 document.body.appendChild(config_window);
 
 // titre de la fenêtre de configuration
@@ -469,7 +472,7 @@ var img_white_test_img = document.createElement("img");
 img_white_test_img.setAttribute("class", "gm_hfraq_r21_test_img gm_hfraq_r21_dark");
 images_fieldset.appendChild(img_white_test_img);
 
-// rechargement de la page et boutons de validation et de fermeture
+// info "sans rechargement" et boutons de validation et de fermeture
 var save_close_div = document.createElement("div");
 save_close_div.setAttribute("class", "gm_hfraq_r21_save_close_div");
 var info_reload_div = document.createElement("div");
@@ -578,7 +581,7 @@ function mouseup_config(p_event) {
   }
 }
 
-// ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
+// ajout d'une entrée de configuration dans le menu de l'extension si c'est possible (pas gm4 yet)
 if(typeof GM_registerMenuCommand !== "undefined") {
   GM_registerMenuCommand(script_name + " -> Configuration", show_config_window);
 }
