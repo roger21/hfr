@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Edition du wiki partout mod_r21
-// @version       3.2.5
+// @version       3.2.6
 // @namespace     roger21.free.fr
 // @description   Permet d'afficher les mots-clés des smileys persos en passant la souris sur le smiley et permet de modifier facilement les mots-clés des smileys persos via un double-clic sur le smiley.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2078 $
+// $Rev: 2153 $
 
 // historique :
+// 3.2.6 (11/06/2020) :
+// - correction de la gestion des smileys favoris et persos de la réponse / édition normale ->
+// signalé par cosmoschtroumpf
 // 3.2.5 (23/05/2020) :
 // - supression de la transparence sur la zone d'édition des mots-clés
 // - et petite amélioration du padding de la zonne d'édition
@@ -626,10 +629,12 @@ for(let l_smiley of smileys_profil) {
 // gestion particulière des smileys persos du wiki de la page de réponse / édition normale
 var wiki_smiley = document.querySelector("table.main tr.reponse th.repCase1 div.center div#dynamic_smilies");
 if(wiki_smiley) {
-  function update_smileys_wiki() {
+  function update_smileys_wiki(p_first) {
     let l_smileys = wiki_smiley.querySelectorAll(query_smileys_persos);
     for(let l_smiley of l_smileys) {
-      l_smiley.setAttribute("data-edwi-done", "true");
+      if(p_first !== true) {
+        l_smiley.setAttribute("data-edwi-done", "true");
+      }
       l_smiley.removeAttribute("onclick");
       if(in_title) {
         l_smiley.addEventListener("mouseover", update_title, false);
@@ -641,7 +646,7 @@ if(wiki_smiley) {
       l_smiley.addEventListener("click", insert_or_edit_keywords, false);
     }
   }
-  update_smileys_wiki();
+  update_smileys_wiki(true);
   var observer_wiki = new MutationObserver(update_smileys_wiki);
   observer_wiki.observe(wiki_smiley, {
     attributes: false,
