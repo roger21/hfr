@@ -1,15 +1,17 @@
 /* ==UserStyle==
 @name          [HFR] Vos smileys favoris
-@version       1.0.1
+@version       1.0.2
 @namespace     roger21.free.fr
 @description   Modèle pour la personnalisation du style de [HFR] Vos smileys favoris mod_r21 version 3.0.0+.
 ==/UserStyle== */
 
 /*
 
-$Rev: 1717 $
+$Rev: 2196 $
 
 historique :
+1.0.2 (20/06/2020) :
+- correction des règles pour l'opacité des boutons
 1.0.1 (04/03/2020) :
 - ajout des regles pour la rondeur des onglets
 1.0.0 (04/03/2020) :
@@ -62,6 +64,9 @@ historique :
   img.gm_hfr_vsf_r21_quick_buttons_img {
     opacity: 0.3 !important;
   }
+  img.gm_hfr_vsf_r21_quick_buttons_img:hover {
+    opacity: 1 !important;
+  }
 
   /* couleur de la bordure */
 
@@ -99,6 +104,9 @@ historique :
 
   div#mesdiscussions img.gm_hfr_vsf_r21_img_tab {
     opacity: 0.3 !important;
+  }
+  div#mesdiscussions img.gm_hfr_vsf_r21_img_tab:hover {
+    opacity: 1 !important;
   }
 
   /* rondeur des onglets */

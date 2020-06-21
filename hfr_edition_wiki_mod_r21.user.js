@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Edition du wiki partout mod_r21
-// @version       3.2.6
+// @version       3.2.7
 // @namespace     roger21.free.fr
 // @description   Permet d'afficher les mots-clés des smileys persos en passant la souris sur le smiley et permet de modifier facilement les mots-clés des smileys persos via un double-clic sur le smiley.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2153 $
+// $Rev: 2197 $
 
 // historique :
+// 3.2.7 (21/06/2020) :
+// - gestion des smileys vérouillés (affichage explicite)
+// - passage de l'option en dur "add_final_space" à true par défaut
 // 3.2.6 (11/06/2020) :
 // - correction de la gestion des smileys favoris et persos de la réponse / édition normale ->
 // signalé par cosmoschtroumpf
@@ -145,7 +148,7 @@ const in_title = false;
 const box_shadow = true;
 
 // ajouter une espace finale dans la popup d'édition (true) ou pas (false)
-const add_final_space = false;
+const add_final_space = true;
 
 /* ------------------------------- */
 /* gestion de la compatibilité gm4 */
@@ -241,11 +244,13 @@ style.textContent =
   "font-family:Verdana,Arial,Sans-serif,Helvetica;border-radius:10px;font-size:11px;border:1px solid;" +
   "background:linear-gradient(#ffffff, #f7f7ff);left:0;top:0;text-align:justify;color:#000000;display:none;" +
   "z-index:1005;cursor:default;}" +
+  "div#gm_hfr_edwi_r21_keywords_tooltip.gm_hfr_edwi_r21_locked{background:linear-gradient(#ffffff, #fff0f0);}" +
   // styles pour la popup
   "div#gm_hfr_edwi_r21_keywords_popup{display:none;position:absolute;left:0;top:0;width:auto;height:auto;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;padding:4px;overflow:auto;" +
   "resize:both;min-width:356px;min-height:70px;background:linear-gradient(#ffffff, #f7f7ff);color:#000000;" +
   "z-index:1006;}" +
+  "div#gm_hfr_edwi_r21_keywords_popup.gm_hfr_edwi_r21_locked{background:linear-gradient(#ffffff, #fff0f0);}" +
   "div#gm_hfr_edwi_r21_keywords_popup.gm_hfr_edwi_r21_keywords_no_edit" +
   "{resize:none;width:416px;min-height:30px;height:30px;}" +
   "div.gm_hfr_edwi_r21_keywords_nothing{display:flex;justify-content:center;align-items:center;cursor:pointer;" +
@@ -254,6 +259,7 @@ style.textContent =
   "textarea.gm_hfr_edwi_r21_keywords_textarea{margin:0;padding:1px 4px;border:1px solid #c0c0c0;" +
   "font-size:11px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;width:calc(100% - 10px);" +
   "height:calc(100% - 24px);background:#ffffff;resize:none;overflow:auto;}" +
+  "textarea.gm_hfr_edwi_r21_keywords_textarea:disabled{background:#f0f0f0;color:#707070;}" +
   "div.gm_hfr_edwi_r21_keywords_div{margin-top:4px;height:16px;}" +
   "span.gm_hfr_edwi_r21_keywords_span{font-size:11px;color:#707070;padding:0 0 0 1px;cursor:default;" +
   "display:inline-block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:auto;}" +
@@ -289,9 +295,14 @@ function show_tooltip(p_event) {
   let l_smiley_img = p_event.currentTarget;
   // récupération des mots-clés et affichage de la tooltip
   keywords_tooltip_timer = window.setTimeout(function() {
-    access_keywords(get_keywords, function(p_smiley_img, p_keywords) {
+    access_keywords(get_keywords, function(p_smiley_img, p_keywords, p_locked) {
       if(tooltip_canceled) {
         return;
+      }
+      // style pour les smileys vérouillés (ou non)
+      keywords_tooltip.classList.remove("gm_hfr_edwi_r21_locked");
+      if(p_locked) {
+        keywords_tooltip.classList.add("gm_hfr_edwi_r21_locked");
       }
       // ajout du texte (smiley et mots-clés)
       keywords_tooltip.textContent = p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}";
@@ -441,10 +452,13 @@ function show_popup(p_event) {
     // initialisation de la popup
     keywords_popup.dataset.smiley = l_code;
     keywords_popup.classList.remove("gm_hfr_edwi_r21_keywords_no_edit");
+    keywords_popup.classList.remove("gm_hfr_edwi_r21_locked");
     keywords_popup.style.width = "356px";
     keywords_popup.style.height = "70px";
     keywords_nothing.style.display = "none";
     keywords_textarea.value = "";
+    keywords_textarea.removeAttribute("title");
+    keywords_textarea.removeAttribute("disabled");
     keywords_textarea.style.display = "block";
     keywords_span_link.textContent = l_code;
     keywords_span.style.width = "auto";
@@ -453,13 +467,21 @@ function show_popup(p_event) {
     keywords_answer.classList.remove("gm_hfr_edwi_r21_success");
     keywords_answer.classList.remove("gm_hfr_edwi_r21_wait");
     keywords_answer.style.display = "none";
+    keywords_save.style.display = "inline";
     keywords_buttons.style.display = "block";
     keywords_div.style.display = "block";
     // récupération des mots-clés et affichage de la popup
-    access_keywords(get_keywords, function(p_smiley_img, p_keywords) {
+    access_keywords(get_keywords, function(p_smiley_img, p_keywords, p_locked) {
       keywords_textarea.value = add_final_space ? p_keywords + " " : p_keywords;
       keywords_textarea.selectionStart = 0;
       keywords_textarea.selectionEnd = 0;
+      // affichage spécifique des smileys vérouillés
+      if(p_locked) {
+        keywords_popup.classList.add("gm_hfr_edwi_r21_locked");
+        keywords_textarea.setAttribute("title", "smiley vérouillé");
+        keywords_textarea.setAttribute("disabled", "disabled");
+        keywords_save.style.display = "none";
+      }
       // fermeture de la tooltip (pour plus de clareté)
       hide_tooltip();
       // affichage de la popup
@@ -529,7 +551,7 @@ function insert_or_edit_keywords(p_event) {
 
 // fonction de gestion du mouseover sur les smileys (affichage des mots-clés dans le title)
 function update_title(p_event) {
-  access_keywords(get_keywords, function(p_smiley_img, p_keywords) {
+  access_keywords(get_keywords, function(p_smiley_img, p_keywords, p_locked) {
     p_smiley_img.setAttribute("title", p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}");
   }, this);
 }
@@ -560,6 +582,9 @@ function set_keywords(p_callback, p_smiley_code, p_keywords) {
     } else if(p_text.includes(
         "Vous devez être identifié pour modifier les mots clés d'un smiley")) {
       p_callback("vous devez vous identifier");
+    } else if(p_text.includes(
+        "Ce smiley étant vérouillé, vous ne pouvez pas en modifier les mots clés")) {
+      p_callback("smiley vérouillé");
     } else {
       console.log(script_name + " ERROR set_keywords : ", p_text);
       p_callback("error");
@@ -583,7 +608,9 @@ function get_keywords(p_callback, p_smiley_img) {
     return p_response.text();
   }).then(function(p_text) {
     let l_keywords = p_text.match(smileys_keywords_regexp).pop().trim();
-    p_callback(p_smiley_img, l_keywords);
+    let l_locked = !p_text.includes("<input type=\"checkbox\" value=\"1\" name=\"modif0\" id=\"modif0\" />" +
+      "<label for=\"modif0\">Modifier les mots clés</label>");
+    p_callback(p_smiley_img, l_keywords, l_locked);
   }).catch(function(e) {
     console.log(script_name + " ERROR fetch get_keywords : ", e);
     p_callback(p_smiley_img, "error");
