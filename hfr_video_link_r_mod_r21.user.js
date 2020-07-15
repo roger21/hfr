@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Video Link Replacer mod_r21
-// @version       4.0.8
+// @version       4.0.9
 // @namespace     roger21.free.fr
 // @description   Remplace les liens vers des videos par les lecteurs intégrés correspondants pour youtube, dailymotion, vimeo, twitch, coub et streamable.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -39,9 +39,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1788 $
+// $Rev: 2276 $
 
 // historique :
+// 4.0.9 (15/07/2020) :
+// - ajout du paramètre parent pour les videos twitch (nouvelle obligation de twitch)
+// - ajout du support partiel pour les liens vers les collections twitch ->
+// (non gestion des liens video + collection -> video seulement)
 // 4.0.8 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 4.0.7 (13/02/2020) :
@@ -201,6 +205,7 @@ var re_links = [
   /^https:\/\/www\.(twitch)\.tv\/([\w]+?)\/?$/, // twitch channels
   /^https:\/\/www\.twitch\.tv\/(video)s\/([0-9]+)(?:\?.*)?\/?/, // twitch vods 1
   /^https:\/\/www\.twitch\.tv\/[^\/]+\/(video)\/([0-9]+)(?:\?.*)?\/?/, // twitch vods 2
+  /^https:\/\/www\.twitch\.tv\/(collections)\/([a-zA-Z0-9]+)(?:\?.*)?\/?/, // twitch collections
   /^https:\/\/(clip)s\.twitch\.tv\/([\w]+?)\/?$/, // twitch clips 1
   /^https:\/\/www\.twitch\.tv\/[^\/]+\/(clip)\/([\w]+?)(?:\?.*)?\/?$/, // twitch clips 2
   /^https:\/\/(coub)\.com\/view\/([\w]+)/, // coub
@@ -212,6 +217,7 @@ var urls_start = {
   "vimeo": "https://player.vimeo.com/video/",
   "video": "https://player.twitch.tv/?autoplay=false&video=v",
   "twitch": "https://player.twitch.tv/?autoplay=false&channel=",
+  "collections": "https://player.twitch.tv/?autoplay=false&collection=",
   "clip": "https://clips.twitch.tv/embed?autoplay=false&clip=",
   "coub": "//coub.com/embed/",
   "streamable": "https://streamable.com/s/",
@@ -220,9 +226,10 @@ var urls_end = {
   "youtu": "",
   "dai": "",
   "vimeo": "",
-  "video": "",
-  "twitch": "",
-  "clip": "",
+  "video": "&parent=forum.hardware.fr",
+  "twitch": "&parent=forum.hardware.fr",
+  "collections": "&parent=forum.hardware.fr",
+  "clip": "&parent=forum.hardware.fr",
   "coub": "",
   "streamable": "",
 };
@@ -743,6 +750,7 @@ function replace(links, width, height, needclick, allows) {
           let iframe = document.createElement("iframe");
           iframe.className = "gmhfrvlrr21_video";
           iframe.setAttribute("frameborder", "0");
+          iframe.setAttribute("scrolling", "no");
           iframe.setAttribute("allow", "fullscreen");
           iframe.setAttribute("allowfullscreen", "allowfullscreen");
           iframe.setAttribute("src", urls_start[name] + src + urls_end[name] + start);
@@ -820,6 +828,7 @@ Promise.all([
   allows.vimeo = allow_vimeo;
   allows.video = allow_twitch;
   allows.twitch = allow_twitch;
+  allows.collections = allow_twitch;
   allows.clip = allow_twitch;
   allows.coub = allow_coub;
   allows.streamable = allow_streamable;
