@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Smart Auto Rehost mod_r21
-// @version       6.0.6
+// @version       6.0.7
 // @namespace     roger21.free.fr
 // @description   Réhost automatiquement les images et les liens vers les images provenant d'une liste modifiable de noms de domaine.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -39,9 +39,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1788 $
+// $Rev: 2292 $
 
 // historique :
+// 6.0.7 (16/07/2020) :
+// - homogénéisation de la taille des champs sur la fenêtre de configuration
 // 6.0.6 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 6.0.5 (13/02/2020) :
@@ -246,12 +248,12 @@ const webp_re = /^.*\.webp(?:[&?].*)?$/i;
 const svg_re = /^.*\.svg(?:[&?].*)?$/i;
 const rehost_list = [
   reho.st.https,
-  "http://rehost.a-suivre.com/",
-  "http://rehost.a-suivre.org/",
-  "http://rehost.netlib.re/",
-  "http://rehost.codelib.re/",
-  "http://rehost.changeip.org/",
-  "http://rehost.mynumber.org/",
+  "https://rehost.a-suivre.com/",
+  "https://rehost.a-suivre.org/",
+  "https://rehost.netlib.re/",
+  "https://rehost.codelib.re/",
+  "https://rehost.changeip.org/",
+  "https://rehost.mynumber.org/",
 ];
 const char_list = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const test_rehost_img_src = "http://roger21.free.fr/test/test-sar-";
@@ -444,18 +446,18 @@ style.textContent =
   "#gm_hfr_sar_r21_config_window legend{font-size:14px;}" +
   // styles pour les elements des formulaires
   "#gm_hfr_sar_r21_config_window input[type=\"radio\"]{margin:0 0 2px;vertical-align:text-bottom;}" +
-  "#gm_hfr_sar_r21_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+  "#gm_hfr_sar_r21_config_window input[type=\"text\"]{padding:1px 4px;border:1px solid #c0c0c0;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;box-sizing:border-box;height:20px;}" +
   "#gm_hfr_sar_r21_config_window input[type=\"checkbox\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
   "#gm_hfr_sar_r21_config_window select{padding:0;margin:0;border:1px solid #c0c0c0;width:250px;" +
   "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;appearance:none;-moz-appearance:none;" +
   "-webkit-appearance:none;background-image:url(\"" + img_select + "\");background-repeat:no-repeat;" +
-  "background-position:right 5px center;}" +
+  "background-position:right 5px center;box-sizing:border-box;height:20px;}" +
   "#gm_hfr_sar_r21_config_window select option{appearance:none;-moz-appearance:none;-webkit-appearance:none;" +
   "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
   "#gm_hfr_sar_r21_config_window textarea{margin:0;padding:0 2px;border:1px solid #c0c0c0;" +
   "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;" +
-  "min-width:" + textarea_width_default + ";min-height:" + textarea_height_default + "}" +
+  "min-width:" + textarea_width_default + ";min-height:" + textarea_height_default + ";}" +
   // styles pour les p et les div
   "#gm_hfr_sar_r21_config_window p{margin:0 0 0 4px;}" +
   "#gm_hfr_sar_r21_config_window p.gm_hfr_sar_r21_no_margin{margin-left:0;}" +
