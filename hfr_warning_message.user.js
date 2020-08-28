@@ -31,16 +31,35 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2456 $
+// $Rev: 2457 $
 
 // historique :
 // 0.9.0 (28/08/2020) :
 // - création
 
-window.addEventListener("beforeunload", function(p_event) {
+(function() {
+
   let l_reponse = document.querySelector("textarea#content_form");
-  if(l_reponse && l_reponse.value !== "") {
-    p_event.preventDefault();
-    p_event.returnValue = true;
+  let l_submit = document.querySelector("input[type=\"submit\"][name=\"submit\"]");
+
+  if(l_reponse) {
+
+    function onbeforeunload(p_event) {
+      if(l_reponse.value !== "") {
+        p_event.preventDefault();
+        p_event.returnValue = true;
+      }
+    }
+    window.addEventListener("beforeunload", onbeforeunload, false);
+
+    if(l_submit) {
+
+      l_submit.addEventListener("click", function() {
+        window.removeEventListener("beforeunload", onbeforeunload, false);
+      }, true);
+
+    }
+
   }
-}, false);
+
+})();
