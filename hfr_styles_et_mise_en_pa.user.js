@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.0.3
+// @version       1.0.4
 // @namespace     roger21.free.fr
-// @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
+// @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
@@ -36,9 +36,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1788 $
+// $Rev: 2470 $
 
 // historique :
+// 1.0.4 (30/08/2020) :
+// - ajout d'un paramètre pour la hauteur de la réponse normale (désactivé par défaut)
 // 1.0.3 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 1.0.2 (13/02/2020) :
@@ -103,6 +105,9 @@ var smp_largeur_reponse_defaut = 50;
 var smp_largeur_unite_defaut = "vw";
 var smp_hauteur_reponse_defaut = 25;
 var smp_hauteur_unite_defaut = "vh";
+var smp_taille_normale_defaut = false;
+var smp_hauteur_normale_defaut = 50;
+var smp_unite_normale_defaut = "vh";
 var smp_images_smileys_defaut = false;
 var smp_supprimer_sujets_defaut = false;
 var smp_supprimer_version_defaut = false;
@@ -121,6 +126,9 @@ var smp_largeur_reponse;
 var smp_largeur_unite;
 var smp_hauteur_reponse;
 var smp_hauteur_unite;
+var smp_taille_normale;
+var smp_hauteur_normale;
+var smp_unite_normale;
 var smp_images_smileys;
 var smp_supprimer_sujets;
 var smp_supprimer_version;
@@ -338,6 +346,32 @@ taille_reponse_p.appendChild(create_help_button(230,
   "à la taille de la fenêtre."));
 styles_fieldset.appendChild(taille_reponse_p);
 
+// taille_normale
+var taille_normale_p = document.createElement("p");
+var taille_normale_checkbox = document.createElement("input");
+taille_normale_checkbox.setAttribute("type", "checkbox");
+taille_normale_checkbox.setAttribute("id", "gm_hfr_semep_taille_normale_checkbox");
+taille_normale_p.appendChild(taille_normale_checkbox);
+var taille_normale_label = document.createElement("label");
+taille_normale_label.textContent = " hauteur de la réponse normale : ";
+taille_normale_label.setAttribute("for", "gm_hfr_semep_taille_normale_checkbox");
+taille_normale_p.appendChild(taille_normale_label);
+var hauteur_normale_input = document.createElement("input");
+hauteur_normale_input.setAttribute("type", "text");
+hauteur_normale_input.setAttribute("spellcheck", "false");
+hauteur_normale_input.setAttribute("size", "5");
+hauteur_normale_input.setAttribute("maxLength", "6");
+hauteur_normale_input.addEventListener("focus", function() {
+  hauteur_normale_input.select();
+}, false);
+taille_normale_p.appendChild(hauteur_normale_input);
+taille_normale_p.appendChild(document.createTextNode(" "));
+taille_normale_p.appendChild(create_help_button(230,
+  "Vous pouvez préciser l'unité, soit \u00ab\u202fpx\u202f\u00bb, soit \u00ab\u202f%\u202f\u00bb, " +
+  "sans unité \u00ab\u202fpx\u202f\u00bb est retenu et le \u00ab\u202f%\u202f\u00bb est par rapport " +
+  "à la hauteur de la fenêtre."));
+styles_fieldset.appendChild(taille_normale_p);
+
 // images_smileys
 var images_smileys_p = document.createElement("p");
 var images_smileys_checkbox = document.createElement("input");
@@ -484,6 +518,16 @@ function save_config_window() {
     smp_hauteur_reponse = smp_hauteur_reponse_defaut;
     smp_hauteur_unite = smp_hauteur_unite_defaut;
   }
+  smp_taille_normale = taille_normale_checkbox.checked;
+  let normale = hauteur_normale_input.value.trim();
+  smp_unite_normale = normale.substring(normale.length - 1) === "%" ? "vh" : "px";
+  smp_hauteur_normale = parseInt(normale, 10);
+  smp_hauteur_normale = Math.max(smp_hauteur_normale, 1);
+  smp_hauteur_normale = Math.min(smp_hauteur_normale, 9999);
+  if(isNaN(smp_hauteur_normale)) {
+    smp_hauteur_normale = smp_hauteur_normale_defaut;
+    smp_unite_normale = smp_unite_normale_defaut;
+  }
   smp_images_smileys = images_smileys_checkbox.checked;
   smp_supprimer_sujets = sujets_checkbox.checked;
   smp_supprimer_version = version_checkbox.checked;
@@ -501,6 +545,9 @@ function save_config_window() {
     GM.setValue("smp_largeur_unite", smp_largeur_unite),
     GM.setValue("smp_hauteur_reponse", smp_hauteur_reponse),
     GM.setValue("smp_hauteur_unite", smp_hauteur_unite),
+    GM.setValue("smp_taille_normale", smp_taille_normale),
+    GM.setValue("smp_hauteur_normale", smp_hauteur_normale),
+    GM.setValue("smp_unite_normale", smp_unite_normale),
     GM.setValue("smp_images_smileys", smp_images_smileys),
     GM.setValue("smp_supprimer_sujets", smp_supprimer_sujets),
     GM.setValue("smp_supprimer_version", smp_supprimer_version),
@@ -552,6 +599,8 @@ function show_config_window() {
   taille_reponse_checkbox.checked = smp_taille_reponse;
   largeur_reponse_input.value = smp_largeur_reponse + (smp_largeur_unite === "px" ? "px" : "%");
   hauteur_reponse_input.value = smp_hauteur_reponse + (smp_hauteur_unite === "px" ? "px" : "%");
+  taille_normale_checkbox.checked = smp_taille_normale;
+  hauteur_normale_input.value = smp_hauteur_normale + (smp_unite_normale === "px" ? "px" : "%");
   images_smileys_checkbox.checked = smp_images_smileys;
   sujets_checkbox.checked = smp_supprimer_sujets;
   version_checkbox.checked = smp_supprimer_version;
@@ -609,6 +658,9 @@ Promise.all([
   GM.getValue("smp_largeur_unite", smp_largeur_unite_defaut),
   GM.getValue("smp_hauteur_reponse", smp_hauteur_reponse_defaut),
   GM.getValue("smp_hauteur_unite", smp_hauteur_unite_defaut),
+  GM.getValue("smp_taille_normale", smp_taille_normale_defaut),
+  GM.getValue("smp_hauteur_normale", smp_hauteur_normale_defaut),
+  GM.getValue("smp_unite_normale", smp_unite_normale_defaut),
   GM.getValue("smp_images_smileys", smp_images_smileys_defaut),
   GM.getValue("smp_supprimer_sujets", smp_supprimer_sujets_defaut),
   GM.getValue("smp_supprimer_version", smp_supprimer_version_defaut),
@@ -623,6 +675,9 @@ Promise.all([
   smp_largeur_unite_value,
   smp_hauteur_reponse_value,
   smp_hauteur_unite_value,
+  smp_taille_normale_value,
+  smp_hauteur_normale_value,
+  smp_unite_normale_value,
   smp_images_smileys_value,
   smp_supprimer_sujets_value,
   smp_supprimer_version_value,
@@ -638,6 +693,9 @@ Promise.all([
   smp_largeur_unite = smp_largeur_unite_value;
   smp_hauteur_reponse = smp_hauteur_reponse_value;
   smp_hauteur_unite = smp_hauteur_unite_value;
+  smp_taille_normale = smp_taille_normale_value;
+  smp_hauteur_normale = smp_hauteur_normale_value;
+  smp_unite_normale = smp_unite_normale_value;
   smp_images_smileys = smp_images_smileys_value;
   smp_supprimer_sujets = smp_supprimer_sujets_value;
   smp_supprimer_version = smp_supprimer_version_value;
@@ -684,6 +742,14 @@ Promise.all([
     if(l_reponse_rapide) {
       l_reponse_rapide.style.width = "" + smp_largeur_reponse + smp_largeur_unite;
       l_reponse_rapide.style.height = "" + smp_hauteur_reponse + smp_hauteur_unite;
+    }
+  }
+  // hauteur de la réponse normale
+  if(smp_taille_normale) {
+    let l_reponse_normale = document.querySelector("div#mesdiscussions.mesdiscussions " +
+      "textarea#content_form.contenu");
+    if(l_reponse_normale) {
+      l_reponse_normale.style.height = "" + smp_hauteur_normale + smp_unite_normale;
     }
   }
   // homogénéiser l'affichage des images et des smileys
