@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name          [HFR] wiki smileys et raccourcis mod_r21
-// @version       2.4.0
+// @version       2.4.1
 // @namespace     http://toyonos.info
 // @description   Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        toyonos
-// @modifications basé sur la version 1 (ou a) - simplification de l'edition des mots-clé (reduction des délais d'affichage et suppression de la popup de confirmation), contournement d'un problème pour le raccourcis url, ajout du support pour reho.st, unification des fonctionalités pour chaque mode d'édition et ajout de trois raccourcis
+// @modifications basé sur la version 1 (ou a) - simplification de l'edition des mots-clé (reduction des délais d'affichage et suppression de la popup de confirmation), contournement d'un problème pour le raccourcis url, ajout du support pour images.weserv.nl, unification des fonctionalités pour chaque mode d'édition et ajout de trois raccourcis
 // @modtype       modification de fonctionnalités
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_wiki_smileys_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_wiki_smileys_mod_r21.user.js
@@ -22,9 +22,11 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 2538 $
+// modifications roger21 $Rev: 2544 $
 
 // historique :
+// 2.4.1 (17/09/2020) :
+// - utilisation de images.weserv.nl pour le raccourci rehost
 // 2.4.0 (17/09/2020) :
 // - amélioration du code pour éviter un affichage tardif de la popup de complétion des smileys
 // 2.3.9 (13/02/2020) :
@@ -241,7 +243,7 @@ var cmScript = {
       key: 80
     },
     "ws_img_rehost": {
-      left: "[img]https://reho.st/",
+      left: "[img]https://images.weserv.nl/?url=",
       sample: "image",
       right: "[/img]",
       key: 72
@@ -880,7 +882,7 @@ if($("content_form")) {
     }
     if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_img_rehost")) {
       event.preventDefault();
-      insertBBCode(textAreaId, "[img]https://reho.st/", "[/img]");
+      insertBBCode(textAreaId, "[img]https://images.weserv.nl/?url=", "[/img]");
     }
     if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_quote")) {
       event.preventDefault();
