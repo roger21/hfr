@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] wiki smileys et raccourcis mod_r21
-// @version       2.3.9
+// @version       2.4.0
 // @namespace     http://toyonos.info
 // @description   Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -22,9 +22,11 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 1590 $
+// modifications roger21 $Rev: 2538 $
 
 // historique :
+// 2.4.0 (17/09/2020) :
+// - amélioration du code pour éviter un affichage tardif de la popup de complétion des smileys
 // 2.3.9 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 2.3.8 (11/02/2020) :
@@ -1006,12 +1008,12 @@ if($("content_form")) {
                 }, 250);
               }
             }, false);
-            var timer;
+            var timerFindSmilies;
             var firstClickTime = null;
             var delay = 300;
             img.addEventListener("click", function(event) {
               if(firstClickTime != null && new Date().getTime() - firstClickTime < delay) {
-                clearTimeout(timer);
+                clearTimeout(timerFindSmilies);
                 firstClickTime = null;
                 var theEvent = event;
                 var theImg = this;
@@ -1103,7 +1105,7 @@ if($("content_form")) {
                 });
               } else {
                 firstClickTime = new Date().getTime();
-                timer = setTimeout(function() {
+                timerFindSmilies = setTimeout(function() {
                   putSmiley(smileyCode, divsmilies.parentNode.getElementsByTagName("textarea")[0].id);
                   divsmilies.parentNode.getElementsByTagName("textarea")[0].focus();
                 }, delay);
@@ -1185,9 +1187,16 @@ if($("content_form")) {
       event.preventDefault();
     }
   }
-  var timer = null;
+
+  var timerSmiliesHelper = null;
+  var smiliesHelperCanceled = false;
 
   function pouetKeyUp(event, repRapId) {
+    if(event.key === "Shift") {
+      return;
+    }
+    clearTimeout(timerSmiliesHelper);
+    smiliesHelperCanceled = true;
     var ta;
     if(repRapId) {
       ta = $(repRapId);
@@ -1219,6 +1228,16 @@ if($("content_form")) {
     }
     if(key != 27 && key != 9 && key != 16 &&
       (!$("smilies_helper") || $("smilies_helper").style.display == "none" || (key != 38 && key != 40 && key != 13))) {
+      var newDiv;
+      if($("smilies_helper")) {
+        newDiv = $("smilies_helper");
+      } else {
+        newDiv = document.createElement("div");
+        newDiv.id = "smilies_helper";
+        newDiv.style.position = "absolute";
+        document.body.appendChild(newDiv);
+      }
+      newDiv.style.display = "none";
       var text = ta.value.substr(0, ta.selectionStart);
       var wraps = text.split("\n");
       var newSpan = document.createElement("span");
@@ -1245,16 +1264,6 @@ if($("content_form")) {
         textHeight += lineNumber * newSpan.offsetHeight;
       }
       document.body.removeChild(newSpan);
-      var newDiv;
-      if($("smilies_helper")) {
-        newDiv = $("smilies_helper");
-      } else {
-        newDiv = document.createElement("div");
-        newDiv.id = "smilies_helper";
-        newDiv.style.position = "absolute";
-        document.body.appendChild(newDiv);
-      }
-      newDiv.style.display = "none";
       var top = getOffset(ta).top + textHeight + 3 - ta.scrollTop;
       var left = getOffset(ta).left + textWidth + 5;
       if(repRapId === null) {
@@ -1265,15 +1274,16 @@ if($("content_form")) {
       var pos1 = text.lastIndexOf("[:");
       var pos2 = text.lastIndexOf("]");
       var pattern = text.substr(pos1 + 2);
-      if(timer) {
-        clearTimeout(timer);
-      }
       if(pos1 != -1 && (pos2 == -1 || pos2 < pos1) && ta.selectionStart == ta.selectionEnd && pattern.length >= 2) {
-        timer = setTimeout(function() {
+        smiliesHelperCanceled = false;
+        timerSmiliesHelper = setTimeout(function() {
           GM_xmlhttpRequest({
             method: "GET",
             url: "http://hfr-mirror.toyonos.info/smileys/getByName.php5?pattern=" + pattern,
             onload: function(response) {
+              if(smiliesHelperCanceled) {
+                return;
+              }
               newDiv.innerHTML = "";
               var smilies = response.responseText.trim();
               if(smilies != "" && $("search_smilies_pouet").parentNode.style.display != "block") {
@@ -1352,9 +1362,9 @@ if($("content_form")) {
         if($("rep_editin_" + numreponse)) {
           $("rep_editin_" + numreponse).id = "";
         }
-        var timer = setInterval(function() {
+        var timerEditionRapide = setInterval(function() {
           if($("rep_editin_" + numreponse)) {
-            clearInterval(timer);
+            clearInterval(timerEditionRapide);
             $("rep_editin_" + numreponse).style.marginTop = "0";
             $("rep_editin_" + numreponse).style.marginBottom = "2px";
             var newDiv = document.createElement("div");
