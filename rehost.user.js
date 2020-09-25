@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Rehost
-// @version       2.0.1
+// @version       2.0.3
 // @namespace     roger21.free.fr
 // @description   Permet de générer dans le presse-papier le BBCode de réhébergement d'une image sur images.weserv.nl à partir du menu contextuel de l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABsUlEQVR42mP4T2PAMGoBSRYwYABMceJFBs4CigJkgC1ABsuVy4hE5FtAjJNJswBZGr8FhzMW7o2aQYw7iLLgw%2FXnaNp2%2BEwA2kEdC54fvrVSs%2Br5kZs0CaJ3V59ssGw5UbJio3Xr%2B%2BvPIFL7Ymfti51NjgVoTnt37SnQ9DsrTgK5d5af2Gjb9uHm8%2FPtW%2FZFztwTMf18x1ZKLdho1Qox3dbWVlZW1khdT51PXltMxcLcwtLcQltcxVBJW51HztLS0tzcnJwggpgOseDv37%2F%2F%2Fv27PH3PwbT5nx6%2FA7J%2Ff%2Ft5smr1VIcyoBRQAUWpCGIBhP1wy4VDGQt%2BffwOZJ85fRqofv%2F%2B%2FWRaAEdA%2FSkafjv9Jy50rTOX0AEy4KjbOvf9%2B%2FdwC8gsiyA%2BePHihYmJSVBQUFkZ1HPa2torVqyAKCA5ktEsgJi%2BdSso5RQWFlZUVISHh9fX1wMF9%2B7dSwUL5OXlt2zZAhdxdXV1c3MDMu7fvw%2B0Q1dXl9IggrgdGeTl5dXU1AAZd%2B%2Fe1dfXJzmS0SyQkwOldzSgqKgIYfDz81NkwdCp0Siv7gfagtGm44BYAAAXG4T0FK1wwAAAAABJRU5ErkJggg%3D%3D
@@ -39,9 +39,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2283 $
+// $Rev: 2554 $
 
 // historique :
+// 2.0.3 (25/09/2020) :
+// - correction de la gestion des urls pour images.weserv.nl
+// 2.0.2 (16/07/2020) :
+// - correction du margin et du padding des legends des fieldsets
 // 2.0.1 (16/07/2020) :
 // - mise à jour des icônes du script
 // 2.0.0 (16/07/2020) :
@@ -227,7 +231,7 @@ function doRst(e, type) {
   }
   let rstReturn = currentRstReturn ? "\n" : "";
   if(e.shiftKey) {
-    GM.setClipboard(rstRehostLink + rstRehostSize + rstRehostParam + currentUrl + rstReturn);
+    GM.setClipboard(rstRehostLink + rstRehostSize + rstRehostParam + encodeURIComponent(currentUrl) + rstReturn);
     if(gmNotif && currentRstNotifs) {
       GM.notification({
         text: "Le lien " + messageType + "a été copié dans le presse-papiers.",
@@ -237,7 +241,8 @@ function doRst(e, type) {
       });
     }
   } else if(e.ctrlKey) {
-    GM.setClipboard("[img]" + rstRehostLink + rstRehostSize + rstRehostParam + currentUrl + "[/img]" + rstReturn);
+    GM.setClipboard("[img]" + rstRehostLink + rstRehostSize + rstRehostParam +
+      encodeURIComponent(currentUrl) + "[/img]" + rstReturn);
     if(gmNotif && currentRstNotifs) {
       GM.notification({
         text: "Le BBCode sans lien " + messageType + "a été copié dans le presse-papiers.",
@@ -247,8 +252,9 @@ function doRst(e, type) {
       });
     }
   } else {
-    GM.setClipboard("[url=" + rstRehostLink + rstRehostParam + currentUrl + "][img]" +
-      rstRehostLink + rstRehostSize + rstRehostParam + currentUrl + "[/img][/url]" + rstReturn);
+    GM.setClipboard("[url=" + rstRehostLink + rstRehostParam + encodeURIComponent(currentUrl) + "][img]" +
+      rstRehostLink + rstRehostSize + rstRehostParam + encodeURIComponent(currentUrl) + "[/img][/url]" +
+      rstReturn);
     if(gmNotif && currentRstNotifs) {
       GM.notification({
         text: "Le BBCode " + messageType + "a été copié dans le presse-papiers.",
@@ -558,7 +564,7 @@ style.textContent =
   "#gm_rst_r21_config_window *{box-sizing:content-box;text-align:left;background:#ffffff;color:#000000;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:12px;line-height:1;margin:0;padding:0;border:0;}" +
   "#gm_rst_r21_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:10px 12px 8px;}" +
-  "#gm_rst_r21_config_window legend{font-size:14px;cursor:default;padding-inline:2px;}" +
+  "#gm_rst_r21_config_window legend{font-size:14px;cursor:default;padding:0 2px;margin:0 0 0 -2px;}" +
   "#gm_rst_r21_config_window div{display:block;}" +
   "#gm_rst_r21_config_window img{position:static;display:inline;width:auto;height:auto;}" +
   "#gm_rst_r21_config_window input{display:inline;width:auto;height:auto;}" +
