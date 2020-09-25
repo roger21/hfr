@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Rehost
-// @version       2.0.3
+// @version       2.0.4
 // @namespace     roger21.free.fr
 // @description   Permet de générer dans le presse-papier le BBCode de réhébergement d'une image sur images.weserv.nl à partir du menu contextuel de l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABsUlEQVR42mP4T2PAMGoBSRYwYABMceJFBs4CigJkgC1ABsuVy4hE5FtAjJNJswBZGr8FhzMW7o2aQYw7iLLgw%2FXnaNp2%2BEwA2kEdC54fvrVSs%2Br5kZs0CaJ3V59ssGw5UbJio3Xr%2B%2BvPIFL7Ymfti51NjgVoTnt37SnQ9DsrTgK5d5af2Gjb9uHm8%2FPtW%2FZFztwTMf18x1ZKLdho1Qox3dbWVlZW1khdT51PXltMxcLcwtLcQltcxVBJW51HztLS0tzcnJwggpgOseDv37%2F%2F%2Fv27PH3PwbT5nx6%2FA7J%2Ff%2Ft5smr1VIcyoBRQAUWpCGIBhP1wy4VDGQt%2BffwOZJ85fRqofv%2F%2B%2FWRaAEdA%2FSkafjv9Jy50rTOX0AEy4KjbOvf9%2B%2FdwC8gsiyA%2BePHihYmJSVBQUFkZ1HPa2torVqyAKCA5ktEsgJi%2BdSso5RQWFlZUVISHh9fX1wMF9%2B7dSwUL5OXlt2zZAhdxdXV1c3MDMu7fvw%2B0Q1dXl9IggrgdGeTl5dXU1AAZd%2B%2Fe1dfXJzmS0SyQkwOldzSgqKgIYfDz81NkwdCp0Siv7gfagtGm44BYAAAXG4T0FK1wwAAAAABJRU5ErkJggg%3D%3D
@@ -39,9 +39,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2554 $
+// $Rev: 2563 $
 
 // historique :
+// 2.0.4 (25/09/2020) :
+// - possible amélioration de la gestion de la récupération de l'url de l'image
 // 2.0.3 (25/09/2020) :
 // - correction de la gestion des urls pour images.weserv.nl
 // 2.0.2 (16/07/2020) :
@@ -531,8 +533,8 @@ createRehostMenu();
 function setContextMenuAttribute() {
   let imgs = document.querySelectorAll("img[src]:not([src^='data']):not([contextmenu='" + REHOST_MENU_ID + "'])");
   for(let img of imgs) {
+    img.addEventListener("mouseover", setCurrentUrl, true);
     img.setAttribute("contextmenu", REHOST_MENU_ID);
-    img.addEventListener("mouseover", setCurrentUrl, false);
   }
 }
 setContextMenuAttribute();
