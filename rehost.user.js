@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Rehost
-// @version       2.0.4
+// @version       2.0.5
 // @namespace     roger21.free.fr
 // @description   Permet de générer dans le presse-papier le BBCode de réhébergement d'une image sur images.weserv.nl à partir du menu contextuel de l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABsUlEQVR42mP4T2PAMGoBSRYwYABMceJFBs4CigJkgC1ABsuVy4hE5FtAjJNJswBZGr8FhzMW7o2aQYw7iLLgw%2FXnaNp2%2BEwA2kEdC54fvrVSs%2Br5kZs0CaJ3V59ssGw5UbJio3Xr%2B%2BvPIFL7Ymfti51NjgVoTnt37SnQ9DsrTgK5d5af2Gjb9uHm8%2FPtW%2FZFztwTMf18x1ZKLdho1Qox3dbWVlZW1khdT51PXltMxcLcwtLcQltcxVBJW51HztLS0tzcnJwggpgOseDv37%2F%2F%2Fv27PH3PwbT5nx6%2FA7J%2Ff%2Ft5smr1VIcyoBRQAUWpCGIBhP1wy4VDGQt%2BffwOZJ85fRqofv%2F%2B%2FWRaAEdA%2FSkafjv9Jy50rTOX0AEy4KjbOvf9%2B%2FdwC8gsiyA%2BePHihYmJSVBQUFkZ1HPa2torVqyAKCA5ktEsgJi%2BdSso5RQWFlZUVISHh9fX1wMF9%2B7dSwUL5OXlt2zZAhdxdXV1c3MDMu7fvw%2B0Q1dXl9IggrgdGeTl5dXU1AAZd%2B%2Fe1dfXJzmS0SyQkwOldzSgqKgIYfDz81NkwdCp0Siv7gfagtGm44BYAAAXG4T0FK1wwAAAAABJRU5ErkJggg%3D%3D
@@ -39,9 +39,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2563 $
+// $Rev: 2732 $
 
 // historique :
+// 2.0.5 (27/12/2020) :
+// - correction du rehost sans rehost
+// - correction du rehost moyen (800)
 // 2.0.4 (25/09/2020) :
 // - possible amélioration de la gestion de la récupération de l'url de l'image
 // 2.0.3 (25/09/2020) :
@@ -187,53 +190,61 @@ function doRst(e, type) {
   let rstRehostSize = "";
   let rstRehostParam = "";
   let messageType = "";
+  let imageUrl = "";
   switch (type) {
     case "sans":
       rstRehostLink = "";
       rstRehostSize = "";
       rstRehostParam = "";
+      imageUrl = currentUrl;
       messageType = "de l'image sans rehost ";
       break;
     case "full":
       rstRehostLink = REHOST_URL;
       rstRehostSize = "";
       rstRehostParam = "&url=";
+      imageUrl = encodeURIComponent(currentUrl);
       messageType = "de l'image ";
       break;
     case "large":
       rstRehostLink = REHOST_URL;
       rstRehostSize = "&w=1200&we";
       rstRehostParam = "&url=";
+      imageUrl = encodeURIComponent(currentUrl);
       messageType = "de l'image large ";
       break;
     case "grand":
       rstRehostLink = REHOST_URL;
       rstRehostSize = "&w=1000&we";
       rstRehostParam = "&url=";
+      imageUrl = encodeURIComponent(currentUrl);
       messageType = "de l'image grande ";
       break;
     case "moyen":
       rstRehostLink = REHOST_URL;
-      rstRehostSize = "&w=8800&we";
+      rstRehostSize = "&w=800&we";
       rstRehostParam = "&url=";
+      imageUrl = encodeURIComponent(currentUrl);
       messageType = "de l'image moyenne ";
       break;
     case "preview":
       rstRehostLink = REHOST_URL;
       rstRehostSize = "&w=600&we";
       rstRehostParam = "&url=";
+      imageUrl = encodeURIComponent(currentUrl);
       messageType = "de l'aperçu ";
       break;
     case "thumb":
       rstRehostLink = REHOST_URL;
       rstRehostSize = "&w=230&h=230&we";
       rstRehostParam = "&url=";
+      imageUrl = encodeURIComponent(currentUrl);
       messageType = "de la vignette ";
       break;
   }
   let rstReturn = currentRstReturn ? "\n" : "";
   if(e.shiftKey) {
-    GM.setClipboard(rstRehostLink + rstRehostSize + rstRehostParam + encodeURIComponent(currentUrl) + rstReturn);
+    GM.setClipboard(rstRehostLink + rstRehostSize + rstRehostParam + imageUrl + rstReturn);
     if(gmNotif && currentRstNotifs) {
       GM.notification({
         text: "Le lien " + messageType + "a été copié dans le presse-papiers.",
@@ -244,7 +255,7 @@ function doRst(e, type) {
     }
   } else if(e.ctrlKey) {
     GM.setClipboard("[img]" + rstRehostLink + rstRehostSize + rstRehostParam +
-      encodeURIComponent(currentUrl) + "[/img]" + rstReturn);
+      imageUrl + "[/img]" + rstReturn);
     if(gmNotif && currentRstNotifs) {
       GM.notification({
         text: "Le BBCode sans lien " + messageType + "a été copié dans le presse-papiers.",
@@ -254,8 +265,8 @@ function doRst(e, type) {
       });
     }
   } else {
-    GM.setClipboard("[url=" + rstRehostLink + rstRehostParam + encodeURIComponent(currentUrl) + "][img]" +
-      rstRehostLink + rstRehostSize + rstRehostParam + encodeURIComponent(currentUrl) + "[/img][/url]" +
+    GM.setClipboard("[url=" + rstRehostLink + rstRehostParam + imageUrl + "][img]" +
+      rstRehostLink + rstRehostSize + rstRehostParam + imageUrl + "[/img][/url]" +
       rstReturn);
     if(gmNotif && currentRstNotifs) {
       GM.notification({
