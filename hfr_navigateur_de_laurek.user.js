@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Navigateur de laureka
-// @version       3.1.3
+// @version       3.1.4
 // @namespace     roger21.free.fr
 // @description   Ajoute une barre de navigation qui permet de naviguer directement d'un laureka à l'autre sur le topic culture générale (la barre a de nombreuses options, voir les tooltips pour les détails).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -23,7 +23,7 @@
 
 /*
 
-Copyright © 2014-2020 roger21@free.fr
+Copyright © 2014-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -38,9 +38,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 2778 $
 
 // historique :
+// 3.1.4 (05/01/2021) :
+// - amélioration des dimensions dans la barre pour permetre une meilleur gestion du zoom de la page
 // 3.1.3 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 3.1.2 (07/11/2019) :
@@ -675,7 +677,7 @@ Promise.all([
   navtable.appendChild(navtr);
   var displaytd = document.createElement("td");
   displaytd.style.padding = "2px";
-  displaytd.style.width = "15%";
+  displaytd.style.width = "20%";
   displaytd.style.verticalAlign = "middle";
   displaytd.style.textAlign = "left";
   var displayimg = document.createElement("img");
@@ -688,7 +690,7 @@ Promise.all([
   var pageprevtd = document.createElement("td");
   pageprevtd.style.padding = "2px";
   pageprevtd.style.borderLeft = "0";
-  pageprevtd.style.width = "25%";
+  pageprevtd.style.width = "20%";
   pageprevtd.style.verticalAlign = "middle";
   pageprevtd.style.textAlign = "center";
   if(pageprev) {
@@ -765,7 +767,7 @@ Promise.all([
   var pagenexttd = document.createElement("td");
   pagenexttd.style.padding = "2px";
   pagenexttd.style.borderLeft = "0";
-  pagenexttd.style.width = "25%";
+  pagenexttd.style.width = "20%";
   pagenexttd.style.verticalAlign = "middle";
   pagenexttd.style.textAlign = "center";
   if(pagenext) {
@@ -784,7 +786,7 @@ Promise.all([
   var conftd = document.createElement("td");
   conftd.style.padding = "2px";
   conftd.style.borderLeft = "0";
-  conftd.style.width = "15%";
+  conftd.style.width = "20%";
   conftd.style.verticalAlign = "middle";
   conftd.style.textAlign = "right";
   var colorimg = document.createElement("img");
