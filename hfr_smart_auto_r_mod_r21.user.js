@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Smart Auto Rehost mod_r21
-// @version       6.1.0
+// @version       6.1.1
 // @namespace     roger21.free.fr
 // @description   Réhost automatiquement les images et les liens vers les images provenant d'une liste modifiable de noms de domaine.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -39,9 +39,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2778 $
+// $Rev: 2782 $
 
 // historique :
+// 6.1.1 (11/01/2021) :
+// - réactivation par défaut des options "à ne pas réhoster"
 // 6.1.0 (11/01/2021) :
 // - retour à reho.st par défaut
 // 6.0.9 (25/09/2020) :
@@ -276,10 +278,10 @@ var rehost_type_default = "auto"; // auto ou perso
 var rehost_auto_default = reho.st.https;
 var rehost_perso_default = "https://images.weserv.nl/?n=-1&url=";
 var stealth_rehost_default = false;
-var no_rehost_gif_default = false;
-var no_rehost_gifv_default = false;
-var no_rehost_webp_default = false;
-var no_rehost_svg_default = false;
+var no_rehost_gif_default = true;
+var no_rehost_gifv_default = true;
+var no_rehost_webp_default = true;
+var no_rehost_svg_default = true;
 var host_list_default = "2shared.com\n4cdn.org\n4chan.org\n4gifs.com\n4plebs.org\n9cache.com\nabm-enterprises.net\nabricocotier.fr\nac.uk\nafrojacks.com\nagoravox.fr\nakamaihd.net\nakamaized.net\nalkaspace.com\nall-that-is-interesting.com\nallmoviephoto.com\nalternatehistory.com\namazonaws.com\nambinet.pl\nangelfire.com\nanimeclick.it\nanub.ru\narchive-host.com\narwen-undomiel.com\nassiettesgourmandes.fr\naufeminin.com\nauto-moto.com\nazurs.net\nb3ta.com\nb3tards.com\nbangkokpost.com\nbdfci.com\nbighugelabs.com\nbleedingcool.net\nblogger.com\nblogomaniac.fr\nblogspot.com\nboomsbeat.com\nboredpanda.com\nbouletcorp.com\nbrsimg.com\nburrardstreetjournal.com\nbusinessinsider.com\ncanardpc.com\ncannaweed.com\ncasimages.com\ncavemancircus.com\ncdn.li\ncdninstagram.com\ncelebritysizes.com\nchickencrap.com\nchillmag.fr\nchzbgr.com\ncinefaniac.fr\ncinemapassion.com\ncinemotions.com\nclien.net\ncloudfront.net\nco.nz\nco.uk\ncomicartcommunity.com\ncomplex.com\nconcordefly.com\ncoolfunpics.com\ncoolmemes.net\ncopypast.ru\ncosmovisions.com\ncrif.org\ncsf-sonorisation.fr\ndailyscene.com\ndailysilvernews.com\ndandies.fr\ndavisenterprise.com\ndefensereview.com\ndemotivateur.fr\ndeviantart.com\ndeviantart.net\ndosgamesarchive.com\ndrole.net\ndrugs-plaza.com\ndukascopy.com\ndvdactive.com\ndvdbeaver.com\ndvdrama.com\ndynamictic.info\neatmedaily.com\nebaumsworld.com\necho.cx\necranlarge.com\nedgecastcdn.net\nedtruthan.com\negaliteetreconciliation.fr\negloos.com\negotastic.com\nehowa.com\nelbakin.net\nencyclopediadramatica.com\nenglishrussia.com\netsystatic.com\nevilox.com\nexaminer.com\nexplosm.net\neyetricks.com\nezgif.com\nfacebook.com\nfairfaxunderground.com\nfanpop.com\nfbcdn.net\nfilmschoolrejects.com\nfjcdn.com\nflickr.com\nfohguild.org\nfond-ecran-image.com\nfond-ecran-image.fr\nfoodbev.com\nfoundshit.com\nfree.fr\nfreeimagehosting.net\nfunkyimg.com\nfunlol.ru\nfunnyjunk.com\nfuntasticus.com\ngamefabrique.com\ngamefaqs.net\ngannett-cdn.com\ngarageclothing.com\ngentside.com\nggpht.com\ngidilounge.com\ngiftube.com\nglitterphoto.net\ngoldenmoustache.com\ngopix.fr\ngreluche.info\ngrospixels.com\ngtsstatic.com\ngurumed.org\nh6img.com\nhaltbrac-defense.fr\nhaluze.sk\nhiboox.com\nhkgn.info\nhomotron.net\nhorrortalk.com\nhostelworld.com\nhostingpics.net\nhotchyx.com\nhotflick.net\nhumour.com\nhypeful.com\ni.pbase.com\niapdesign.com\nicdn.pro\niespana.es\nifengimg.com\nimagehaven.net\nimages-droles.com\nimagescream.com\nimageshack.us\nimagevenue.com\nimagup.com\nimportantwebsite.com\nindustrytap.com\ninexes.com\ninstagram.com\nizismile.com\njeuxmangas.net\njeuxvideo.com\njj.am\njkbeauty.com\njoelecorbeau.com\njournalofmusic.com\njoystiq.com\njudgehype.com\nkapook.com\nkoreus.com\nleboncoin.fr\nledeguisement.com\nleenks.com\nlelombrik.net\nlequipe.fr\nlesblaguesdroles.com\nley925.com\nlicdn.com\nliveinternet.ru\nlivejournal.com\nlivejournal.net\nliveleak.com\nlivenationinternational.com\nlolpix.com\nloveroms.com\nmac.com\nmalgusto.com\nmarmucommerce.com\nmask9.com\nmaxisciences.com\nmedia-imdb.com\nmegaportail.com\nmemearchive.net\nmemecenter.com\nmetalorgie.com\nmil.ru\nmission0ps.com\nmmo-champion.com\nmonde-diplomatique.fr\nmondespersistants.com\nmotherlessmedia.com\nmoviecovers.com\nmovieia.info\nmoviesmedia.ign.com\nmu.nu\nmuchosucko.com\nmxstatic.com\nmyblog.de\nmypixelz.fr\nmyspace.com\nmyspacecdn.com\nnatgeo.fi\nnaver.net\nnet.co\nnewmuse.com\nnews-de-stars.com\nniketalk.com\nnnm.ru\nno-ip.org\nnocookie.net\nnoelshack.com\nnofrag.com\nnonexiste.net\nnudebabes.ws\noddee.com\nompldr.org\norg.uk\noritive.com\nossiane.net\nover-blog.com\novh.net\nparanoias.es\npeniche-demoiselle.com\npete.com\nphautom.com\nphotobucket.com\nphotographyblog.com\nphotomonde.fr\nphotorumors.com\npigroll.com\npinimg.com\npiximus.net\nplayfire.com\npluizuit.be\npostimage.org\npostimg.org\nprogourmet.fr\nquartermoonsaloon.com\nquenelplus.com\nquizz.biz\nradikal.ru\nratemyeverything.net\nreddit.com\nreplikultes.net\nreversegif.com\nrockingfacts.com\ns2ki.com\nsaintseiyapedia.com\nsankakustatic.com\nse7en.ru\nseries-80.net\nservimg.com\nsfsignal.com\nsharenator.com\nshowlinephoto.com\nskipsfotografen.no\nskoftenmedia.com\nskyrock.com\nslightlywarped.com\nsmog.pl\nsmugmug.com\nsoupcdn.com\nspam.com\nspi0n.com\nsplitscreenpodcast.com\nsports.fr\nstarer.ru\nstereomaker.net\nsts116.com\nsyn.fr\nt-nation.com\ntattoo-tatouages.com\ntechno-science.net\ntheexpressionist.com\nthehighdefinite.com\ntheladbible.com\ntheplanetstoday.com\ntheshadefiles.com\nthg.ru\nthisnext.com\nthreadbombing.com\ntickld.com\ntinypic.com\ntonmo.com\ntoyzoo.com\ntqn.com\ntribalfusion.com\ntruffaut.com\ntryxy.net\ntu-dresden.de\ntumblr.com\ntuxboard.com\ntvmuse.com\ntwimg.com\ntwitpic.com\nucoz.com\nucrazy.ru\nufl.edu\nufunk.net\nuncyc.org\nuppix.net\nupsimple.com\nuserapi.com\nuuuploads.com\nvatican.va\nvermontdailynews.com\nveroniqueetlachouquetterie.fr\nviepratique.fr\nvox-cdn.com\nwallbase.cc\nwallbase2.net\nwallpaper-s.org\nweb-libre.org\nweb-mobile.net\nwhatthemovie.com\nwhitesites.com\nwordpress.com\nworldofwarcraft.com\nwp.com\nxin70.info\nxkcd.com\nxs.to\nyahoo.com\nyandex.ru\nyimg.com\nyionel.fr\nyoupimobile.com\nytmnd.com\nzegagnant.com\nzepload.com\nzgeek.com\nzicabloc.com\nzigonet.com\nzimagez.com\nzimbio.com\nzooplus.de\nzupimages.net";
 var white_list_default = "hardware.fr\nreho.st";
 
