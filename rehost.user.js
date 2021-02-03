@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Rehost
-// @version       3.0.0
+// @version       3.0.1
 // @namespace     roger21.free.fr
 // @description   Permet de générer dans le presse-papier le BBCode de réhébergement d'une image sur reho.st ou images.weserv.nl à partir du menu contextuel de l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAQAAAABbAUdZAAAALElEQVR42mP4DwQMaMQHg8P8EOLz%2F%2F%2FnIcR%2FOPEZpARGUEH2w2EefgiBxS0ARNpzyS9f0t0AAAAASUVORK5CYII%3D
@@ -19,6 +19,7 @@
 // @grant         GM_setClipboard
 // @grant         GM.notification
 // @grant         GM_notification
+// @grant         GM.registerMenuCommand
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
@@ -39,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2794 $
+// $Rev: 2836 $
 
 // historique :
+// 3.0.1 (02/02/2021) :
+// - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 3.0.0 (14/01/2021) :
 // - possibilité de choisir entre reho.st et images.weserv.nl
 // 2.0.5 (27/12/2020) :
@@ -154,10 +157,7 @@ if(typeof GM_setClipboard !== "undefined" && typeof GM.setClipboard === "undefin
     });
   };
 }
-var gmMenu = false;
-if(typeof GM_registerMenuCommand !== "undefined") {
-  gmMenu = true;
-}
+var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 /* ------------------------ */
 /* les images et les icônes */
@@ -197,7 +197,7 @@ const rstGrandDefault = "2"; // "1", "2" ou "0"
 const rstMoyenDefault = "2"; // "1", "2" ou "0"
 const rstPreviewDefault = "2"; // "1", "2" ou "0"
 const rstThumbDefault = "2"; // "1", "2" ou "0"
-const rstConfDefault = "2"; // "1", "2" ou "0" si gmMenu sinon  "1", "2"
+const rstConfDefault = "2"; // "1", "2" ou "0"
 const rstOptionsDefault = true; // true ou false
 const rstIconsDefault = true; // true ou false
 const rstNotifsDefault = true // true ou false
@@ -237,7 +237,7 @@ function doRst(e, type) {
   let messageType = "";
   let imageUrl = "";
   let iconImage = "";
-  switch (type) {
+  switch(type) {
     case "sans":
       rehostLink = "";
       rehostSize = "";
@@ -457,11 +457,6 @@ function doRstReturn() {
 /* ------------------------------- */
 
 function createRehostMenu() {
-  // correction de currentRstConf si pas de gmMenu
-  let localCurrentRstConf = currentRstConf;
-  if(!gmMenu && localCurrentRstConf === "0") {
-    localCurrentRstConf = "2";
-  }
   // correction de currentRstNotifs si pas de gmNotif
   let localCurrentRstNotifs = currentRstNotifs;
   if(!gmNotif) {
@@ -602,17 +597,17 @@ function createRehostMenu() {
       localCurrentRstMoyen === "2" ||
       localCurrentRstPreview === "2" ||
       localCurrentRstThumb === "2") &&
-    localCurrentRstConf === "2") {
+    currentRstConf === "2") {
     rehostSubMenu.appendChild(document.createElement("hr"));
   }
   // configuration
-  if(localCurrentRstConf !== "0") {
+  if(currentRstConf !== "0") {
     let rehostMenuItemConf = document.createElement("menuitem");
     if(currentRstIcons) {
       rehostMenuItemConf.setAttribute("icon", iconConf);
     }
     rehostMenuItemConf.addEventListener("click", doRstConf, false);
-    if(localCurrentRstConf === "1") {
+    if(currentRstConf === "1") {
       rehostMenuItemConf.setAttribute("label", "Configuration de Rehost");
       rehostMenu.appendChild(rehostMenuItemConf);
     } else {
@@ -628,7 +623,7 @@ function createRehostMenu() {
       localCurrentRstMoyen === "2" ||
       localCurrentRstPreview === "2" ||
       localCurrentRstThumb === "2" ||
-      localCurrentRstConf === "2") &&
+      currentRstConf === "2") &&
     currentRstOptions) {
     rehostSubMenu.appendChild(document.createElement("hr"));
   }
@@ -697,7 +692,7 @@ function createRehostMenu() {
     localCurrentRstMoyen === "2" ||
     localCurrentRstPreview === "2" ||
     localCurrentRstThumb === "2" ||
-    localCurrentRstConf === "2" ||
+    currentRstConf === "2" ||
     currentRstOptions) {
     rehostMenu.appendChild(rehostSubMenu);
   }
@@ -1445,15 +1440,6 @@ function backgroundTransitionend() {
 
 // fonction d'affichage de la fenêtre de configuration
 function showConfigWindow() {
-  // correction de currentRstConf si pas de gmMenu
-  let localCurrentRstConf = currentRstConf;
-  if(!gmMenu) {
-    confRadio0.disabled = true;
-    confRadio0Label.setAttribute("class", "gm_rst_r21_disabled");
-    if(localCurrentRstConf === "0") {
-      localCurrentRstConf = "2";
-    }
-  }
   // correction de currentRstNotifs si pas de gmNotif
   let localCurrentRstNotifs = currentRstNotifs;
   if(!gmNotif) {
@@ -1485,9 +1471,9 @@ function showConfigWindow() {
   thumbRadio1.checked = currentRstThumb === "1";
   thumbRadio2.checked = currentRstThumb === "2";
   thumbRadio0.checked = currentRstThumb === "0";
-  confRadio1.checked = localCurrentRstConf === "1";
-  confRadio2.checked = localCurrentRstConf === "2";
-  confRadio0.checked = localCurrentRstConf === "0";
+  confRadio1.checked = currentRstConf === "1";
+  confRadio2.checked = currentRstConf === "2";
+  confRadio0.checked = currentRstConf === "0";
   optionsCheckbox.checked = currentRstOptions;
   iconsCheckbox.checked = currentRstIcons;
   notifsCheckbox.checked = localCurrentRstNotifs;
@@ -1593,8 +1579,6 @@ Promise.all([
     characterData: false,
     subtree: true
   });
-  // ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
-  if(gmMenu) {
-    GM_registerMenuCommand("Rehost -> Configuration", showConfigWindow);
-  }
+  // ajout d'une entrée de configuration dans le menu de l'extension
+  gmMenu("\u200bRehost -> Configuration", showConfigWindow);
 });

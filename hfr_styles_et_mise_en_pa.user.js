@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.0.5
+// @version       1.0.6
 // @namespace     roger21.free.fr
 // @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -16,12 +16,13 @@
 // @grant         GM_getValue
 // @grant         GM.setValue
 // @grant         GM_setValue
+// @grant         GM.registerMenuCommand
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
 /*
 
-Copyright © 2019-2020 roger21@free.fr
+Copyright © 2019-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -36,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2543 $
+// $Rev: 2832 $
 
 // historique :
+// 1.0.6 (02/02/2021) :
+// - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 1.0.5 (17/09/2020) :
 // - meilleur gestion de la conversion des liens en images avec images.weserv.nl
 // 1.0.4 (30/08/2020) :
@@ -81,10 +84,7 @@ if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
     });
   };
 }
-var gm_menu = false;
-if(typeof GM_registerMenuCommand !== "undefined") {
-  gm_menu = true;
-}
+var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 /* ---------- */
 /* les images */
@@ -251,10 +251,10 @@ var afficher_icone_label = document.createElement("label");
 afficher_icone_label.textContent = " Afficher le bouton du script en haut des pages ";
 afficher_icone_label.setAttribute("for", "gm_hfr_semep_afficher_icone_checkbox");
 afficher_icone_legend.appendChild(afficher_icone_label);
-afficher_icone_legend.appendChild(create_help_button(270,
+afficher_icone_legend.appendChild(create_help_button(250,
   "Le bouton du script permet d'ouvrir cette fenêtre de " +
   "configuration mais cette dernière reste accessible " +
-  "via le menu de l'extension si l'extension le permet."));
+  "via le menu de l'extension."));
 afficher_icone_fieldset.appendChild(afficher_icone_legend);
 config_window.appendChild(afficher_icone_fieldset);
 var image_icone_p = document.createElement("p");
@@ -591,11 +591,8 @@ function background_transitionend() {
 // fonction d'affichage de la fenêtre de configuration
 function show_config_window() {
   // initialisation des paramètres
-  afficher_icone_checkbox.checked = smp_afficher_icone || !gm_menu;
+  afficher_icone_checkbox.checked = smp_afficher_icone;
   afficher_icone_changed();
-  if(!gm_menu) {
-    afficher_icone_checkbox.disabled = true;
-  }
   image_icone_input.value = smp_image_icone;
   image_icone_do_test_img();
   taille_reponse_checkbox.checked = smp_taille_reponse;
@@ -623,10 +620,8 @@ function show_config_window() {
   config_background.style.opacity = "0.8";
 }
 
-// ajout d'une entrée de configuration dand le menu greasemonkey si c'est possible (pas gm4 yet)
-if(typeof GM_registerMenuCommand !== "undefined") {
-  GM_registerMenuCommand("[HFR] Styles et mise en page -> Configuration", show_config_window);
-}
+// ajout d'une entrée de configuration dans le menu de l'extension
+gmMenu("\u200b[HFR] Styles et mise en page -> Configuration", show_config_window);
 
 /* ----------------------------------------------------------------------------- */
 /* récupération des paramètres et mise en place des styles et de la mise en page */

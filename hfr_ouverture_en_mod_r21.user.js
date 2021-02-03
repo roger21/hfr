@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Ouverture en masse mod_r21
-// @version       4.2.3
+// @version       4.2.4
 // @namespace     roger21.free.fr
 // @description   Permet d'ouvrir ses drapeaux dans de nouveaux onglets avec un seul clic.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -21,12 +21,13 @@
 // @grant         GM_setValue
 // @grant         GM.openInTab
 // @grant         GM_openInTab
+// @grant         GM.registerMenuCommand
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
 /*
 
-Copyright © 2011-2012, 2014-2020 roger21@free.fr
+Copyright © 2011-2012, 2014-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -41,11 +42,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1988 $
+// $Rev: 2827 $
 
 // historique :
+// 4.2.4 (02/02/2021) :
+// - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 4.2.3 (05/05/2020) :
-// - ajout de l'option pour ouvrir les onglets à la fin  pour Violentmonkey et Tampermonkey
+// - ajout de l'option pour ouvrir les onglets à la fin pour Violentmonkey et Tampermonkey
 // 4.2.2 (04/05/2020) :
 // - nouvelle gestion de l'ouverture des onglets pour Violentmonkey et Tampermonkey ->
 // ouverture "à la fin" pour permettre de respecter l'ordre des "séquences" d'ouvertures
@@ -202,6 +205,7 @@ if(typeof GM_openInTab !== "undefined" && typeof GM.openInTab === "undefined") {
     });
   };
 }
+var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 /* ---------- */
 /* les images */
@@ -1049,10 +1053,8 @@ function show_config_window() {
   config_background.style.opacity = "0.8";
 }
 
-// ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
-if(typeof GM_registerMenuCommand !== "undefined") {
-  GM_registerMenuCommand("[HFR] Ouverture en masse -> Configuration", show_config_window);
-}
+// ajout d'une entrée de configuration dans le menu de l'extension
+gmMenu("[HFR] Ouverture en masse -> Configuration", show_config_window);
 
 /* -------------------------------------------------- */
 /* récupération des paramètres et lancement du script */

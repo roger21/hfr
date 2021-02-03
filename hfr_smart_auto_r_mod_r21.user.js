@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Smart Auto Rehost mod_r21
-// @version       6.1.1
+// @version       6.1.2
 // @namespace     roger21.free.fr
 // @description   Réhost automatiquement les images et les liens vers les images provenant d'une liste modifiable de noms de domaine.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -19,6 +19,7 @@
 // @grant         GM_getValue
 // @grant         GM.setValue
 // @grant         GM_setValue
+// @grant         GM.registerMenuCommand
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
@@ -39,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2782 $
+// $Rev: 2830 $
 
 // historique :
+// 6.1.2 (02/02/2021) :
+// - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 6.1.1 (11/01/2021) :
 // - réactivation par défaut des options "à ne pas réhoster"
 // 6.1.0 (11/01/2021) :
@@ -223,6 +226,7 @@ if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
     });
   };
 }
+var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 /* ---------- */
 /* les images */
@@ -987,10 +991,8 @@ function show_config_window() {
   config_background.style.opacity = "0.8";
 }
 
-// ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
-if(typeof GM_registerMenuCommand !== "undefined") {
-  GM_registerMenuCommand("[HFR] Smart Auto Rehost -> Configuration", show_config_window);
-}
+// ajout d'une entrée de configuration dans le menu de l'extension
+gmMenu("[HFR] Smart Auto Rehost -> Configuration", show_config_window);
 
 /* ------------------------------------------------------------- */
 /* création de la fenêtre d'ajout des noms de domaine à réhoster */

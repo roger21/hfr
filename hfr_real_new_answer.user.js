@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Real New Answer
-// @version       1.2.4
+// @version       1.2.5
 // @namespace     roger21.free.fr
 // @description   Signale sur la page des drapals si un de vos posts a été quoté depuis votre dernière visite d'un topic flaggé cyan ou fav.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -18,12 +18,13 @@
 // @grant         GM_getValue
 // @grant         GM.setValue
 // @grant         GM_setValue
+// @grant         GM.registerMenuCommand
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
 /*
 
-Copyright © 2017-2020 roger21@free.fr
+Copyright © 2017-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -38,9 +39,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 2829 $
 
 // historique :
+// 1.2.5 (02/02/2021) :
+// - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 1.2.4 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.2.3 (02/10/2019) :
@@ -137,10 +140,7 @@ if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
     });
   };
 }
-var gmMenu = false;
-if(typeof GM_registerMenuCommand !== "undefined") {
-  gmMenu = true;
-}
+var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 
 /* ---------- */
@@ -204,50 +204,46 @@ Promise.all([
 
   //console.log(script_name + " DEBUG topics :", topics);
 
-  // ajout des menus si disponible
-  if(gmMenu) {
+  // ajout d'une entrée dans le menu de l'extension pour le nombre maximal de pages à analyser
+  var prompt_string_max = "\u200b" + script_name + " -> Nombre de pages à analyser";
+  gmMenu(prompt_string_max, set_max_page);
 
-    // le nombre maximal de pages à rechercher
-    var prompt_string_max = script_name + " -> Nombre de pages à analyser";
-    GM_registerMenuCommand(prompt_string_max, set_max_page);
-
-    function set_max_page() {
-      let l_max_page = window.prompt(prompt_string_max + "\n\n(défaut : " +
-        default_max_page + ", toutes les pages : -1, désactivé : 0)\n\n", real_max_page);
-      if(l_max_page === null) {
-        return;
-      }
-      if(parseInt(l_max_page) === -1) {
-        GM.setValue("max_page", -1);
-        real_max_page = l_max_page;
-        max_page = Number.POSITIVE_INFINITY;
-      } else if(parseInt(l_max_page) >= 0) {
-        GM.setValue("max_page", parseInt(l_max_page));
-        real_max_page = parseInt(l_max_page);
-        max_page = parseInt(l_max_page);
-      } else {
-        GM.setValue("max_page", default_max_page);
-        real_max_page = default_max_page;
-        max_page = default_max_page;
-      }
+  function set_max_page() {
+    let l_max_page = window.prompt(prompt_string_max + "\n\n(défaut : " +
+      default_max_page + ", toutes les pages : -1, désactivé : 0)\n\n", real_max_page);
+    if(l_max_page === null) {
+      return;
     }
+    if(parseInt(l_max_page) === -1) {
+      GM.setValue("max_page", -1);
+      real_max_page = l_max_page;
+      max_page = Number.POSITIVE_INFINITY;
+    } else if(parseInt(l_max_page) >= 0) {
+      GM.setValue("max_page", parseInt(l_max_page));
+      real_max_page = parseInt(l_max_page);
+      max_page = parseInt(l_max_page);
+    } else {
+      GM.setValue("max_page", default_max_page);
+      real_max_page = default_max_page;
+      max_page = default_max_page;
+    }
+  }
 
-    // l'image de signalement
-    var prompt_string_img = script_name + " -> Image de signalement";
-    GM_registerMenuCommand(prompt_string_img, set_img_new);
+  // ajout d'une entrée dans le menu de l'extension pour l'image de signalement
+  var prompt_string_img = "\u200b" + script_name + " -> Image de signalement";
+  gmMenu(prompt_string_img, set_img_new);
 
-    function set_img_new() {
-      let l_img_new = window.prompt(prompt_string_img + "\n\n", img_new);
-      if(l_img_new === null) {
-        return;
-      }
-      if(l_img_new.trim() !== "") {
-        GM.setValue("img_new", l_img_new);
-        img_new = l_img_new;
-      } else {
-        GM.setValue("img_new", default_img_new);
-        img_new = default_img_new;
-      }
+  function set_img_new() {
+    let l_img_new = window.prompt(prompt_string_img + "\n\n", img_new);
+    if(l_img_new === null) {
+      return;
+    }
+    if(l_img_new.trim() !== "") {
+      GM.setValue("img_new", l_img_new);
+      img_new = l_img_new;
+    } else {
+      GM.setValue("img_new", default_img_new);
+      img_new = default_img_new;
     }
   }
 

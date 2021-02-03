@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.8.5
+// @version       2.8.6
 // @namespace     roger21.free.fr
 // @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -20,12 +20,13 @@
 // @grant         GM_setValue
 // @grant         GM.openInTab
 // @grant         GM_openInTab
+// @grant         GM.registerMenuCommand
 // @grant         GM_registerMenuCommand
 // ==/UserScript==
 
 /*
 
-Copyright © 2012, 2014-2020 roger21@free.fr
+Copyright © 2012, 2014-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -40,9 +41,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1996 $
+// $Rev: 2826 $
 
 // historique :
+// 2.8.6 (02/02/2021) :
+// - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 2.8.5 (06/05/2020) :
 // - correction d'une fôte
 // 2.8.4 (05/05/2020) :
@@ -221,10 +224,7 @@ if(typeof GM_openInTab !== "undefined" && typeof GM.openInTab === "undefined") {
     });
   };
 }
-var gm_menu = false;
-if(typeof GM_registerMenuCommand !== "undefined") {
-  gm_menu = true;
-}
+var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 /* nom du script */
 var script_name = "[HFR] New Page Number";
@@ -570,7 +570,7 @@ npn_lg_button.appendChild(npn_lb_button);
 npn_lg_button.appendChild(create_help_button(250,
   "Le bouton du script permet d'ouvrir cette fenêtre de " +
   "configuration mais cette dernière reste accessible " +
-  "via le menu Greasemokey si celui-ci existe."));
+  "via le menu de l'extension."));
 npn_fs_button.appendChild(npn_lg_button);
 npn_config.appendChild(npn_fs_button);
 
@@ -1145,11 +1145,8 @@ function showconfig() {
   window.clearTimeout(refresh_click_timer);
   window.clearTimeout(refresh_page_timer);
   // initialisation des options de la fenêtre de configuration
-  npn_cb_button.checked = display_button || !gm_menu;
+  npn_cb_button.checked = display_button;
   change_button();
-  if(!gm_menu) {
-    npn_cb_button.disabled = true;
-  }
   npn_in_button.value = button_icon;
   test_icon();
   npn_cb_mass.checked = mass_opener;
@@ -1202,9 +1199,8 @@ function showconfig() {
   npn_config.style.opacity = "1";
   npn_background.style.opacity = "0.8";
 }
-if(gm_menu) {
-  GM_registerMenuCommand(script_name + " -> Configuration", showconfig);
-}
+// ajout d'une entrée de configuration dans le menu de l'extension
+gmMenu("\u200b" + script_name + " -> Configuration", showconfig);
 
 /* affichage du nombre de pages en retard à côté du drapal */
 var nb_pages = 0;

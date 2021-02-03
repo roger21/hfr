@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Taille des images mod_r21
-// @version       3.0.8
+// @version       3.0.9
 // @namespace     roger21.free.fr
 // @description   Permet de limiter la taille des images dans les posts et de leur rendre leur taille originale en cliquant sur un bouton intégré à l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -19,13 +19,14 @@
 // @grant         GM_getValue
 // @grant         GM.setValue
 // @grant         GM_setValue
+// @grant         GM.registerMenuCommand
 // @grant         GM_registerMenuCommand
 // @grant         unsafeWindow
 // ==/UserScript==
 
 /*
 
-Copyright © 2012, 2014-2017, 2019-2020 roger21@free.fr
+Copyright © 2012, 2014-2017, 2019-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -40,9 +41,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1788 $
+// $Rev: 2833 $
 
 // historique :
+// 3.0.9 (02/02/2021) :
+// - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 3.0.8 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 3.0.7 (13/02/2020) :
@@ -150,6 +153,7 @@ if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
     });
   };
 }
+var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 /* ---------------------------------------------------------------- */
 /* désactivation de la fonctionnalité de redimensionnement du forum */
@@ -679,10 +683,8 @@ function show_config_window() {
   });
 }
 
-// ajout d'une entrée de configuration dans le menu greasemonkey si c'est possible (pas gm4 yet)
-if(typeof GM_registerMenuCommand !== "undefined") {
-  GM_registerMenuCommand("[HFR] Taille des images -> Configuration", show_config_window);
-}
+// ajout d'une entrée de configuration dans le menu de l'extension
+gmMenu("[HFR] Taille des images -> Configuration", show_config_window);
 
 /* ----------------------------------------- */
 /* fonctions de redimensionnement des images */
