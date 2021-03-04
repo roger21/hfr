@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          Rehost
-// @version       3.0.1
+// @version       3.0.2
 // @namespace     roger21.free.fr
 // @description   Permet de générer dans le presse-papier le BBCode de réhébergement d'une image sur reho.st ou images.weserv.nl à partir du menu contextuel de l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAQAAAABbAUdZAAAALElEQVR42mP4DwQMaMQHg8P8EOLz%2F%2F%2FnIcR%2FOPEZpARGUEH2w2EefgiBxS0ARNpzyS9f0t0AAAAASUVORK5CYII%3D
@@ -40,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2836 $
+// $Rev: 2852 $
 
 // historique :
+// 3.0.2 (04/03/2021) :
+// - ajout du choix de l'hébergeur dans les options du menu contextuel
 // 3.0.1 (02/02/2021) :
 // - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 3.0.0 (14/01/2021) :
@@ -427,6 +429,16 @@ function doRstConf() {
   showConfigWindow();
 }
 
+function doRstChoiceRehost() {
+  currentRstChoice = "rehost";
+  GM.setValue("rst_choice", currentRstChoice).then(createRehostMenu);
+}
+
+function doRstChoiceWeserv() {
+  currentRstChoice = "weserv";
+  GM.setValue("rst_choice", currentRstChoice).then(createRehostMenu);
+}
+
 function doRstIcons() {
   currentRstIcons = !currentRstIcons;
   GM.setValue("rst_icons", currentRstIcons).then(createRehostMenu);
@@ -629,6 +641,27 @@ function createRehostMenu() {
   }
   // options
   if(currentRstOptions) {
+    // option choix rehost
+    let rehostMenuItemChoiceRehost = document.createElement("menuitem");
+    rehostMenuItemChoiceRehost.setAttribute("type", "radio");
+    rehostMenuItemChoiceRehost.setAttribute("radiogroup", "gm_rst_r21_rehost_choice");
+    if(currentRstChoice === "rehost") {
+      rehostMenuItemChoiceRehost.checked = true;
+    }
+    rehostMenuItemChoiceRehost.setAttribute("label", "reho.st");
+    rehostMenuItemChoiceRehost.addEventListener("click", doRstChoiceRehost, false);
+    rehostSubMenu.appendChild(rehostMenuItemChoiceRehost);
+    // option choix weserv
+    let rehostMenuItemChoiceWeserv = document.createElement("menuitem");
+    rehostMenuItemChoiceWeserv.setAttribute("type", "radio");
+    rehostMenuItemChoiceWeserv.setAttribute("radiogroup", "gm_rst_r21_rehost_choice");
+    if(currentRstChoice !== "rehost") {
+      rehostMenuItemChoiceWeserv.checked = true;
+    }
+    rehostMenuItemChoiceWeserv.setAttribute("label", "images.weserv.nl");
+    rehostMenuItemChoiceWeserv.addEventListener("click", doRstChoiceWeserv, false);
+    rehostSubMenu.appendChild(rehostMenuItemChoiceWeserv);
+    rehostSubMenu.appendChild(document.createElement("hr"));
     // option icons
     let rehostMenuItemIcons = document.createElement("menuitem");
     rehostMenuItemIcons.setAttribute("type", "checkbox");
