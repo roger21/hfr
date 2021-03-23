@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Postal Recall
-// @version       1.4.3
+// @version       2.0.0
 // @namespace     roger21.free.fr
 // @description   Rajoute le nom du posteur en bas sur la partie gauche des posts, permet de savoir qui est l'auteur du post sur les posts longs sans avoir à revenir en haut du post.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -17,7 +17,7 @@
 
 /*
 
-Copyright © 2015-2020 roger21@free.fr
+Copyright © 2015-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -32,9 +32,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 2862 $
 
 // historique :
+// 2.0.0 (23/03/2021) :
+// - recodage en css position sticky
 // 1.4.3 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.4.2 (02/10/2019) :
@@ -67,119 +69,28 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - création
 
 window.setTimeout(function() {
-
-  function getOffset(el) {
-    let _x = 0;
-    let _y = 0;
-    while(el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-      _x += el.offsetLeft - el.scrollLeft;
-      _y += el.offsetTop - el.scrollTop;
-      el = el.offsetParent;
-    }
-    return {
-      top: _y,
-      left: _x
-    };
-  }
-
-  function postalrecall(e) {
-    scrollbar = document.documentElement.scrollWidth > document.documentElement.clientWidth ? scrollbarheight : 0;
-    scrollcheat = scrollbar ? 1 : 0;
-    if(oldprtop) {
-      // oldprtop.style.display = "none";
-      oldprtop.style.bottom = 0;
-    }
-    if(oldprbottom) {
-      // oldprbottom.style.display = "none";
-      oldprbottom.style.bottom = 0;
-    }
-    let postertop = document.elementFromPoint(posterleft, 0);
-    if((postertop.nodeName.toUpperCase() === "TD") &&
-      postertop.hasAttribute("class") &&
-      (postertop.getAttribute("class") === "messCase1")) {
-      let prtop = postertop.querySelector("div[postalrecall]");
-      if(prtop) {
-        // prtop.style.display = "block";
-        oldprtop = prtop;
-        if(((window.scrollY + window.innerHeight - scrollbar) >
-            (getOffset(postertop).top + postertop.clientHeight)) ||
-          ((window.scrollY + window.innerHeight - scrollbar) <
-            (getOffset(postertop).top + minsize))) {
-          prtop.style.bottom = 0;
-        } else {
-          prtop.style.bottom = ((getOffset(postertop).top + postertop.clientHeight) -
-            (window.scrollY + window.innerHeight - scrollbar + scrollcheat)) + "px";
-        }
-      }
-    }
-    let posterbottom = document.elementFromPoint(posterleft, window.innerHeight - scrollbar - 1);
-    if((posterbottom.nodeName.toUpperCase() === "TD") &&
-      posterbottom.hasAttribute("class") &&
-      (posterbottom.getAttribute("class") === "messCase1")) {
-      let prbottom = posterbottom.querySelector("div[postalrecall]");
-      if(prbottom) {
-        // prbottom.style.display = "block";
-        oldprbottom = prbottom;
-        if(((window.scrollY + window.innerHeight - scrollbar) >
-            (getOffset(posterbottom).top + posterbottom.clientHeight)) ||
-          ((window.scrollY + window.innerHeight - scrollbar) <
-            (getOffset(posterbottom).top + minsize))) {
-          prbottom.style.bottom = 0;
-        } else {
-          prbottom.style.bottom = ((getOffset(posterbottom).top + posterbottom.clientHeight) -
-            (window.scrollY + window.innerHeight - scrollbar + scrollcheat)) + "px";
-        }
-      }
-    }
-  }
-
-  var messcase = false;
-  var posterleft = 0;
-  var oldprtop = null;
-  var oldprbottom = null;
-  var minsize = 250;
-  var scrollbar = 0;
-  var scrollcheat = 0;
-
-  var scrolldiv = document.createElement("div");
-  scrolldiv.style.width = "100px";
-  scrolldiv.style.height = "100px";
-  scrolldiv.style.overflow = "scroll";
-  scrolldiv.style.position = "fixed";
-  scrolldiv.style.top = "-9999px";
-  scrolldiv.style.left = "-9999px";
-  document.body.appendChild(scrolldiv);
-  var scrollbarheight = scrolldiv.offsetHeight - scrolldiv.clientHeight;
-  document.body.removeChild(scrolldiv);
-
   var posters = document.getElementById("mesdiscussions").querySelectorAll("table.messagetable td.messCase1");
   for(let poster of posters) {
-    if(!messcase) {
-      messcase = true;
-    }
-    if(!posterleft) {
-      posterleft = getOffset(poster).left + 1;
-    }
-    if(poster.clientHeight > minsize) {
+    if(poster.clientHeight > 200) {
       poster.style.position = "relative";
       let pr_div = document.createElement("div");
-      // pr_div.style.display = "none";
+      pr_div.setAttribute("postalrecall", "postalrecall"); // pour hfr infos rapides
       pr_div.style.position = "absolute";
       pr_div.style.padding = "4px";
       pr_div.style.bottom = "0";
       pr_div.style.left = "0";
-      pr_div.setAttribute("postalrecall", "postalrecall");
+      pr_div.style.boxSizing = "border-box";
+      pr_div.style.height = "calc(100% - 180px)";
+      pr_div.style.display = "flex";
+      pr_div.style.flexDirection = "column";
+      pr_div.style.justifyContent = "flex-end";
       let pr_b = document.createElement("b");
       pr_b.setAttribute("class", "s2");
+      pr_b.style.position = "sticky";
+      pr_b.style.bottom = "4px";
       pr_b.appendChild(document.createTextNode(poster.querySelector("div > b.s2").textContent));
       pr_div.appendChild(pr_b);
       poster.appendChild(pr_div);
     }
   }
-
-  if(messcase) {
-    window.addEventListener("scroll", postalrecall, false);
-    postalrecall();
-  }
-
 }, 5000);
