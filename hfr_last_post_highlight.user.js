@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Last Post Highlight
-// @version       2.1.5
+// @version       2.1.6
 // @namespace     roger21.free.fr
 // @description   Permet de distinguer les posts lus des posts non lus par l'ajout d'une diode sur les posts et en affichant une ligne de séparation (optionnelle) et répare les ancres cassées (en cas de suppression de post).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2825 $
+// $Rev: 2872 $
 
 // historique :
+// 2.1.6 (16/04/2021) :
+// - modernisation du code de défilement de la page (pour la navigation sur les leds)
 // 2.1.5 (02/02/2021) :
 // - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 2.1.4 (17/09/2020) :
@@ -818,24 +820,13 @@ gmMenu("\u200b[HFR] Last Post Highlight -> Configuration", show_config_window);
 /* récupération des paramètres, réparation de l'ancre et affichage des leds et de la ligne de séparation */
 /* ----------------------------------------------------------------------------------------------------- */
 
-// function permettant de connaitre la position absolue d'un element
-function get_offset(p_element) {
-  var _x = 0;
-  var _y = 0;
-  while(p_element && !isNaN(p_element.offsetLeft) && !isNaN(p_element.offsetTop)) {
-    _x += p_element.offsetLeft - p_element.scrollLeft;
-    _y += p_element.offsetTop - p_element.scrollTop;
-    p_element = p_element.offsetParent;
-  }
-  return {
-    top: _y,
-    left: _x
-  };
-}
-
 // fonction permettant de scroller la page vers un élement donné
 function scroll_to_element(p_element) {
-  window.scrollTo(0, get_offset(p_element).top);
+  window.scrollTo({
+    left: 0,
+    top: window.scrollY + p_element.getBoundingClientRect().y,
+    behavior: "smooth",
+  });
 }
 
 // fonction de gestion du click sur les leds (navigation ou affichage de la fenêtre de configuration)

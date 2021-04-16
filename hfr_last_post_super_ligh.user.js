@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Last Post Super Light
-// @version       1.1.2
+// @version       1.1.3
 // @namespace     roger21.free.fr
 // @description   Version fortement allégée de [HFR] Last Post Highlight, sans fenêtre de configuration ni sections optionnelles ni réparation d'ancres (configuration possible des couleurs des leds et de la ligne de séparation dans le code).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -17,7 +17,7 @@
 
 /*
 
-Copyright © 2019-2020 roger21@free.fr
+Copyright © 2019-2021 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -32,9 +32,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1751 $
+// $Rev: 2872 $
 
 // historique :
+// 1.1.3 (16/04/2021) :
+// - modernisation du code de défilement de la page (pour la navigation sur les leds)
 // 1.1.2 (12/03/2020) :
 // - adaptation du code de recherche des leds pour fonctionner avec [HFR] Chat
 // 1.1.1 (13/02/2020) :
@@ -123,24 +125,13 @@ document.getElementsByTagName("head")[0].appendChild(style);
 /* création des leds et de la ligne de séparation */
 /* ---------------------------------------------- */
 
-// function permettant de connaitre la position absolue d'un element
-function get_offset(p_element) {
-  var _x = 0;
-  var _y = 0;
-  while(p_element && !isNaN(p_element.offsetLeft) && !isNaN(p_element.offsetTop)) {
-    _x += p_element.offsetLeft - p_element.scrollLeft;
-    _y += p_element.offsetTop - p_element.scrollTop;
-    p_element = p_element.offsetParent;
-  }
-  return {
-    top: _y,
-    left: _x
-  };
-}
-
 // fonction permettant de scroller la page vers un élement donné
 function scroll_to_element(p_element) {
-  window.scrollTo(0, get_offset(p_element).top);
+  window.scrollTo({
+    left: 0,
+    top: window.scrollY + p_element.getBoundingClientRect().y,
+    behavior: "smooth",
+  });
 }
 
 // fonction de gestion de la navigation sur les leds

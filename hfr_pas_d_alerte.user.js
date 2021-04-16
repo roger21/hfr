@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Pas d'alerte
-// @version       1.0.7
+// @version       1.0.8
 // @namespace     roger21.free.fr
 // @description   Permet de savoir si une alerte de modération a été lancée en passant la souris sur le bouton.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -32,9 +32,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2802 $
+// $Rev: 2872 $
 
 // historique :
+// 1.0.8 (16/04/2021) :
+// - modernisation du code de positionnement de la popup
 // 1.0.7 (26/01/2021) :
 // - correction d'un problème de popup fantôme
 // 1.0.6 (13/02/2020) :
@@ -106,21 +108,6 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
   let timer = null;
   let target = null;
-  let targetoffset = null;
-
-  function offset(e) {
-    let x = 0;
-    let y = 0;
-    while(e && !isNaN(e.offsetLeft) && !isNaN(e.offsetTop)) {
-      x += e.offsetLeft - e.scrollLeft;
-      y += e.offsetTop - e.scrollTop;
-      e = e.offsetParent;
-    }
-    return {
-      left: x,
-      top: y,
-    };
-  }
 
   function updateimg() {
     fetch(target.parentElement.href, {
@@ -164,12 +151,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
     window.clearTimeout(timer);
     target = this;
     timer = window.setTimeout(updateimg, 421);
-    targetoffset = offset(target);
     popupimg.src = throbber;
     popup.className = "hfr_gm_pda_r21_white";
     target.className = "hfr_gm_pda_r21_white";
-    popup.style.left = (targetoffset.left - 70 - 8 - 4 + 30) + "px";
-    popup.style.top = (targetoffset.top - 50 - 8 - 4 - 15) + "px";
+    popup.style.left = (window.scrollX + target.getBoundingClientRect().x - 70 - 8 - 4 + 30) + "px";
+    popup.style.top = (window.scrollY + target.getBoundingClientRect().y - 50 - 8 - 4 - 15) + "px";
     popup.style.opacity = "1";
     popup.style.visibility = "visible"; // mauvais code (à virer)
   }

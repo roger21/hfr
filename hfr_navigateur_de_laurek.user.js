@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Navigateur de laureka
-// @version       3.1.4
+// @version       3.1.5
 // @namespace     roger21.free.fr
 // @description   Ajoute une barre de navigation qui permet de naviguer directement d'un laureka à l'autre sur le topic culture générale (la barre a de nombreuses options, voir les tooltips pour les détails).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -38,9 +38,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2778 $
+// $Rev: 2872 $
 
 // historique :
+// 3.1.5 (16/04/2021) :
+// - modernisation du code de défilement de la page (pour la navigation) ->
+// et du code de positionnement de la barre
 // 3.1.4 (05/01/2021) :
 // - amélioration des dimensions dans la barre pour permetre une meilleur gestion du zoom de la page
 // 3.1.3 (13/02/2020) :
@@ -304,21 +307,6 @@ Promise.all([
   // destruction des paramètres de l'action en cours (ils seront regénérés fraichement si besoin)
   GM.deleteValue("go");
   GM.deleteValue("lastpagecall");
-
-  // function permettant de connaitre la position absolue d'un element
-  function getOffset(el) {
-    var _x = 0;
-    var _y = 0;
-    while(el && !isNaN(el.offsetLeft) && !isNaN(el.offsetTop)) {
-      _x += el.offsetLeft - el.scrollLeft;
-      _y += el.offsetTop - el.scrollTop;
-      el = el.offsetParent;
-    }
-    return {
-      top: _y,
-      left: _x
-    };
-  }
 
   // div et fonction pour le blink
   var style = document.createElement("style");
@@ -658,7 +646,7 @@ Promise.all([
   // création de la navtable
   style = document.createElement("style");
   style.setAttribute("type", "text/css");
-  style.textContent = "#navtablelaureka td > span{padding:0 5px;}#navtablelaureka td > img:hover, #navtablelaureka td > span:hover{background-color:rgba(255,255,255,0.2);}#navtablelaureka.nnavtablebigger td > img{height:25px;}#navtablelaureka.nnavtablebigger td > span{font-size:16px;}";
+  style.textContent = "#navtablelaureka td > span{padding:0 5px;}#navtablelaureka td > img:hover, #navtablelaureka td > span:hover{background-color:rgba(255,255,255,0.2);}#navtablelaureka.navtablebigger td > img{height:25px;}#navtablelaureka.navtablebigger td > span{font-size:16px;}";
   document.getElementsByTagName("head")[0].appendChild(style);
   var navtable = document.createElement("table");
   if(display) navtable.style.display = "table";
@@ -670,7 +658,7 @@ Promise.all([
   navtable.style.bottom = "0";
   navtable.setAttribute("class", "main");
   if(mal_voyant) {
-    navtable.setAttribute("class", "main nnavtablebigger");
+    navtable.setAttribute("class", "main navtablebigger");
   }
   var navtr = document.createElement("tr");
   navtr.setAttribute("class", "cBackHeader fondForum2PagesBas");
@@ -827,7 +815,7 @@ Promise.all([
   // function de gestion de la position et de la taille de la navtable pour son initialisation
   // et en cas de resize ou de scroll horizontal de la fenêtre
   function display_navtable(e) {
-    navtable.style.left = (getOffset(tablemain).left - window.scrollX) + "px";
+    navtable.style.left = (tablemain.getBoundingClientRect().x) + "px";
     navtable.style.width = (tablemain.offsetWidth) + "px";
   }
 
@@ -958,8 +946,12 @@ Promise.all([
   }
 
   function scrolltohigh(post) {
-    window.scrollTo(
-      0, getOffset(document.getElementById("para" + post).parentElement.parentElement.parentElement.parentElement).top);
+    window.scrollTo({
+      left: 0,
+      top: window.scrollY + document.getElementById("para" + post)
+        .parentElement.parentElement.parentElement.parentElement.getBoundingClientRect().y,
+      behavior: "smooth",
+    });
   }
 
   // initialisation de la page
