@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Alerte Qualitaÿ mod_r21
-// @version       3.0.2
+// @version       3.0.3
 // @namespace     roger21.free.fr
 // @description   Permet de signaler une Alerte Qualitaÿ à la communauté.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -45,9 +45,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2819 $
+// $Rev: 2898 $
 
 // historique :
+// 3.0.3 (22/05/2021) :
+// - ajout d'une confirmation avant l'accès au formulaire de l'alerte ->
+// (pour éviter une éventuelle confusion avec une alerte de modération)
 // 3.0.2 (02/02/2021) :
 // - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 3.0.1 (09/06/2020) :
@@ -294,8 +297,7 @@ style.textContent =
   "div.gm_hfraq_r21_buttons{float:right;text-align:right;}" +
   "div.gm_hfraq_r21_buttons > img{margin-left:8px;cursor:pointer;}";
 if(box_shadow) {
-  style.textContent += "div#gm_hfraq_r21_alerte_popup" +
-    "{box-shadow:4px 4px 4px 0 rgba(0, 0, 0, 0.4);}";
+  style.textContent += "div#gm_hfraq_r21_alerte_popup{box-shadow:4px 4px 4px 0 rgba(0, 0, 0, 0.4);}";
 }
 if(!ff) {
   style.textContent += "div#gm_hfraq_r21_alerte_popup select:not(.ff){padding:0 24px 0 4px;}"
@@ -853,14 +855,15 @@ function show_popup(p_event) {
   buttons.style.display = "block";
   // transmission des données de l'alerte (si le post est déjà signalé)
   // et des données du post sur le bouton valider de la popup
-  save.setAttribute("data-alerte", this.getAttribute("data-alerte"));
-  save.setAttribute("data-poster", this.getAttribute("data-poster"));
-  save.setAttribute("data-post-id", this.getAttribute("data-post-id"));
-  save.setAttribute("data-post-url", this.getAttribute("data-post-url"));
+  save.setAttribute("data-alerte", p_event.currentTarget.getAttribute("data-alerte"));
+  save.setAttribute("data-poster", p_event.currentTarget.getAttribute("data-poster"));
+  save.setAttribute("data-post-id", p_event.currentTarget.getAttribute("data-post-id"));
+  save.setAttribute("data-post-url", p_event.currentTarget.getAttribute("data-post-url"));
   // affichage des éléments de la popup en fonction du type
-  if(this.hasAttribute("data-alerte") && this.getAttribute("data-alerte") !== "") {
+  if(p_event.currentTarget.hasAttribute("data-alerte") &&
+    p_event.currentTarget.getAttribute("data-alerte") !== "") {
     // le post est déjà signalé, on ne peut que plussoyer
-    let l_alerte = topic_alertes[this.getAttribute("data-alerte")];
+    let l_alerte = topic_alertes[p_event.currentTarget.getAttribute("data-alerte")];
     plus_div.style.display = "block";
     plus_title.textContent =
       l_alerte.nom + " (par " + l_alerte.pseudal + ", le " + cuter_date(l_alerte.date) + ")";
@@ -1069,7 +1072,15 @@ Promise.all([
               l_aq_img.setAttribute("data-post-url", l_post_url);
               // ajout de la gestion des clics pour signaler ou ouvrir la fenêtre de configuarion
               l_aq_img.addEventListener("contextmenu", prevent_default, false);
-              l_aq_img.addEventListener("click", show_popup, false);
+              l_aq_img.addEventListener("click", function(p_event) {
+                if(window.confirm(
+                    "Bonjour, vous êtes sur le point de signaler une Alerte Qualitaÿ,\n\n\n" +
+                    "IL NE S'AGIT PAS D'UNE ALERTE DE MODÉRATION.\n\n\n" +
+                    "Si vous vouliez faire une alerte de modération, merci de cliquer sur Annuler, " +
+                    "sinon cliquez sur OK pour continuer.") === true) {
+                  show_popup(p_event);
+                }
+              }, false);
               l_aq_img.addEventListener("mouseup", mouseup_config, false);
               // ajout du bouton
               l_aq_div.appendChild(l_aq_img);
