@@ -40,10 +40,10 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2989 $
+// $Rev: 2992 $
 
 // historique :
-// 4.0.0 (xx/xx/2021) :
+// 4.0.0 (20/07/2021) :
 // - refonte du code / nouveau départ, ajout d'une fenêtre de configuration ->
 // et ajout d'options de filtrage par catégorie, par topic et par utilisateur
 
