@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Bloque liste mod_r21
-// @version       4.0.1
+// @version       4.1.0
 // @namespace     roger21.free.fr
 // @description   Permet de filtrer les messages des utilisateurs.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3001 $
+// $Rev: 3006 $
 
 // historique :
+// 4.1.0 (21/07/2021) :
+// - ajout du filtrage intermédiaire "sauf pour les citations" pour les utilisateurs
+// - désactivation de l'option "sauf pour les citations" si l'option "masquer les aperçus" n'est pas cochée
+// - ajout d'un style sur les popups lorsque la bloque liste est désactivée
 // 4.0.1 (21/07/2021) :
 // - correction de la détection des citations (signalé par cosmoschtroumpf)
 // 4.0.0 (20/07/2021) :
@@ -129,6 +133,7 @@ const gmhfrblr21_parameters_default =
   "\"prive\":{\"a\":true,\"d\":false,\"h\":false,\"s\":false,\"e\":false}}"; // json
 const gmhfrblr21_bloque_liste_default = "[]"; // json
 const gmhfrblr21_always_hide_snippets_list_default = "[]"; // json
+const gmhfrblr21_soft_always_hide_snippets_list_default = "[]"; // json
 
 /* ---------------------- */
 /* les variables globales */
@@ -145,6 +150,7 @@ let gmhfrblr21_always_color_snippets;
 let gmhfrblr21_parameters;
 let gmhfrblr21_bloque_liste;
 let gmhfrblr21_always_hide_snippets_list;
+let gmhfrblr21_soft_always_hide_snippets_list;
 let user_quote_color;
 let config_position;
 let category = null;
@@ -220,22 +226,27 @@ l_style.textContent =
   "tbody > tr:not(.gmhfrblr21_snippet_type), " +
   ".gmhfrblr21_hide_snippets, " +
   ".gmhfrblr21_always_hide_snippets, " +
+  ".gmhfrblr21_soft_always_hide_snippets, " +
   ".gmhfrblr21_with_always_hide_snippets{display:none;}" +
   // styles pour les pastille de filtrage par utilisateur
   "div.gmhfrblr21_dot{width:8px;height:8px;border:1px solid #c0c0c0;border-radius:20px;cursor:pointer;" +
   "box-sizing:border-box;}" +
   "div.gmhfrblr21_dot.gmhfrblr21_dot_on{border:0;background-color:#b81d1d;}" +
+  "div.gmhfrblr21_dot.gmhfrblr21_dot_soft{border:0;background-color:#1d60b8;}" +
   // styles pour les popups
   "div.gmhfrblr21_popup{position:absolute;font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:12px;" +
   "border:1px solid #242424;padding:8px 12px;background:linear-gradient(#ffffff, #f7f7ff);color:#000000;" +
   "z-index:1001;cursor:default;}" +
+  "div.gmhfrblr21_popup.gmhfrblr21_disabled{background:linear-gradient(#ffffff, #fff0f0);}" +
   "div.gmhfrblr21_popup > div.gmhfrblr21_title{font-weight:bold;cursor:default;margin:0 0 8px 0;}" +
   "div.gmhfrblr21_popup > div.gmhfrblr21_title > img{display:block;float:right;margin:0 0 0 8px;" +
   "cursor:pointer;}" +
   "div.gmhfrblr21_popup div.gmhfrblr21_flex{display:flex;align-items:center;height:16px;cursor:default;}" +
   "div.gmhfrblr21_popup div.gmhfrblr21_flex > label{display:block;flex-grow:1;cursor:pointer;}" +
+  "div.gmhfrblr21_popup div.gmhfrblr21_flex > label.gmhfrblr21_disabled{color:#c0c0c0;cursor:default;}" +
   "div.gmhfrblr21_popup div.gmhfrblr21_flex > input[type=\"checkbox\"]{display:block;margin:0 0 0 8px;" +
   "cursor:pointer;}" +
+  "div.gmhfrblr21_popup div.gmhfrblr21_flex > input[type=\"checkbox\"]:disabled{cursor:default;}" +
   "div.gmhfrblr21_popup div.gmhfrblr21_flex > input[type=\"radio\"]{display:block;margin:0;cursor:pointer;}" +
   "div.gmhfrblr21_popup div.gmhfrblr21_flex.gmhfrblr21_profile{margin:0 0 4px 0;}" +
   "div.gmhfrblr21_popup div.gmhfrblr21_flex.gmhfrblr21_profile > input:first-of-type{margin:0 4px 0 8px;}" +
@@ -703,7 +714,8 @@ function add_pseudo(p_pseudo) {
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste add_pseudo gmhfrblr21_bloque_liste avant : ",
+      "DEBUG [HFR] Bloque liste add_pseudo " +
+      "gmhfrblr21_bloque_liste avant : ",
       JSON.stringify(gmhfrblr21_bloque_liste));
   }
 
@@ -715,12 +727,14 @@ function add_pseudo(p_pseudo) {
       ignorePunctuation: false,
       numeric: false,
     }));
-  GM.setValue("gmhfrblr21_bloque_liste", JSON.stringify(gmhfrblr21_bloque_liste));
+  GM.setValue("gmhfrblr21_bloque_liste",
+    JSON.stringify(gmhfrblr21_bloque_liste));
 
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste add_pseudo gmhfrblr21_bloque_liste après : ",
+      "DEBUG [HFR] Bloque liste add_pseudo " +
+      "gmhfrblr21_bloque_liste après : ",
       JSON.stringify(gmhfrblr21_bloque_liste));
   }
 
@@ -732,22 +746,26 @@ function remove_pseudo(p_pseudo) {
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste remove_pseudo gmhfrblr21_bloque_liste avant : ",
+      "DEBUG [HFR] Bloque liste remove_pseudo " +
+      "gmhfrblr21_bloque_liste avant : ",
       JSON.stringify(gmhfrblr21_bloque_liste));
   }
 
   remove_always_hidden_pseudo(p_pseudo);
+  remove_soft_always_hidden_pseudo(p_pseudo);
 
   let l_index = gmhfrblr21_bloque_liste.indexOf(normalize_pseudo(p_pseudo));
   if(l_index >= 0) {
     gmhfrblr21_bloque_liste.splice(l_index, 1);
-    GM.setValue("gmhfrblr21_bloque_liste", JSON.stringify(gmhfrblr21_bloque_liste));
+    GM.setValue("gmhfrblr21_bloque_liste",
+      JSON.stringify(gmhfrblr21_bloque_liste));
   }
 
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste remove_pseudo gmhfrblr21_bloque_liste après : ",
+      "DEBUG [HFR] Bloque liste remove_pseudo " +
+      "gmhfrblr21_bloque_liste après : ",
       JSON.stringify(gmhfrblr21_bloque_liste));
   }
 
@@ -774,7 +792,8 @@ function add_always_hidden_pseudo(p_pseudo) {
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste add_always_hidden_pseudo gmhfrblr21_always_hide_snippets_list avant : ",
+      "DEBUG [HFR] Bloque liste add_always_hidden_pseudo " +
+      "gmhfrblr21_always_hide_snippets_list avant : ",
       JSON.stringify(gmhfrblr21_always_hide_snippets_list));
   }
 
@@ -786,12 +805,14 @@ function add_always_hidden_pseudo(p_pseudo) {
       ignorePunctuation: false,
       numeric: false,
     }));
-  GM.setValue("gmhfrblr21_always_hide_snippets_list", JSON.stringify(gmhfrblr21_always_hide_snippets_list));
+  GM.setValue("gmhfrblr21_always_hide_snippets_list",
+    JSON.stringify(gmhfrblr21_always_hide_snippets_list));
 
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste add_always_hidden_pseudo gmhfrblr21_always_hide_snippets_list après : ",
+      "DEBUG [HFR] Bloque liste add_always_hidden_pseudo " +
+      "gmhfrblr21_always_hide_snippets_list après : ",
       JSON.stringify(gmhfrblr21_always_hide_snippets_list));
   }
 
@@ -803,20 +824,23 @@ function remove_always_hidden_pseudo(p_pseudo) {
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste remove_always_hidden_pseudo gmhfrblr21_always_hide_snippets_list avant : ",
+      "DEBUG [HFR] Bloque liste remove_always_hidden_pseudo " +
+      "gmhfrblr21_always_hide_snippets_list avant : ",
       JSON.stringify(gmhfrblr21_always_hide_snippets_list));
   }
 
   let l_index = gmhfrblr21_always_hide_snippets_list.indexOf(normalize_pseudo(p_pseudo));
   if(l_index >= 0) {
     gmhfrblr21_always_hide_snippets_list.splice(l_index, 1);
-    GM.setValue("gmhfrblr21_always_hide_snippets_list", JSON.stringify(gmhfrblr21_always_hide_snippets_list));
+    GM.setValue("gmhfrblr21_always_hide_snippets_list",
+      JSON.stringify(gmhfrblr21_always_hide_snippets_list));
   }
 
   // DEBUG
   if(do_debug) {
     console.log(
-      "DEBUG [HFR] Bloque liste remove_always_hidden_pseudo gmhfrblr21_always_hide_snippets_list après : ",
+      "DEBUG [HFR] Bloque liste remove_always_hidden_pseudo " +
+      "gmhfrblr21_always_hide_snippets_list après : ",
       JSON.stringify(gmhfrblr21_always_hide_snippets_list));
   }
 
@@ -835,6 +859,93 @@ function is_quoted_pseudo_always_hidden(p_quoted_pseudo) {
 // fonction de vérification si un pseudo normalisé est dans la liste des pseudos toujours masqués
 function is_normalized_pseudo_always_hidden(p_normalized_pseudo) {
   return gmhfrblr21_always_hide_snippets_list.includes(p_normalized_pseudo);
+}
+
+// fonction d'ajout d'un pseudo à la liste des pseudos toujours masqués mais pas trop
+function add_soft_always_hidden_pseudo(p_pseudo) {
+
+  // DEBUG
+  if(do_debug) {
+    console.log(
+      "DEBUG [HFR] Bloque liste add_soft_always_hidden_pseudo " +
+      "gmhfrblr21_soft_always_hide_snippets_list avant : ",
+      JSON.stringify(gmhfrblr21_soft_always_hide_snippets_list));
+  }
+
+  gmhfrblr21_soft_always_hide_snippets_list.push(normalize_pseudo(p_pseudo));
+  gmhfrblr21_soft_always_hide_snippets_list
+    .sort((p_pseudo_a, p_pseudo_b) => p_pseudo_a.localeCompare(p_pseudo_b, "fr", {
+      usage: "sort",
+      sensitivity: "base",
+      ignorePunctuation: false,
+      numeric: false,
+    }));
+  GM.setValue("gmhfrblr21_soft_always_hide_snippets_list",
+    JSON.stringify(gmhfrblr21_soft_always_hide_snippets_list));
+
+  // DEBUG
+  if(do_debug) {
+    console.log(
+      "DEBUG [HFR] Bloque liste add_soft_always_hidden_pseudo " +
+      "gmhfrblr21_soft_always_hide_snippets_list après : ",
+      JSON.stringify(gmhfrblr21_soft_always_hide_snippets_list));
+  }
+
+}
+
+// fonction de suppression d'un pseudo de la liste des pseudos toujours masqués mais pas trop
+function remove_soft_always_hidden_pseudo(p_pseudo) {
+
+  // DEBUG
+  if(do_debug) {
+    console.log(
+      "DEBUG [HFR] Bloque liste remove_soft_always_hidden_pseudo " +
+      "gmhfrblr21_soft_always_hide_snippets_list avant : ",
+      JSON.stringify(gmhfrblr21_soft_always_hide_snippets_list));
+  }
+
+  let l_index = gmhfrblr21_soft_always_hide_snippets_list.indexOf(normalize_pseudo(p_pseudo));
+  if(l_index >= 0) {
+    gmhfrblr21_soft_always_hide_snippets_list.splice(l_index, 1);
+    GM.setValue("gmhfrblr21_soft_always_hide_snippets_list",
+      JSON.stringify(gmhfrblr21_soft_always_hide_snippets_list));
+  }
+
+  // DEBUG
+  if(do_debug) {
+    console.log(
+      "DEBUG [HFR] Bloque liste remove_soft_always_hidden_pseudo " +
+      "gmhfrblr21_soft_always_hide_snippets_list après : ",
+      JSON.stringify(gmhfrblr21_soft_always_hide_snippets_list));
+  }
+
+}
+
+// fonction de vérification si un pseudo est dans la liste des pseudos toujours masqués mais pas trop
+function is_pseudo_soft_always_hidden(p_pseudo) {
+  return gmhfrblr21_soft_always_hide_snippets_list
+    .includes(normalize_pseudo(p_pseudo));
+}
+
+// fonction de vérification si le pseudo d'une citation est dans la liste
+// des pseudos toujours masqués mais pas trop
+function is_quoted_pseudo_soft_always_hidden(p_quoted_pseudo) {
+  return gmhfrblr21_soft_always_hide_snippets_list
+    .includes(add_buggy_encoding_and_normalize_pseudo(p_quoted_pseudo));
+}
+
+// fonction de vérification si un pseudo normalisé est dans la liste des pseudos toujours masqués mais pas trop
+function is_normalized_pseudo_soft_always_hidden(p_normalized_pseudo) {
+  return gmhfrblr21_soft_always_hide_snippets_list
+    .includes(p_normalized_pseudo);
+}
+
+// fonction de vérification si un pseudo est dans la liste des pseudos toujours masqués
+// ou dans la liste des pseudos toujours masqués mais pas trop
+function pseudo_always_hidden_status(p_pseudo) {
+  let l_normalize_pseudo = normalize_pseudo(p_pseudo);
+  return gmhfrblr21_always_hide_snippets_list.includes(l_normalize_pseudo) ? "on" :
+    (gmhfrblr21_soft_always_hide_snippets_list.includes(l_normalize_pseudo) ? "soft" : "off");
 }
 
 /* --------------------------------------------------------- */
@@ -1044,14 +1155,24 @@ function close_popups(p_event) {
 
 // fonction de gestion du clic sur les pastilles de filtrage par utilisateur
 function dot_changed(p_this) {
-  if(p_this.dataset.status === "on") {
-    p_this.dataset.status = "off";
+  if(p_this.dataset.status === "on") { // de "on" à "soft"
+    p_this.dataset.status = "soft";
     p_this.classList.remove("gmhfrblr21_dot_on");
+    p_this.classList.add("gmhfrblr21_dot_soft");
     remove_always_hidden_pseudo(p_this.dataset.pseudo);
+    add_soft_always_hidden_pseudo(p_this.dataset.pseudo);
     if(gmhfrblr21_parameters[profile].d === false) {
       remove_always_hide_snippets();
+      add_soft_always_hide_snippets();
     }
-  } else {
+  } else if(p_this.dataset.status === "soft") { // de "soft" à "off"
+    p_this.dataset.status = "off";
+    p_this.classList.remove("gmhfrblr21_dot_soft");
+    remove_soft_always_hidden_pseudo(p_this.dataset.pseudo);
+    if(gmhfrblr21_parameters[profile].d === false) {
+      remove_soft_always_hide_snippets();
+    }
+  } else { // de "off" à "on"
     p_this.dataset.status = "on";
     p_this.classList.add("gmhfrblr21_dot_on");
     add_always_hidden_pseudo(p_this.dataset.pseudo);
@@ -1062,13 +1183,15 @@ function dot_changed(p_this) {
 }
 
 // fonction de création des pastilles de filtrage par utilisateur
-function create_dot(p_pseudo, p_on, p_close) {
+function create_dot(p_pseudo, p_status, p_close) {
   let l_dot = document.createElement("div");
   l_dot.setAttribute("class", "gmhfrblr21_dot");
-  l_dot.setAttribute("title", "Toujours masquer les aperçus pour " + p_pseudo);
+  l_dot.setAttribute("title", "Toujours masquer les aperçus pour " +
+    p_pseudo + " (rouge)\nou \u00ab sauf pour les citations \u00bb (bleu)");
   l_dot.dataset.pseudo = p_pseudo;
-  l_dot.dataset.status = p_on ? "on" : "off";
-  l_dot.classList.toggle("gmhfrblr21_dot_on", p_on);
+  l_dot.dataset.status = p_status;
+  l_dot.classList.toggle("gmhfrblr21_dot_on", p_status === "on");
+  l_dot.classList.toggle("gmhfrblr21_dot_soft", p_status === "soft");
   l_dot.addEventListener("click", prevent_default, false);
   l_dot.addEventListener("contextmenu", prevent_default, false);
   l_dot.addEventListener("mousedown", prevent_default, false);
@@ -1079,6 +1202,19 @@ function create_dot(p_pseudo, p_on, p_close) {
     }
   }, false);
   return l_dot;
+}
+
+// fonction de mise à jour de l'option "sauf pour les citations" en fonction de l'option "masquer les aperçus"
+function update_except_quote(p_enabled) {
+  if(p_enabled) {
+    document.querySelector("label[for=\"gmhfrblr21_except_quotes_input\"]")
+      .classList.remove("gmhfrblr21_disabled");
+    document.getElementById("gmhfrblr21_except_quotes_input").removeAttribute("disabled");
+  } else {
+    document.querySelector("label[for=\"gmhfrblr21_except_quotes_input\"]")
+      .classList.add("gmhfrblr21_disabled");
+    document.getElementById("gmhfrblr21_except_quotes_input").setAttribute("disabled", "disabled");
+  }
 }
 
 // fonction de gestion du changement de profil
@@ -1131,6 +1267,9 @@ function profile_changed(p_event) {
   document.getElementById("gmhfrblr21_hide_posts_with_input").checked = gmhfrblr21_parameters[profile].h;
   document.getElementById("gmhfrblr21_hide_snippets_input").checked = gmhfrblr21_parameters[profile].s;
   document.getElementById("gmhfrblr21_except_quotes_input").checked = gmhfrblr21_parameters[profile].e;
+  update_except_quote(gmhfrblr21_parameters[profile].s);
+  document.getElementById("gmhfrblr21_config")
+    .classList.toggle("gmhfrblr21_disabled", gmhfrblr21_parameters[profile].d);
   // mise en place du nouveau profil
   if(gmhfrblr21_parameters[l_old_profile].d === false && gmhfrblr21_parameters[profile].d === false) {
     disable_bloque_liste();
@@ -1162,6 +1301,7 @@ function display_config(p_event) {
   let l_popup_config = document.createElement("div");
   l_popup_config.setAttribute("id", "gmhfrblr21_config");
   l_popup_config.setAttribute("class", "gmhfrblr21_popup");
+  l_popup_config.classList.toggle("gmhfrblr21_disabled", gmhfrblr21_parameters[profile].d);
   l_popup_config.addEventListener("contextmenu", prevent_default, false);
   l_popup_config.addEventListener("mouseup", function(p_event) {
     p_event.preventDefault();
@@ -1248,6 +1388,7 @@ function display_config(p_event) {
   l_disabled_input.addEventListener("change", function() {
     gmhfrblr21_parameters[profile].d = this.checked;
     GM.setValue("gmhfrblr21_parameters", JSON.stringify(gmhfrblr21_parameters));
+    l_popup_config.classList.toggle("gmhfrblr21_disabled", gmhfrblr21_parameters[profile].d);
 
     // DEBUG
     if(do_debug) {
@@ -1309,6 +1450,7 @@ function display_config(p_event) {
   l_hide_snippets_input.addEventListener("change", function() {
     gmhfrblr21_parameters[profile].s = this.checked;
     GM.setValue("gmhfrblr21_parameters", JSON.stringify(gmhfrblr21_parameters));
+    update_except_quote(this.checked);
 
     // DEBUG
     if(do_debug) {
@@ -1408,7 +1550,7 @@ function display_config(p_event) {
       let l_div_text = document.createElement("div");
       l_div_text.textContent = l_pseudo;
       l_pseudo_div.appendChild(l_div_text);
-      l_pseudo_div.appendChild(create_dot(l_pseudo, is_pseudo_always_hidden(l_pseudo), false));
+      l_pseudo_div.appendChild(create_dot(l_pseudo, pseudo_always_hidden_status(l_pseudo), false));
       l_remove_div.appendChild(l_pseudo_div);
       let l_remove_img = document.createElement("img");
       l_remove_img.setAttribute("src", img_remove);
@@ -1446,6 +1588,7 @@ function display_config(p_event) {
   l_popup_config.style.top = config_position.top;
   l_popup_config.style.left = config_position.left;
   document.body.appendChild(l_popup_config);
+  update_except_quote(gmhfrblr21_parameters[profile].s);
 }
 
 // fonction de création de la popup de blocage ou de déblocage d'un utilisateur
@@ -1460,6 +1603,7 @@ function display_question(p_event) {
   let l_popup_question = document.createElement("div");
   l_popup_question.setAttribute("id", "gmhfrblr21_question");
   l_popup_question.setAttribute("class", "gmhfrblr21_popup");
+  l_popup_question.classList.toggle("gmhfrblr21_disabled", gmhfrblr21_parameters[profile].d);
   l_popup_question.addEventListener("click", prevent_default, false);
   l_popup_question.addEventListener("contextmenu", prevent_default, false);
   l_popup_question.addEventListener("mousedown", prevent_default, false);
@@ -1482,7 +1626,7 @@ function display_question(p_event) {
   if(is_pseudo_blocked(l_pseudo)) {
     l_question.innerHTML = "Enlever <b>" + l_pseudo + "</b> de la bloque liste ?";
     // pastille de filtrage par utilisateur
-    l_buttons.appendChild(create_dot(l_pseudo, is_pseudo_always_hidden(l_pseudo), true));
+    l_buttons.appendChild(create_dot(l_pseudo, pseudo_always_hidden_status(l_pseudo), true));
     l_save.addEventListener("click", prevent_default, false);
     l_save.addEventListener("contextmenu", prevent_default, false);
     l_save.addEventListener("mousedown", prevent_default, false);
@@ -1586,6 +1730,10 @@ function hide_posts() {
       // masquage des aperçus des messages des utilisateurs toujours masqués
       if(is_normalized_pseudo_always_hidden(l_normalized_pseudo)) {
         l_snippet.classList.add("gmhfrblr21_always_hide_snippets");
+      }
+      // masquage des aperçus des messages des utilisateurs toujours masqués mais pas trop
+      if(is_normalized_pseudo_soft_always_hidden(l_normalized_pseudo)) {
+        l_snippet.classList.add("gmhfrblr21_soft_always_hide_snippets");
       }
       let l_snippet_td = document.createElement("td");
       l_snippet_td.setAttribute("colspan", "2");
@@ -2026,6 +2174,42 @@ function remove_always_hide_snippets() {
   }
 }
 
+// fonction de masquage des aperçus pour les utilisateurs toujours masqués mais pas trop
+function add_soft_always_hide_snippets() {
+  rehide_contents();
+  // masquage des aperçus des messages des utilisateurs toujours masqués mais pas trop
+  let l_post_snippets = document.querySelectorAll(
+    "div#mesdiscussions.mesdiscussions " +
+    "table.messagetable.gmhfrblr21_blocked_type > " +
+    "tbody > tr.gmhfrblr21_snippet_type:not(.gmhfrblr21_soft_always_hide_snippets)");
+  for(let l_snippet of l_post_snippets) {
+    let l_pseudo =
+      l_snippet.parentElement.querySelector("tr > td.messCase1 > div:not([postalrecall]) > b.s2")
+      .firstChild.nodeValue;
+    if(is_pseudo_soft_always_hidden(l_pseudo)) {
+      l_snippet.classList.add("gmhfrblr21_soft_always_hide_snippets");
+    }
+  }
+}
+
+// fonction de réaffichage des aperçus pour les utilisateurs qui ne sont plus toujours masqués mais pas trop
+function remove_soft_always_hide_snippets() {
+  rehide_contents();
+  // réaffichage des aperçus des messages des utilisateurs qui ne sont plus toujours masqués mais pas trop
+  let l_post_snippets = document.querySelectorAll(
+    "div#mesdiscussions.mesdiscussions " +
+    "table.messagetable.gmhfrblr21_blocked_type > " +
+    "tbody > tr.gmhfrblr21_snippet_type.gmhfrblr21_soft_always_hide_snippets");
+  for(let l_snippet of l_post_snippets) {
+    let l_pseudo =
+      l_snippet.parentElement.querySelector("tr > td.messCase1 > div:not([postalrecall]) > b.s2")
+      .firstChild.nodeValue;
+    if(!is_pseudo_soft_always_hidden(l_pseudo)) {
+      l_snippet.classList.remove("gmhfrblr21_soft_always_hide_snippets");
+    }
+  }
+}
+
 // fonction de désactivation de la bloque liste
 function disable_bloque_liste() {
   // désactivation des boutons
@@ -2106,6 +2290,7 @@ Promise.all([
   GM.getValue("gmhfrblr21_parameters", gmhfrblr21_parameters_default),
   GM.getValue("gmhfrblr21_bloque_liste", gmhfrblr21_bloque_liste_default),
   GM.getValue("gmhfrblr21_always_hide_snippets_list", gmhfrblr21_always_hide_snippets_list_default),
+  GM.getValue("gmhfrblr21_soft_always_hide_snippets_list", gmhfrblr21_soft_always_hide_snippets_list_default),
 ]).then(function([
   gmhfrblr21_img_bl_value,
   gmhfrblr21_color_hidden_value,
@@ -2118,6 +2303,7 @@ Promise.all([
   gmhfrblr21_parameters_value,
   gmhfrblr21_bloque_liste_value,
   gmhfrblr21_always_hide_snippets_list_value,
+  gmhfrblr21_soft_always_hide_snippets_list_value,
 ]) {
 
   // DEBUG
@@ -2131,6 +2317,9 @@ Promise.all([
     console.log(
       "DEBUG [HFR] Bloque liste promises gmhfrblr21_always_hide_snippets_list_value : ",
       JSON.stringify(gmhfrblr21_always_hide_snippets_list_value));
+    console.log(
+      "DEBUG [HFR] Bloque liste promises gmhfrblr21_always_hide_snippets_list_value : ",
+      JSON.stringify(gmhfrblr21_soft_always_hide_snippets_list_value));
   }
 
   gmhfrblr21_img_bl = gmhfrblr21_img_bl_value;
@@ -2144,6 +2333,7 @@ Promise.all([
   gmhfrblr21_parameters = JSON.parse(gmhfrblr21_parameters_value);
   gmhfrblr21_bloque_liste = JSON.parse(gmhfrblr21_bloque_liste_value);
   gmhfrblr21_always_hide_snippets_list = JSON.parse(gmhfrblr21_always_hide_snippets_list_value);
+  gmhfrblr21_soft_always_hide_snippets_list = JSON.parse(gmhfrblr21_soft_always_hide_snippets_list_value);
 
   // récupération de la catégorie et du topic si ils existent
   let l_fastsearch =
