@@ -22,10 +22,10 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 3217 $
+// modifications roger21 $Rev: 3221 $
 
 // historique :
-// 2.4.2 (13/11/2020) :
+// 2.4.2 (13/11/2021) :
 // - retour à reho.st pour le raccourci rehost
 // 2.4.1 (17/09/2020) :
 // - utilisation de images.weserv.nl pour le raccourci rehost
