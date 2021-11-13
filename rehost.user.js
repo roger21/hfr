@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          Rehost
-// @version       3.0.2
+// @version       3.1.0
 // @namespace     roger21.free.fr
-// @description   Permet de générer dans le presse-papier le BBCode de réhébergement d'une image sur reho.st ou images.weserv.nl à partir du menu contextuel de l'image.
+// @description   Permet de générer dans le presse-papier le BBCode de réhébergement d'une image sur reho.st, images.weserv.nl ou rehost.diberie.com à partir du menu contextuel de l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAQAAAABbAUdZAAAALElEQVR42mP4DwQMaMQHg8P8EOLz%2F%2F%2FnIcR%2FOPEZpARGUEH2w2EefgiBxS0ARNpzyS9f0t0AAAAASUVORK5CYII%3D
 // @include       *
 // @author        roger21
@@ -40,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2852 $
+// $Rev: 3218 $
 
 // historique :
+// 3.1.0 (13/11/2021) :
+// - possibilité de choisir entre reho.st, images.weserv.nl et rehost.diberie.com
 // 3.0.2 (04/03/2021) :
 // - ajout du choix de l'hébergeur dans les options du menu contextuel
 // 3.0.1 (02/02/2021) :
@@ -169,10 +171,11 @@ var iconSans = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%
 var iconFull = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACKUlEQVQ4y62TTWsUQRCGn%2BqZ2Y9ZzGKWuIQoSAhBQ4IQIkQED4L4D7zoDxDBgwfBPyHBk6iI6EUEEcGz5KA3PyBEVBRCooSQj2V3s9nM7kxPl4dJdhOvWlDQdDdPvfV2NfxjCMCjVx%2FvutRcbXW00EmybUGyYwFR3buuKEo%2BUMI8T25cmbkFwIOXn9fbraZz1qqmejjd4Yysaivq6r3nn%2BoAPkArcvlCIZS5N1tEbFKXBSZPrFLK1UjUsVEv8X6xQlmnCRhi7vo4qTPSA3QTMMbHF6Hr%2FWZyeJVi4Rv1qEaSdskVS0yPj7HwZYBqoYpzve4xmROCCnieEOkahdwmtfYGO8k2290mW9EKQXGNerRMEHgoIJL54u%2BzUsAzBo0dnTQmsru04x06rkPqLEgMLiVnDNozdV8BoApGhBIjNFplHCG7LiZKuoiUaTYGqRRH8X0DKj2A3wO4rIWyf5Kfv1YZKi1zZCCgaGIaGwMsrYwyVjmN78negx4AOMApiBHKuWFGS%2Bf5Mf%2BM6uA7jIVce4qJM7cph8exqcVpn%2BDvy1eFD2tHsQ6sg7M7cOnUGA74vrTI48YMtgaJhZso7pAC5xCFaxfeAgZB8GZrtFrrhCvzHLt8nzt%2BkJVVRR04p395gKIKgqICNhzEhhWi6kTfZfra9WALYU6auLg8O3IRTN8g9MD6QCRJTOBlg%2BADFAJ58fD113Mdy1RGlt6k9Weu%2F6ECX8l7POV%2FxB%2FDRRbjiYtbHQAAAABJRU5ErkJggg%3D%3D";
 var iconLargGran = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABv0lEQVQ4y82STWtTQRSGnzP3TpIb0rQJIZSKNoilSIqg4M6V%2BAOKontx51%2Fwr6hbEbRuhbrzB4hdaS1%2BoAs%2FSj40Hzd37sxxoWkazV7PamCYh%2Bc988K%2FHpke7j1%2BcdfG8fbIYb0XBDm6FQVQAkoUQQhu5%2FaNCzcB4inA2nj72uUz9WEmojhim2GMRxRcbnBZjNci1UrMo93XV4F5wChTO5xEcv%2F5R%2FLSHquNPYr2E5l3fOvVOXh3Fh2e5871LYIeic8APggiAmbE8tIHTPSG7uQ9aZ6CrVFdsnQHm%2Bgs9TwAIIgBcnzoM8gO6U06jH0X0ZRJ6CB4VAGdvTHHAapgSUjTBmleZugHDN0XUrdCNl6jXCj%2FWu4iA%2F1NTeJlOr0N8s4rkup3Cv4UXz9vkg22aKzU%2FvrGOYAPGS4cUokqdF%2BOWbXPMAGMW2ewUUOlQ2DteIIZIABIn0L5AXEitNpF2vYW8Y999pdP8La0C5pjohZBdYFBCBSLCedOXwERpOUYZyPicZ9m%2FSRNERSlXCqjYYFBycooiYrVdvPiXEl1LrFiKRCZBQYuz588fHpwaeJZ12lR5M%2FOK8YozuU7%2FDfzE%2B0PvACiZWk5AAAAAElFTkSuQmCC";
 var iconMedPrev = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABYklEQVQ4y92Rv0scYRCGn9lbc3juuaDgoYKmyWEjaaOWNtY2kipiq42KhaWQMsGksBZLSWVpb2ejYmF7hxwo4nk%2F3Nv9vttvUojiwt0fkLzdMPM%2B7wwD%2F7zkfbH18%2FTXUDC4inpv3dQR5jxPjU1VxLWSuHO4v720%2Berx3wOCYOjbxnI5LBSKvYKkndjw4M%2FFKtAbgEhYKBS5qTU5q%2BwQDj8QGUv1fpT5ie98mZlEJJfZ2s%2F6oQt0nSMI7hkcGMGR4D5UuKtHOHWI6HBfgKo2VQlbkaEex6T6TNsmPEYxdRJQQZVmX4DpxqEqtGJHpfYJl7%2BmbSOe6tOUS%2FmeX%2FCyZR7n4KmT8rm0y1pjjMULj8WPP%2FB9HwVEpP8JqCIoV7frWGs5NwYzPoC5XsFay9eFc1SzkX52HVfV1EztLZ%2FwMqcZg7UWVBt9AVEUH%2F8%2BvpxzeLOeJwiECg1eIeJ4bneO%2BL%2F0F2ZFngSiQbBTAAAAAElFTkSuQmCC";
-var iconThumb = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABAElEQVR42mNgGAUYoKh354TamYc%2B1M44AsEzj%2F0rn3L4b8XUgx8Ke3f0EzSgbuaR969ev%2Fr%2F5et3FPzi3af%2FQIPfEzZg1tF%2FIA3dBxz%2Bzzzu%2F7%2F3kMf%2F5FWG%2F19%2B%2BP4fKPeBoAH1s4%2F%2B%2BwA0IGdZ6v%2BstZb%2F41bo%2F%2Feb7vf%2F%2Bfuv%2F%2BtnH%2FlH0ICKaYf%2Fv%2Fn4%2Ff%2B8fXf%2Bn5nnD8a9m679f%2Fbu23%2BQ4YQNmHro%2F9uP3%2F4XLHL%2Fnz3X6X9Ut%2BH%2F0Dad%2F8%2Fegr1A2ICqqQcevnn34f%2FHLz%2F%2BfwDi95%2B%2Fg%2FErYCCCApigAQXdO7pqpx88XD39MDAKjyBF56EPoCgeTeiYAAAQA8BFxRnPewAAAABJRU5ErkJggg%3D%3D";
+var iconThumbMini = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABAElEQVR42mNgGAUYoKh354TamYc%2B1M44AsEzj%2F0rn3L4b8XUgx8Ke3f0EzSgbuaR969ev%2Fr%2F5et3FPzi3af%2FQIPfEzZg1tF%2FIA3dBxz%2Bzzzu%2F7%2F3kMf%2F5FWG%2F19%2B%2BP4fKPeBoAH1s4%2F%2B%2BwA0IGdZ6v%2BstZb%2F41bo%2F%2Feb7vf%2F%2Bfuv%2F%2BtnH%2FlH0ICKaYf%2Fv%2Fn4%2Ff%2B8fXf%2Bn5nnD8a9m679f%2Fbu23%2BQ4YQNmHro%2F9uP3%2F4XLHL%2Fnz3X6X9Ut%2BH%2F0Dad%2F8%2Fegr1A2ICqqQcevnn34f%2FHLz%2F%2BfwDi95%2B%2Fg%2FErYCCCApigAQXdO7pqpx88XD39MDAKjyBF56EPoCgeTeiYAAAQA8BFxRnPewAAAABJRU5ErkJggg%3D%3D";
 var iconConf = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAAAXNSR0IArs4c6QAAAzRJREFUOMt1k11oHHUUxX%2F%2Fmdmd3SSbTXbTajfQgG1ikZqCzdem20hqUmoNNoigUqwWW4KFglKpIcXSNx%2BUgi%2B%2BiBUUP8AioRZFsGgtMaZJY9U01mo%2BKM1mYz73K93ZnZnrQ7YSHzxwH8%2B593LOUayDJxhRgBfwAw6wCgjgAzxADsgXknG5x9H4L4zdsda6jz98v%2BfM6b5uoBwoe7nnyJ5PP%2FqgJ7Yr%2BmBRiP8VaG5s2N4Wi9Ue6HoiCjQBTU8%2F1d0Z29Va17V%2FX7R44b9QxbON4pherzd2dfCHjlBlhUfXND%2BA40rOsix7d3vnlURi7lLxNQewdd0XMKMtzXXHeo60X%2Fv5euXpU70tjQ07%2FWs8sVwRC3B0XRcFgaGrI1bf6689kk5nnERiLqU8wUjo3HvvvrC347EHcrkcps%2Fnuq7kASYmp1zHcair3aoBaJryZrNZray0jO%2B%2Bv3z7%2BcNHz2kC7tfffHtn9Pqvyx6vmXVdWQXsvjfOZNs7Hx%2Fu2Nc13HvqdBawXVdW%2Ff6S7F%2BTU8mBwaE5AZRRHvEC96No%2B3P8l1rTNNXExKS0790%2FJMIwgFLsvNh%2FvqX%2B4e1aJpORh3Y0TCFcAWYMFK6Cu8BqoVBwTNMUw2MoBRkUSQAFmRK%2F3wUcj8ejFCyJYgUo6LovUHri1ePtZ996c0c4XJUHnMqKoFi53IaRa6OrCjb2HD3c2n3gSQOwDcNwO%2FY8Wq3AGRsbnzUEzMimTRurq6uzCwuLbjgcRgT6ek%2BWHXzumS6AmpoaHNe9C5DJZlV9fb3MzMS3fvLZ56O65gvoN8Z%2Fl9%2FGbpgnTvblRaQ02tyUFxErWFFhB4PBgiuSA9y3z75jHDv%2BSvLOzEzq%2FBf9NxeXluLKKI8YQKCYf39JqT86cPlSZTgUkvWJW1hYVI2tbfOO7YwAVjFMSc1OxW2BpMAcivmXXjwk4VDI%2FnHwJ7V5y7b85i3bnJt%2F3JKqqrB96OCzNoqEQFxg2U7FbR1ArLSIlRbNF9D%2Bnl%2Fw5iwr3H%2Fhy5Xp6dsDwHQyndowO5tQFy5%2BdWt5ZWXWScULYqWl6NC6JpVHdKACCLFm7XyxcPcVS7TE2mbnHucfEGJoU7krLCIAAAAASUVORK5CYII%3D"
 var iconRehost = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABuklEQVR42u2XTUsCYRCAtaMdpLOeFeyHRCR16lB066jXIIIi7CBEEEGRXYpOQXSIiqBDWqFSCH3tCuUxqtsaBJG6rdNMjKHruom7rgb7wgMy7M4874fLvA6HPaoGADgRF%2BJBfEjAJPyck3I79Yr3IUPIOpJC7hHRIALninFuqtGjJeDiB04RCSkhZZOQkTwS5xouLQEPz1zil9ox8rwSXi0BHy%2BVDO0blDvNZ8KpFgjwnv%2FOfmA2UcPq4SMUZQUOLp9havMGRqNJGJxLQHD%2BDMYWU7C8%2F9CMhMC1NAVEPYGZ7TuYXLmqi1c4zrw0I5BF%2BlsS0GMcV6CEq2OZwPTWLawd5SCyI8DIwgXsJZ%2BaPQfGBIYj55DJSTUZ3z9K8Fn8skbg5PrV6D%2BhdYGJpTQoSrlzAtHdrBnfgtYF6DtgC9gCXS1QKBQgHA6D2%2B3%2BgX5TzDKBUCgElKoailkmQLNWC1DsXwkIRgRoz9UCFFMNsVFDUteSteEQ6rZkHm4YO9aUVtryOD9oZnNKzcIbkkCCSO9fF5MYL5XAh8YIIufa4OLaFxPV1czL%2BxTgE2sUP%2BdsfDVrIGMaXXsh%2FgYxMyaxXsAjHwAAAABJRU5ErkJggg%3D%3D";
 var iconWeserv = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAADTElEQVR42mP4T2PAQCcL9sfNXq5cRjl6uPkCdguAcuvMGg8mzyMb7QqYBDTk8sTdOC0AKqIkKN5efER9C16euPN41xVaWfDu2lNIuB%2FOWEgTC4Buh1iw1rCeJhb8%2FPjtRNkqoOn31pwm04INVq37omfQKpIPpS1crgQKgStT9mA18cH6c%2BRbcDRnCVDkQPK8LS5dQMbVaXvRtB0vXQkUB5LkWHAEbPqR7MVA9qf7rzc7dQK516bvh%2Bu5vfQ4KHpVy4HkneUnSLPgaC7CdAj4dPfVJocOkB0zD8BNX2vUcHv5ibVG9UD23ZUnibUAYvrh7EVw6UWLFuXm5mYlpvlJW3vym4TpewBJHzGL9KikgoICIAlkA0USvSMzY1KAjBj7oAIwmDx5MroFGyxb0NwOBM7OzsLCwoaGhvrauiqCssp8Usr80nqaOoYwAGSrCMgAxTXkVIGklrwaUFBcXFxFRQXFgmXgLINmOsSCpKQkaMFw9PbOwMk7%2FSc%2B2HgeJUtffbonYjpQHIhug6OkqakJ3QKg6Xsjp2OmRWQLQAF96fGBxLlAg9CK5XdXnsxwrYzV8JxW3InTAqw5Gc0CIPh499X%2BhDkgf2xBsSPCO5iBgYGXi%2Bf9%2B%2FfYLdji1HV99kE0ZKFpFOrkd3%2F9WTjaP33jjTmH9oSDwgSoAC6%2BoGgC0IIgO2%2FsPlhv3oy1htLhlHeTMYOELxBNti9hY2atNIkHsnfABJHRg43nsFvw%2FdUnYOGOiWxNrKIDw99dfgxEZ7YeVpZX5OTg5OPh3blkI0QQLpUdnw5kQEzDYgEuAI%2BDO3fuqKura2hoXLx40cbGBph2T548CY35t2%2Fl5eWB4dPY2EimBRDTgQDIAAoCo9HKykpMTOz06dNA0y0sLIAJPzY2FmjHhAkTSLYgNDQU6HC46XBXQ8zV1dUFkkCbgILFxcVAOyZOnEiCBfb29gICAmpqardv30aTevTokZCQEBMT09KlS%2BGChYWFQDu8vb1J8AHQjZimQ8D9%2B%2Ff19PRkZGSAEQMXBBZEQDuAgqRFMi7w%2FPlzYOEjJyd3%2BfJluGBMTAwJPgC6sQYvADoZGA1KSkrl5eUQEVtbW2ItAIapFhFAAwyQRaKjo%2Bnb%2BKUdAAB3wjLfKhLqdgAAAABJRU5ErkJggg%3D%3D";
+var iconDiberie = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAFOklEQVRIxz2WS5Lgxg1EXwIgu3tipJC09GW8d4RP4cP6FrZ3dmgtzXSTBaQXxR4eoFiVnwfor3977TbStNdC4vVN55uqZIOdhwCj80UebCwbhZnx9e4Zr9u9qFPr8v3udbsOnSegevsSChsiwoD99hZRikMSSBKAgBAwywpUCruHWe5m2h5m7KGX14erABTUfU2YPJggU5KMUqrUoCxdHx0SImCWrz86UnWo7bZoY7sRaJh2mJClkAlRv%2F6WdShSBBilIpCQIKmDt6%2B13sdo7jle9PZWA8ukFEGWGM8wjeRe7pu1xqZvT7s%2Bvs%2BaOF4kEITdozokodB9EzYpQR0ZJWDeJ4ZpM%2FQQgUWPMTMa22YtLAbV%2Baf1Pnk6X5SHxqg4LMYEkWhUJbd7NSZSadb72LgNgJQE9MeEkHRdI8vC9%2Bif%2F3iLwo1Cqm0kwPGiSJCU8hqlFtSheGw3xsYwl%2Fs24HYvPsVhfVhB%2FfJrRBIpJSGitHWIBBTHvmJKtsFEaZajwgYxDWaW3Tb4Ztpue%2Bjbs1x1qg4UimJMpARR6JBCiEwNlkKCgCFe5CFCgmmHmFbfFp6D9c6E%2B7KSLJWHvqkTW0ryECElmSCipFAgBGMqbKvhwAMGM20Cz6OtRZ4BVpumvn%2Fz%2BYabLAKNiYTEO6kSO16o1wjbvr%2BNh10Oi0jcuOgL2yTTWJDqcf30swjiVBwRiRKJQNsDMFaESPZLouJ4iW2phJseMDMzkkduD9hmEaL%2B%2B5%2BOIo4gJgJKtuvcNeBxPmUpAvzooGRue7bPtpnG4%2BkND983xrOo3%2F6HwhFNoFAVcej%2BPiRViiJKyErlqQgQbkIey4PHs%2BymlzF90ws3wLc%2FfN3U6xciVS%2BKQiElNq9fFaVIVEQRLynJAoTw7BJ4LjMIzUAz7WlY9O314Up5qDgUBafG%2BPI0cej8GnEQ53aXGRQowVYgsTuRL2I0Rk0v6xSX17e5vntd5AFBXe%2BOwhcKvHy%2BRh70mIWRAhW7AZ8Nxtj74rdnPVBbHwZmcX8HUyer7VZFIjHXzgArJ08lz1kKlA9bPRZ4sYPrMRtBl%2BeybyI8H14XtitjP7Q8lnR%2BkQIv8kX1KiUKRaIAsB0Zys010%2B7bHmN5OQ8pFTkolJY8N3nSC%2BP6979IwE%2BxIolypPV8oJGUh%2FdTzD4aJI%2BxZzGLGSzPct9%2ByG3WUL%2F8nvKTkTMECpGSFJtwu7H5A6PS2FuxwWP3zMZE2z0OeZm2jQdKsBjM%2B%2FAVD5zSS0RiQ2gfLEmp4Md8BgeMx4z9MW2U8OdMiWswPiRvwp%2BB0E%2FJ2CHOjNRm5ZOcTaPB2tpsgEgRWZoInc62gdO%2Bx4cmQWhwvc8ECCq0WdDGTDyc83NtOyKANb0Taxh7xnvw2PSPKWeP2L%2Bsa6akQ9zjFLLGnaIUhoxYnmfKrQY%2FNNIGqyUZ2t4j7raFP4zMmJQrIJ4VhjEhlm3UHqHxSNpw1OeSNPbY7PLxyNZYKOA2gW9jfA36%2B5efQace3UVISlKPAUqFzM6nhNDY7eWnIY%2Fpm3v7fcsMY2s89ZfjS0iCVNRGnZTKRIGkBEppaAgUBFt0MIOn95Og3eNB3J4NWeHad%2BfZHxSKXd7U50ggt%2BeGID7XjtgzFCmsFpgQzd5XGBS0cS3GRlKa5Q7tmSbtxWnb8WjN0Dbz%2BQPhxsAY7%2Fjgnm487sHguj3DpKOltg%2FtNTfC2wSlP4eyBPrswWc5PLsWH%2B5Cjd%2BnE9%2FMXvHq9%2FujpEMhFNLxrKYOscsiPTkZTyjb0z%2B8%2FUzqp8n27uNOGtjzfwS9OAIN57k1AAAAAElFTkSuQmCC";
 var saveImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
 var closeImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
 var helpImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
@@ -184,6 +187,7 @@ var infoImg = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2
 
 const REHOST_URL = "https://reho.st/";
 const WESERV_URL = "https://images.weserv.nl/?n=-1&default=i.imgur.com/Q9fqKbD.png";
+const DIBERIE_URL = "https://rehost.diberie.com/Rehost?";
 const MENU_ID = "gm_rst_r21_rehost_menu_id";
 const GIF_REGEXP = /.*\.gif([&?].*)?$/i;
 
@@ -191,7 +195,7 @@ const GIF_REGEXP = /.*\.gif([&?].*)?$/i;
 /* les paramètres par défaut */
 /* ------------------------- */
 
-const rstChoiceDefault = "rehost"; // "rehost" ou "weserv"
+const rstChoiceDefault = "rehost"; // "rehost", "weserv" ou "diberie"
 const rstSansDefault = "2"; // "1", "2" ou "0"
 const rstFullDefault = "2"; // "1", "2" (obligatoire)
 const rstLargeDefault = "2"; // "1", "2" ou "0"
@@ -199,6 +203,7 @@ const rstGrandDefault = "2"; // "1", "2" ou "0"
 const rstMoyenDefault = "2"; // "1", "2" ou "0"
 const rstPreviewDefault = "2"; // "1", "2" ou "0"
 const rstThumbDefault = "2"; // "1", "2" ou "0"
+const rstMiniDefault = "2"; // "1", "2" ou "0"
 const rstConfDefault = "2"; // "1", "2" ou "0"
 const rstOptionsDefault = true; // true ou false
 const rstIconsDefault = true; // true ou false
@@ -218,6 +223,7 @@ var currentRstGrand;
 var currentRstMoyen;
 var currentRstPreview;
 var currentRstThumb;
+var currentRstMini;
 var currentRstConf;
 var currentRstOptions;
 var currentRstIcons;
@@ -256,7 +262,7 @@ function doRst(e, type) {
         messageType = "de l'image ";
         imageUrl = currentImageUrl;
         iconImage = iconRehost;
-      } else {
+      } else if(currentRstChoice === "weserv") {
         rehostLink = WESERV_URL;
         rehostImage = WESERV_URL;
         rehostSize = "";
@@ -264,6 +270,14 @@ function doRst(e, type) {
         messageType = "de l'image ";
         imageUrl = encodeURIComponent(currentImageUrl);
         iconImage = iconWeserv;
+      } else {
+        rehostLink = DIBERIE_URL;
+        rehostImage = DIBERIE_URL;
+        rehostSize = "size=full&";
+        rehostParam = "url=";
+        messageType = "de l'image ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconDiberie;
       }
       break;
     case "large":
@@ -275,7 +289,7 @@ function doRst(e, type) {
         messageType = "de l'image moyenne ";
         imageUrl = currentImageUrl;
         iconImage = iconRehost;
-      } else {
+      } else if(currentRstChoice === "weserv") {
         rehostLink = WESERV_URL;
         rehostImage = WESERV_URL;
         rehostSize = "&w=1200&we";
@@ -283,6 +297,14 @@ function doRst(e, type) {
         messageType = "de l'image large ";
         imageUrl = encodeURIComponent(currentImageUrl);
         iconImage = iconWeserv;
+      } else {
+        rehostLink = DIBERIE_URL;
+        rehostImage = DIBERIE_URL;
+        rehostSize = "size=res&";
+        rehostParam = "url=";
+        messageType = "de l'image moyenne ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconDiberie;
       }
       break;
     case "grand":
@@ -294,7 +316,7 @@ function doRst(e, type) {
         messageType = "de l'image moyenne ";
         imageUrl = currentImageUrl;
         iconImage = iconRehost;
-      } else {
+      } else if(currentRstChoice === "weserv") {
         rehostLink = WESERV_URL;
         rehostImage = WESERV_URL;
         rehostSize = "&w=1000&we";
@@ -302,6 +324,14 @@ function doRst(e, type) {
         messageType = "de l'image grande ";
         imageUrl = encodeURIComponent(currentImageUrl);
         iconImage = iconWeserv;
+      } else {
+        rehostLink = DIBERIE_URL;
+        rehostImage = DIBERIE_URL;
+        rehostSize = "size=res&";
+        rehostParam = "url=";
+        messageType = "de l'image moyenne ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconDiberie;
       }
       break;
     case "moyen":
@@ -313,7 +343,7 @@ function doRst(e, type) {
         messageType = "de l'image moyenne ";
         imageUrl = currentImageUrl;
         iconImage = iconRehost;
-      } else {
+      } else if(currentRstChoice === "weserv") {
         rehostLink = WESERV_URL;
         rehostImage = WESERV_URL;
         rehostSize = "&w=800&we";
@@ -321,6 +351,14 @@ function doRst(e, type) {
         messageType = "de l'image moyenne ";
         imageUrl = encodeURIComponent(currentImageUrl);
         iconImage = iconWeserv;
+      } else {
+        rehostLink = DIBERIE_URL;
+        rehostImage = DIBERIE_URL;
+        rehostSize = "size=res&";
+        rehostParam = "url=";
+        messageType = "de l'image moyenne ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconDiberie;
       }
       break;
     case "preview":
@@ -332,7 +370,7 @@ function doRst(e, type) {
         messageType = "de l'aperçu ";
         imageUrl = currentImageUrl;
         iconImage = iconRehost;
-      } else {
+      } else if(currentRstChoice === "weserv") {
         rehostLink = WESERV_URL;
         rehostImage = WESERV_URL;
         rehostSize = "&w=600&we";
@@ -340,6 +378,14 @@ function doRst(e, type) {
         messageType = "de l'aperçu ";
         imageUrl = encodeURIComponent(currentImageUrl);
         iconImage = iconWeserv;
+      } else {
+        rehostLink = DIBERIE_URL;
+        rehostImage = DIBERIE_URL;
+        rehostSize = "size=res&";
+        rehostParam = "url=";
+        messageType = "de l'image moyenne ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconDiberie;
       }
       break;
     case "thumb":
@@ -351,7 +397,7 @@ function doRst(e, type) {
         messageType = "de la vignette ";
         imageUrl = currentImageUrl;
         iconImage = iconRehost;
-      } else {
+      } else if(currentRstChoice === "weserv") {
         rehostLink = WESERV_URL;
         rehostImage = WESERV_URL;
         rehostSize = "&w=230&h=230&we";
@@ -359,6 +405,41 @@ function doRst(e, type) {
         messageType = "de la vignette ";
         imageUrl = encodeURIComponent(currentImageUrl);
         iconImage = iconWeserv;
+      } else {
+        rehostLink = DIBERIE_URL;
+        rehostImage = DIBERIE_URL;
+        rehostSize = "size=min&";
+        rehostParam = "url=";
+        messageType = "de l'image mini ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconDiberie;
+      }
+      break;
+    case "mini":
+      if(currentRstChoice === "rehost") {
+        rehostLink = REHOST_URL + (currentRstLink === "image" ? "" : "view/");
+        rehostImage = REHOST_URL;
+        rehostSize = "thumb/";
+        rehostParam = "";
+        messageType = "de la vignette ";
+        imageUrl = currentImageUrl;
+        iconImage = iconRehost;
+      } else if(currentRstChoice === "weserv") {
+        rehostLink = WESERV_URL;
+        rehostImage = WESERV_URL;
+        rehostSize = "&w=150&h=150&we";
+        rehostParam = "&url=";
+        messageType = "de l'image mini ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconWeserv;
+      } else {
+        rehostLink = DIBERIE_URL;
+        rehostImage = DIBERIE_URL;
+        rehostSize = "size=min&";
+        rehostParam = "url=";
+        messageType = "de l'image mini ";
+        imageUrl = encodeURIComponent(currentImageUrl);
+        iconImage = iconDiberie;
       }
       break;
   }
@@ -425,6 +506,10 @@ function doRstThumb(e) {
   doRst(e, "thumb");
 }
 
+function doRstMini(e) {
+  doRst(e, "mini");
+}
+
 function doRstConf() {
   showConfigWindow();
 }
@@ -436,6 +521,11 @@ function doRstChoiceRehost() {
 
 function doRstChoiceWeserv() {
   currentRstChoice = "weserv";
+  GM.setValue("rst_choice", currentRstChoice).then(createRehostMenu);
+}
+
+function doRstChoiceDiberie() {
+  currentRstChoice = "diberie";
   GM.setValue("rst_choice", currentRstChoice).then(createRehostMenu);
 }
 
@@ -474,26 +564,36 @@ function createRehostMenu() {
   if(!gmNotif) {
     localCurrentRstNotifs = false;
   }
-  // correction de currentRstLink si pas reho.st
+  // correction de currentRstLink si pas rehost
   let localCurrentRstLink = currentRstLink;
   if(currentRstChoice !== "rehost") {
     localCurrentRstLink = "image";
   }
-  // correction de currentRstLarge et currentRstGrand si reho.st
+  // correction de currentRstLarge, currentRstGrand et currentRstMini si rehost
   let localCurrentRstLarge = currentRstLarge;
   let localCurrentRstGrand = currentRstGrand;
+  let localCurrentRstMini = currentRstMini;
   if(currentRstChoice === "rehost") {
     localCurrentRstLarge = "0";
     localCurrentRstGrand = "0";
+    localCurrentRstMini = "0";
+  }
+  // correction de currentRstLarge, currentRstGrand, currentRstPreview et currentRstThumb si diberie
+  let localCurrentRstPreview = currentRstPreview;
+  let localCurrentRstThumb = currentRstThumb;
+  if(currentRstChoice === "diberie") {
+    localCurrentRstLarge = "0";
+    localCurrentRstGrand = "0";
+    localCurrentRstPreview = "0";
+    localCurrentRstThumb = "0";
   }
   // correction de currentRstMoyen, currentRstPreview et currentRstThumb si currentIsGif
   let localCurrentRstMoyen = currentRstMoyen;
-  let localCurrentRstPreview = currentRstPreview;
-  let localCurrentRstThumb = currentRstThumb;
   if(currentIsGif) {
     localCurrentRstMoyen = "0";
     localCurrentRstPreview = "0";
     localCurrentRstThumb = "0";
+    localCurrentRstMini = "0";
   }
   // suppression de l'ancien menu contextuel
   let oldMenu = document.getElementById(MENU_ID);
@@ -592,13 +692,27 @@ function createRehostMenu() {
     let rehostMenuItemThumb = document.createElement("menuitem");
     rehostMenuItemThumb.setAttribute("label", "Rehost vignette (230px)");
     if(currentRstIcons) {
-      rehostMenuItemThumb.setAttribute("icon", iconThumb);
+      rehostMenuItemThumb.setAttribute("icon", iconThumbMini);
     }
     rehostMenuItemThumb.addEventListener("click", doRstThumb, false);
     if(localCurrentRstThumb === "1") {
       rehostMenu.appendChild(rehostMenuItemThumb);
     } else {
       rehostSubMenu.appendChild(rehostMenuItemThumb);
+    }
+  }
+  // rehost mini
+  if(localCurrentRstMini !== "0") {
+    let rehostMenuItemMini = document.createElement("menuitem");
+    rehostMenuItemMini.setAttribute("label", "Rehost mini (150px)");
+    if(currentRstIcons) {
+      rehostMenuItemMini.setAttribute("icon", iconThumbMini);
+    }
+    rehostMenuItemMini.addEventListener("click", doRstMini, false);
+    if(localCurrentRstMini === "1") {
+      rehostMenu.appendChild(rehostMenuItemMini);
+    } else {
+      rehostSubMenu.appendChild(rehostMenuItemMini);
     }
   }
   // hr 1
@@ -608,7 +722,8 @@ function createRehostMenu() {
       localCurrentRstGrand === "2" ||
       localCurrentRstMoyen === "2" ||
       localCurrentRstPreview === "2" ||
-      localCurrentRstThumb === "2") &&
+      localCurrentRstThumb === "2" ||
+      localCurrentRstMini === "2") &&
     currentRstConf === "2") {
     rehostSubMenu.appendChild(document.createElement("hr"));
   }
@@ -635,6 +750,7 @@ function createRehostMenu() {
       localCurrentRstMoyen === "2" ||
       localCurrentRstPreview === "2" ||
       localCurrentRstThumb === "2" ||
+      localCurrentRstMini === "2" ||
       currentRstConf === "2") &&
     currentRstOptions) {
     rehostSubMenu.appendChild(document.createElement("hr"));
@@ -655,12 +771,22 @@ function createRehostMenu() {
     let rehostMenuItemChoiceWeserv = document.createElement("menuitem");
     rehostMenuItemChoiceWeserv.setAttribute("type", "radio");
     rehostMenuItemChoiceWeserv.setAttribute("radiogroup", "gm_rst_r21_rehost_choice");
-    if(currentRstChoice !== "rehost") {
+    if(currentRstChoice === "weserv") {
       rehostMenuItemChoiceWeserv.checked = true;
     }
     rehostMenuItemChoiceWeserv.setAttribute("label", "images.weserv.nl");
     rehostMenuItemChoiceWeserv.addEventListener("click", doRstChoiceWeserv, false);
     rehostSubMenu.appendChild(rehostMenuItemChoiceWeserv);
+    // option choix diberie
+    let rehostMenuItemChoiceDiberie = document.createElement("menuitem");
+    rehostMenuItemChoiceDiberie.setAttribute("type", "radio");
+    rehostMenuItemChoiceDiberie.setAttribute("radiogroup", "gm_rst_r21_rehost_choice");
+    if(currentRstChoice === "diberie") {
+      rehostMenuItemChoiceDiberie.checked = true;
+    }
+    rehostMenuItemChoiceDiberie.setAttribute("label", "rehost.diberie.com");
+    rehostMenuItemChoiceDiberie.addEventListener("click", doRstChoiceDiberie, false);
+    rehostSubMenu.appendChild(rehostMenuItemChoiceDiberie);
     rehostSubMenu.appendChild(document.createElement("hr"));
     // option icons
     let rehostMenuItemIcons = document.createElement("menuitem");
@@ -757,20 +883,20 @@ style.textContent =
   "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;text-align:justify;}" +
   "#gm_rst_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:10001;" +
   "display:block;visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
-  "#gm_rst_r21_config_window{position:fixed;width:500px;height:auto;background:#ffffff;z-index:10002;" +
+  "#gm_rst_r21_config_window{position:fixed;width:525px;height:auto;background:#ffffff;z-index:10002;" +
   "visibility:hidden;transition:opacity 0.3s ease 0s;border:1px solid black;padding:16px;display:block;" +
   "box-sizing:content-box;color:#000000;font-variant:normal;opacity:0;}" +
   "#gm_rst_r21_config_window *{box-sizing:content-box;text-align:left;background:#ffffff;color:#000000;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:12px;line-height:1;margin:0;padding:0;border:0;}" +
   "#gm_rst_r21_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:10px 12px 8px;}" +
-  "#gm_rst_r21_config_window legend{font-size:14px;cursor:default;padding:0 2px;margin:0 0 0 -2px;}" +
+  "#gm_rst_r21_config_window legend{font-size:14px;cursor:default;padding:0 2px;margin:0 0 0 -2px;float:none;" +
+  "width:auto;}" +
   "#gm_rst_r21_config_window div{display:block;}" +
-  "#gm_rst_r21_config_window div.gm_rst_r21_table{display:table;width:100%;}" +
-  "#gm_rst_r21_config_window div.gm_rst_r21_table div.gm_rst_r21_cell{display:table-cell;width:50%;}" +
-  "#gm_rst_r21_config_window div.gm_rst_r21_table div.gm_rst_r21_left{text-align:right;}" +
-  "#gm_rst_r21_config_window div.gm_rst_r21_table div.gm_rst_r21_right{text-align:left;}" +
-  "#gm_rst_r21_config_window div.gm_rst_r21_table div.gm_rst_r21_cell input[type=\"radio\"]{margin:0 4px 1px;" +
-  "vertical-align:text-bottom;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_choice{font-size:12px;margin:0;display:flex;cursor:default;" +
+  "flex-direction:row;align-items:flex-end;justify-content:space-evenly;}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_choice div.gm_rst_r21_choice_rehost{}" +
+  "#gm_rst_r21_config_window div.gm_rst_r21_choice div.gm_rst_r21_choice_rehost input[type=\"radio\"]" +
+  "{margin:0 4px 1px 0;vertical-align:text-bottom;}" +
   "#gm_rst_r21_config_window img{position:static;display:inline;width:auto;height:auto;}" +
   "#gm_rst_r21_config_window input{display:inline;width:auto;height:auto;}" +
   "#gm_rst_r21_config_window label{font-weight:normal;display:inline;}" +
@@ -856,27 +982,27 @@ configWindow.appendChild(choiceFieldset);
 
 // table des serveurs
 var choiceDiv = document.createElement("div");
-choiceDiv.setAttribute("class", "gm_rst_r21_table");
+choiceDiv.setAttribute("class", "gm_rst_r21_choice");
 choiceFieldset.appendChild(choiceDiv);
 
 // block rehost
 var choiceRehostDiv = document.createElement("div");
-choiceRehostDiv.setAttribute("class", "gm_rst_r21_cell gm_rst_r21_left");
-var choiceRehostLabel = document.createElement("label");
-choiceRehostLabel.textContent = "reho.st ";
-choiceRehostLabel.setAttribute("for", "gm_rst_r21_choice_rehost_radio");
-choiceRehostDiv.appendChild(choiceRehostLabel);
+choiceRehostDiv.setAttribute("class", "gm_rst_r21_choice_rehost");
 var choiceRehostRadio = document.createElement("input");
 choiceRehostRadio.setAttribute("type", "radio");
 choiceRehostRadio.setAttribute("id", "gm_rst_r21_choice_rehost_radio");
 choiceRehostRadio.setAttribute("name", "gm_rst_r21_choice_radios");
 choiceRehostRadio.addEventListener("change", updateChoice, false);
 choiceRehostDiv.appendChild(choiceRehostRadio);
+var choiceRehostLabel = document.createElement("label");
+choiceRehostLabel.textContent = " reho.st";
+choiceRehostLabel.setAttribute("for", "gm_rst_r21_choice_rehost_radio");
+choiceRehostDiv.appendChild(choiceRehostLabel);
 choiceDiv.appendChild(choiceRehostDiv);
 
 // block weserv
 var choiceWeservDiv = document.createElement("div");
-choiceWeservDiv.setAttribute("class", "gm_rst_r21_cell gm_rst_r21_right");
+choiceWeservDiv.setAttribute("class", "gm_rst_r21_choice_rehost");
 var choiceWeservRadio = document.createElement("input");
 choiceWeservRadio.setAttribute("type", "radio");
 choiceWeservRadio.setAttribute("id", "gm_rst_r21_choice_weserv_radio");
@@ -888,6 +1014,21 @@ choiceWeservLabel.textContent = " images.weserv.nl";
 choiceWeservLabel.setAttribute("for", "gm_rst_r21_choice_weserv_radio");
 choiceWeservDiv.appendChild(choiceWeservLabel);
 choiceDiv.appendChild(choiceWeservDiv);
+
+// block diberie
+var choiceDiberieDiv = document.createElement("div");
+choiceDiberieDiv.setAttribute("class", "gm_rst_r21_choice_rehost");
+var choiceDiberieRadio = document.createElement("input");
+choiceDiberieRadio.setAttribute("type", "radio");
+choiceDiberieRadio.setAttribute("id", "gm_rst_r21_choice_diberie_radio");
+choiceDiberieRadio.setAttribute("name", "gm_rst_r21_choice_radios");
+choiceDiberieRadio.addEventListener("change", updateChoice, false);
+choiceDiberieDiv.appendChild(choiceDiberieRadio);
+var choiceDiberieLabel = document.createElement("label");
+choiceDiberieLabel.textContent = " rehost.diberie.com";
+choiceDiberieLabel.setAttribute("for", "gm_rst_r21_choice_diberie_radio");
+choiceDiberieDiv.appendChild(choiceDiberieLabel);
+choiceDiv.appendChild(choiceDiberieDiv);
 
 // section de la configuration des menus
 var menuFieldset = document.createElement("fieldset");
@@ -915,7 +1056,7 @@ sansRadio1.setAttribute("name", "gm_rst_r21_sans_radio");
 sansRadios.appendChild(sansRadio1);
 var sansRadio1Label = document.createElement("label");
 sansRadio1Label.setAttribute("for", "gm_rst_r21_sans_radio_1");
-sansRadio1Label.textContent = "menu";
+sansRadio1Label.textContent = " menu";
 sansRadios.appendChild(sansRadio1Label);
 var sansRadio2 = document.createElement("input");
 sansRadio2.setAttribute("type", "radio");
@@ -924,7 +1065,7 @@ sansRadio2.setAttribute("name", "gm_rst_r21_sans_radio");
 sansRadios.appendChild(sansRadio2);
 var sansRadio2Label = document.createElement("label");
 sansRadio2Label.setAttribute("for", "gm_rst_r21_sans_radio_2");
-sansRadio2Label.textContent = "sous-menu";
+sansRadio2Label.textContent = " sous-menu";
 sansRadios.appendChild(sansRadio2Label);
 var sansRadio0 = document.createElement("input");
 sansRadio0.setAttribute("type", "radio");
@@ -933,7 +1074,7 @@ sansRadio0.setAttribute("name", "gm_rst_r21_sans_radio");
 sansRadios.appendChild(sansRadio0);
 var sansRadio0Label = document.createElement("label");
 sansRadio0Label.setAttribute("for", "gm_rst_r21_sans_radio_0");
-sansRadio0Label.textContent = "aucun";
+sansRadio0Label.textContent = " aucun";
 sansRadios.appendChild(sansRadio0Label);
 sansRow.appendChild(sansRadios);
 menuFieldset.appendChild(sansRow);
@@ -957,7 +1098,7 @@ fullRadio1.setAttribute("name", "gm_rst_r21_full_radio");
 fullRadios.appendChild(fullRadio1);
 var fullRadio1Label = document.createElement("label");
 fullRadio1Label.setAttribute("for", "gm_rst_r21_full_radio_1");
-fullRadio1Label.textContent = "menu";
+fullRadio1Label.textContent = " menu";
 fullRadios.appendChild(fullRadio1Label);
 var fullRadio2 = document.createElement("input");
 fullRadio2.setAttribute("type", "radio");
@@ -966,7 +1107,7 @@ fullRadio2.setAttribute("name", "gm_rst_r21_full_radio");
 fullRadios.appendChild(fullRadio2);
 var fullRadio2Label = document.createElement("label");
 fullRadio2Label.setAttribute("for", "gm_rst_r21_full_radio_2");
-fullRadio2Label.textContent = "sous-menu";
+fullRadio2Label.textContent = " sous-menu";
 fullRadios.appendChild(fullRadio2Label);
 fullRow.appendChild(fullRadios);
 menuFieldset.appendChild(fullRow);
@@ -992,7 +1133,7 @@ largeRadio1.addEventListener("change", saveCurrentRstLarge, false);
 largeRadios.appendChild(largeRadio1);
 var largeRadio1Label = document.createElement("label");
 largeRadio1Label.setAttribute("for", "gm_rst_r21_large_radio_1");
-largeRadio1Label.textContent = "menu";
+largeRadio1Label.textContent = " menu";
 largeRadios.appendChild(largeRadio1Label);
 var largeRadio2 = document.createElement("input");
 largeRadio2.setAttribute("type", "radio");
@@ -1003,7 +1144,7 @@ largeRadio2.addEventListener("change", saveCurrentRstLarge, false);
 largeRadios.appendChild(largeRadio2);
 var largeRadio2Label = document.createElement("label");
 largeRadio2Label.setAttribute("for", "gm_rst_r21_large_radio_2");
-largeRadio2Label.textContent = "sous-menu";
+largeRadio2Label.textContent = " sous-menu";
 largeRadios.appendChild(largeRadio2Label);
 var largeRadio0 = document.createElement("input");
 largeRadio0.setAttribute("type", "radio");
@@ -1014,7 +1155,7 @@ largeRadio0.addEventListener("change", saveCurrentRstLarge, false);
 largeRadios.appendChild(largeRadio0);
 var largeRadio0Label = document.createElement("label");
 largeRadio0Label.setAttribute("for", "gm_rst_r21_large_radio_0");
-largeRadio0Label.textContent = "aucun";
+largeRadio0Label.textContent = " aucun";
 largeRadios.appendChild(largeRadio0Label);
 largeRow.appendChild(largeRadios);
 menuFieldset.appendChild(largeRow);
@@ -1040,7 +1181,7 @@ grandRadio1.addEventListener("change", saveCurrentRstGrand, false);
 grandRadios.appendChild(grandRadio1);
 var grandRadio1Label = document.createElement("label");
 grandRadio1Label.setAttribute("for", "gm_rst_r21_grand_radio_1");
-grandRadio1Label.textContent = "menu";
+grandRadio1Label.textContent = " menu";
 grandRadios.appendChild(grandRadio1Label);
 var grandRadio2 = document.createElement("input");
 grandRadio2.setAttribute("type", "radio");
@@ -1051,7 +1192,7 @@ grandRadio2.addEventListener("change", saveCurrentRstGrand, false);
 grandRadios.appendChild(grandRadio2);
 var grandRadio2Label = document.createElement("label");
 grandRadio2Label.setAttribute("for", "gm_rst_r21_grand_radio_2");
-grandRadio2Label.textContent = "sous-menu";
+grandRadio2Label.textContent = " sous-menu";
 grandRadios.appendChild(grandRadio2Label);
 var grandRadio0 = document.createElement("input");
 grandRadio0.setAttribute("type", "radio");
@@ -1062,7 +1203,7 @@ grandRadio0.addEventListener("change", saveCurrentRstGrand, false);
 grandRadios.appendChild(grandRadio0);
 var grandRadio0Label = document.createElement("label");
 grandRadio0Label.setAttribute("for", "gm_rst_r21_grand_radio_0");
-grandRadio0Label.textContent = "aucun";
+grandRadio0Label.textContent = " aucun";
 grandRadios.appendChild(grandRadio0Label);
 grandRow.appendChild(grandRadios);
 menuFieldset.appendChild(grandRow);
@@ -1086,7 +1227,7 @@ moyenRadio1.setAttribute("name", "gm_rst_r21_moyen_radio");
 moyenRadios.appendChild(moyenRadio1);
 var moyenRadio1Label = document.createElement("label");
 moyenRadio1Label.setAttribute("for", "gm_rst_r21_moyen_radio_1");
-moyenRadio1Label.textContent = "menu";
+moyenRadio1Label.textContent = " menu";
 moyenRadios.appendChild(moyenRadio1Label);
 var moyenRadio2 = document.createElement("input");
 moyenRadio2.setAttribute("type", "radio");
@@ -1095,7 +1236,7 @@ moyenRadio2.setAttribute("name", "gm_rst_r21_moyen_radio");
 moyenRadios.appendChild(moyenRadio2);
 var moyenRadio2Label = document.createElement("label");
 moyenRadio2Label.setAttribute("for", "gm_rst_r21_moyen_radio_2");
-moyenRadio2Label.textContent = "sous-menu";
+moyenRadio2Label.textContent = " sous-menu";
 moyenRadios.appendChild(moyenRadio2Label);
 var moyenRadio0 = document.createElement("input");
 moyenRadio0.setAttribute("type", "radio");
@@ -1104,7 +1245,7 @@ moyenRadio0.setAttribute("name", "gm_rst_r21_moyen_radio");
 moyenRadios.appendChild(moyenRadio0);
 var moyenRadio0Label = document.createElement("label");
 moyenRadio0Label.setAttribute("for", "gm_rst_r21_moyen_radio_0");
-moyenRadio0Label.textContent = "aucun";
+moyenRadio0Label.textContent = " aucun";
 moyenRadios.appendChild(moyenRadio0Label);
 moyenRow.appendChild(moyenRadios);
 menuFieldset.appendChild(moyenRow);
@@ -1125,28 +1266,34 @@ var previewRadio1 = document.createElement("input");
 previewRadio1.setAttribute("type", "radio");
 previewRadio1.setAttribute("id", "gm_rst_r21_preview_radio_1");
 previewRadio1.setAttribute("name", "gm_rst_r21_preview_radio");
+previewRadio1.dataset.value = "1";
+previewRadio1.addEventListener("change", saveCurrentRstPreview, false);
 previewRadios.appendChild(previewRadio1);
 var previewRadio1Label = document.createElement("label");
 previewRadio1Label.setAttribute("for", "gm_rst_r21_preview_radio_1");
-previewRadio1Label.textContent = "menu";
+previewRadio1Label.textContent = " menu";
 previewRadios.appendChild(previewRadio1Label);
 var previewRadio2 = document.createElement("input");
 previewRadio2.setAttribute("type", "radio");
 previewRadio2.setAttribute("id", "gm_rst_r21_preview_radio_2");
 previewRadio2.setAttribute("name", "gm_rst_r21_preview_radio");
+previewRadio1.dataset.value = "2";
+previewRadio1.addEventListener("change", saveCurrentRstPreview, false);
 previewRadios.appendChild(previewRadio2);
 var previewRadio2Label = document.createElement("label");
 previewRadio2Label.setAttribute("for", "gm_rst_r21_preview_radio_2");
-previewRadio2Label.textContent = "sous-menu";
+previewRadio2Label.textContent = " sous-menu";
 previewRadios.appendChild(previewRadio2Label);
 var previewRadio0 = document.createElement("input");
 previewRadio0.setAttribute("type", "radio");
 previewRadio0.setAttribute("id", "gm_rst_r21_preview_radio_0");
 previewRadio0.setAttribute("name", "gm_rst_r21_preview_radio");
+previewRadio1.dataset.value = "0";
+previewRadio1.addEventListener("change", saveCurrentRstPreview, false);
 previewRadios.appendChild(previewRadio0);
 var previewRadio0Label = document.createElement("label");
 previewRadio0Label.setAttribute("for", "gm_rst_r21_preview_radio_0");
-previewRadio0Label.textContent = "aucun";
+previewRadio0Label.textContent = " aucun";
 previewRadios.appendChild(previewRadio0Label);
 previewRow.appendChild(previewRadios);
 menuFieldset.appendChild(previewRow);
@@ -1157,7 +1304,7 @@ thumbRow.setAttribute("class", "gm_rst_r21_row");
 var thumbTitle = document.createElement("div");
 thumbTitle.setAttribute("class", "gm_rst_r21_cell");
 var thumbIcon = document.createElement("img");
-thumbIcon.setAttribute("src", iconThumb);
+thumbIcon.setAttribute("src", iconThumbMini);
 thumbTitle.appendChild(thumbIcon);
 thumbTitle.appendChild(document.createTextNode("Rehost vignette (230px) :"));
 thumbRow.appendChild(thumbTitle);
@@ -1167,31 +1314,85 @@ var thumbRadio1 = document.createElement("input");
 thumbRadio1.setAttribute("type", "radio");
 thumbRadio1.setAttribute("id", "gm_rst_r21_thumb_radio_1");
 thumbRadio1.setAttribute("name", "gm_rst_r21_thumb_radio");
+thumbRadio1.dataset.value = "1";
+thumbRadio1.addEventListener("change", saveCurrentRstThumb, false);
 thumbRadios.appendChild(thumbRadio1);
 var thumbRadio1Label = document.createElement("label");
 thumbRadio1Label.setAttribute("for", "gm_rst_r21_thumb_radio_1");
-thumbRadio1Label.textContent = "menu";
+thumbRadio1Label.textContent = " menu";
 thumbRadios.appendChild(thumbRadio1Label);
 var thumbRadio2 = document.createElement("input");
 thumbRadio2.setAttribute("type", "radio");
 thumbRadio2.setAttribute("id", "gm_rst_r21_thumb_radio_2");
 thumbRadio2.setAttribute("name", "gm_rst_r21_thumb_radio");
+thumbRadio1.dataset.value = "2";
+thumbRadio1.addEventListener("change", saveCurrentRstThumb, false);
 thumbRadios.appendChild(thumbRadio2);
 var thumbRadio2Label = document.createElement("label");
 thumbRadio2Label.setAttribute("for", "gm_rst_r21_thumb_radio_2");
-thumbRadio2Label.textContent = "sous-menu";
+thumbRadio2Label.textContent = " sous-menu";
 thumbRadios.appendChild(thumbRadio2Label);
 var thumbRadio0 = document.createElement("input");
 thumbRadio0.setAttribute("type", "radio");
 thumbRadio0.setAttribute("id", "gm_rst_r21_thumb_radio_0");
 thumbRadio0.setAttribute("name", "gm_rst_r21_thumb_radio");
+thumbRadio1.dataset.value = "0";
+thumbRadio1.addEventListener("change", saveCurrentRstThumb, false);
 thumbRadios.appendChild(thumbRadio0);
 var thumbRadio0Label = document.createElement("label");
 thumbRadio0Label.setAttribute("for", "gm_rst_r21_thumb_radio_0");
-thumbRadio0Label.textContent = "aucun";
+thumbRadio0Label.textContent = " aucun";
 thumbRadios.appendChild(thumbRadio0Label);
 thumbRow.appendChild(thumbRadios);
 menuFieldset.appendChild(thumbRow);
+
+// mini
+var miniRow = document.createElement("div");
+miniRow.setAttribute("class", "gm_rst_r21_row");
+var miniTitle = document.createElement("div");
+miniTitle.setAttribute("class", "gm_rst_r21_cell");
+var miniIcon = document.createElement("img");
+miniIcon.setAttribute("src", iconThumbMini);
+miniTitle.appendChild(miniIcon);
+miniTitle.appendChild(document.createTextNode("Rehost mini (150px) :"));
+miniRow.appendChild(miniTitle);
+var miniRadios = document.createElement("div");
+miniRadios.setAttribute("class", "gm_rst_r21_cell");
+var miniRadio1 = document.createElement("input");
+miniRadio1.setAttribute("type", "radio");
+miniRadio1.setAttribute("id", "gm_rst_r21_mini_radio_1");
+miniRadio1.setAttribute("name", "gm_rst_r21_mini_radio");
+miniRadio1.dataset.value = "1";
+miniRadio1.addEventListener("change", saveCurrentRstMini, false);
+miniRadios.appendChild(miniRadio1);
+var miniRadio1Label = document.createElement("label");
+miniRadio1Label.setAttribute("for", "gm_rst_r21_mini_radio_1");
+miniRadio1Label.textContent = " menu";
+miniRadios.appendChild(miniRadio1Label);
+var miniRadio2 = document.createElement("input");
+miniRadio2.setAttribute("type", "radio");
+miniRadio2.setAttribute("id", "gm_rst_r21_mini_radio_2");
+miniRadio2.setAttribute("name", "gm_rst_r21_mini_radio");
+miniRadio2.dataset.value = "2";
+miniRadio2.addEventListener("change", saveCurrentRstMini, false);
+miniRadios.appendChild(miniRadio2);
+var miniRadio2Label = document.createElement("label");
+miniRadio2Label.setAttribute("for", "gm_rst_r21_mini_radio_2");
+miniRadio2Label.textContent = " sous-menu";
+miniRadios.appendChild(miniRadio2Label);
+var miniRadio0 = document.createElement("input");
+miniRadio0.setAttribute("type", "radio");
+miniRadio0.setAttribute("id", "gm_rst_r21_mini_radio_0");
+miniRadio0.setAttribute("name", "gm_rst_r21_mini_radio");
+miniRadio0.dataset.value = "0";
+miniRadio0.addEventListener("change", saveCurrentRstMini, false);
+miniRadios.appendChild(miniRadio0);
+var miniRadio0Label = document.createElement("label");
+miniRadio0Label.setAttribute("for", "gm_rst_r21_mini_radio_0");
+miniRadio0Label.textContent = " aucun";
+miniRadios.appendChild(miniRadio0Label);
+miniRow.appendChild(miniRadios);
+menuFieldset.appendChild(miniRow);
 
 // conf
 var confRow = document.createElement("div");
@@ -1212,7 +1413,7 @@ confRadio1.setAttribute("name", "gm_rst_r21_conf_radio");
 confRadios.appendChild(confRadio1);
 var confRadio1Label = document.createElement("label");
 confRadio1Label.setAttribute("for", "gm_rst_r21_conf_radio_1");
-confRadio1Label.textContent = "menu";
+confRadio1Label.textContent = " menu";
 confRadios.appendChild(confRadio1Label);
 var confRadio2 = document.createElement("input");
 confRadio2.setAttribute("type", "radio");
@@ -1221,7 +1422,7 @@ confRadio2.setAttribute("name", "gm_rst_r21_conf_radio");
 confRadios.appendChild(confRadio2);
 var confRadio2Label = document.createElement("label");
 confRadio2Label.setAttribute("for", "gm_rst_r21_conf_radio_2");
-confRadio2Label.textContent = "sous-menu";
+confRadio2Label.textContent = " sous-menu";
 confRadios.appendChild(confRadio2Label);
 var confRadio0 = document.createElement("input");
 confRadio0.setAttribute("type", "radio");
@@ -1230,7 +1431,7 @@ confRadio0.setAttribute("name", "gm_rst_r21_conf_radio");
 confRadios.appendChild(confRadio0);
 var confRadio0Label = document.createElement("label");
 confRadio0Label.setAttribute("for", "gm_rst_r21_conf_radio_0");
-confRadio0Label.textContent = "aucun";
+confRadio0Label.textContent = " aucun";
 confRadios.appendChild(confRadio0Label);
 confRow.appendChild(confRadios);
 menuFieldset.appendChild(confRow);
@@ -1287,7 +1488,7 @@ linkP.setAttribute("class", "gm_rst_r21_p");
 linkP.appendChild(document.createTextNode("Lien sur l'image : "));
 var linkImageRadioLabel = document.createElement("label");
 linkImageRadioLabel.setAttribute("for", "gm_rst_r21_link_image_radio");
-linkImageRadioLabel.textContent = "vers la taille originale";
+linkImageRadioLabel.textContent = "vers la taille originale ";
 linkP.appendChild(linkImageRadioLabel);
 var linkImageRadio = document.createElement("input");
 linkImageRadio.setAttribute("type", "radio");
@@ -1305,7 +1506,7 @@ linkPageRadio.addEventListener("change", saveCurrentRstLink, false);
 linkP.appendChild(linkPageRadio);
 var linkPageRadioLabel = document.createElement("label");
 linkPageRadioLabel.setAttribute("for", "gm_rst_r21_link_page_radio");
-linkPageRadioLabel.textContent = "vers la page de partage";
+linkPageRadioLabel.textContent = " vers la page de partage";
 linkP.appendChild(linkPageRadioLabel);
 optionsFieldset.appendChild(linkP);
 
@@ -1357,6 +1558,21 @@ function saveCurrentRstGrand() {
   grandRow.dataset.value = this.dataset.value;
 }
 
+// fonction de sauvegarde du choix pour currentRstPreview
+function saveCurrentRstPreview() {
+  previewRow.dataset.value = this.dataset.value;
+}
+
+// fonction de sauvegarde du choix pour currentRstThumb
+function saveCurrentRstThumb() {
+  thumbRow.dataset.value = this.dataset.value;
+}
+
+// fonction de sauvegarde du choix pour currentRstMini
+function saveCurrentRstMini() {
+  miniRow.dataset.value = this.dataset.value;
+}
+
 // fonction de sauvegarde du choix pour currentRstLink
 function saveCurrentRstLink() {
   linkP.dataset.value = this.dataset.value;
@@ -1379,12 +1595,33 @@ function updateChoice() {
     grandRadio1.checked = false;
     grandRadio2.checked = false;
     grandRadio0.checked = true;
+    previewRow.classList.remove("gm_rst_r21_disabled");
+    previewRadio1.disabled = false;
+    previewRadio2.disabled = false;
+    previewRadio0.disabled = false;
+    previewRadio1.checked = previewRow.dataset.value === "1";
+    previewRadio2.checked = previewRow.dataset.value === "2";
+    previewRadio0.checked = previewRow.dataset.value === "0";
+    thumbRow.classList.remove("gm_rst_r21_disabled");
+    thumbRadio1.disabled = false;
+    thumbRadio2.disabled = false;
+    thumbRadio0.disabled = false;
+    thumbRadio1.checked = thumbRow.dataset.value === "1";
+    thumbRadio2.checked = thumbRow.dataset.value === "2";
+    thumbRadio0.checked = thumbRow.dataset.value === "0";
+    miniRow.classList.add("gm_rst_r21_disabled");
+    miniRadio1.disabled = true;
+    miniRadio2.disabled = true;
+    miniRadio0.disabled = true;
+    miniRadio1.checked = false;
+    miniRadio2.checked = false;
+    miniRadio0.checked = true;
     linkP.classList.remove("gm_rst_r21_disabled");
     linkImageRadio.disabled = false;
     linkPageRadio.disabled = false;
     linkImageRadio.checked = linkP.dataset.value === "image";
     linkPageRadio.checked = linkP.dataset.value !== "image";
-  } else {
+  } else if(choiceWeservRadio.checked) {
     largeRow.classList.remove("gm_rst_r21_disabled");
     largeRadio1.disabled = false;
     largeRadio2.disabled = false;
@@ -1399,6 +1636,68 @@ function updateChoice() {
     grandRadio1.checked = grandRow.dataset.value === "1";
     grandRadio2.checked = grandRow.dataset.value === "2";
     grandRadio0.checked = grandRow.dataset.value === "0";
+    previewRow.classList.remove("gm_rst_r21_disabled");
+    previewRadio1.disabled = false;
+    previewRadio2.disabled = false;
+    previewRadio0.disabled = false;
+    previewRadio1.checked = previewRow.dataset.value === "1";
+    previewRadio2.checked = previewRow.dataset.value === "2";
+    previewRadio0.checked = previewRow.dataset.value === "0";
+    thumbRow.classList.remove("gm_rst_r21_disabled");
+    thumbRadio1.disabled = false;
+    thumbRadio2.disabled = false;
+    thumbRadio0.disabled = false;
+    thumbRadio1.checked = thumbRow.dataset.value === "1";
+    thumbRadio2.checked = thumbRow.dataset.value === "2";
+    thumbRadio0.checked = thumbRow.dataset.value === "0";
+    miniRow.classList.remove("gm_rst_r21_disabled");
+    miniRadio1.disabled = false;
+    miniRadio2.disabled = false;
+    miniRadio0.disabled = false;
+    miniRadio1.checked = miniRow.dataset.value === "1";
+    miniRadio2.checked = miniRow.dataset.value === "2";
+    miniRadio0.checked = miniRow.dataset.value === "0";
+    linkP.classList.add("gm_rst_r21_disabled");
+    linkImageRadio.disabled = true;
+    linkPageRadio.disabled = true;
+    linkImageRadio.checked = true;
+    linkPageRadio.checked = false;
+  } else {
+    largeRow.classList.add("gm_rst_r21_disabled");
+    largeRadio1.disabled = true;
+    largeRadio2.disabled = true;
+    largeRadio0.disabled = true;
+    largeRadio1.checked = false;
+    largeRadio2.checked = false;
+    largeRadio0.checked = true;
+    grandRow.classList.add("gm_rst_r21_disabled");
+    grandRadio1.disabled = true;
+    grandRadio2.disabled = true;
+    grandRadio0.disabled = true;
+    grandRadio1.checked = false;
+    grandRadio2.checked = false;
+    grandRadio0.checked = true;
+    previewRow.classList.add("gm_rst_r21_disabled");
+    previewRadio1.disabled = true;
+    previewRadio2.disabled = true;
+    previewRadio0.disabled = true;
+    previewRadio1.checked = false;
+    previewRadio2.checked = false;
+    previewRadio0.checked = true;
+    thumbRow.classList.add("gm_rst_r21_disabled");
+    thumbRadio1.disabled = true;
+    thumbRadio2.disabled = true;
+    thumbRadio0.disabled = true;
+    thumbRadio1.checked = false;
+    thumbRadio2.checked = false;
+    thumbRadio0.checked = true;
+    miniRow.classList.remove("gm_rst_r21_disabled");
+    miniRadio1.disabled = false;
+    miniRadio2.disabled = false;
+    miniRadio0.disabled = false;
+    miniRadio1.checked = miniRow.dataset.value === "1";
+    miniRadio2.checked = miniRow.dataset.value === "2";
+    miniRadio0.checked = miniRow.dataset.value === "0";
     linkP.classList.add("gm_rst_r21_disabled");
     linkImageRadio.disabled = true;
     linkPageRadio.disabled = true;
@@ -1412,14 +1711,15 @@ function saveConfigWindow() {
   // fermeture de la fenêtre
   hideConfigWindow();
   // sauvegarde des paramètres de la fenêtre de configuration
-  currentRstChoice = choiceRehostRadio.checked ? "rehost" : "weserv";
+  currentRstChoice = choiceRehostRadio.checked ? "rehost" : (choiceWeservRadio.checked ? "weserv" : "diberie");
   currentRstSans = sansRadio1.checked ? "1" : sansRadio2.checked ? "2" : "0";
   currentRstFull = fullRadio1.checked ? "1" : "2";
   currentRstLarge = largeRow.dataset.value;
   currentRstGrand = grandRow.dataset.value;
   currentRstMoyen = moyenRadio1.checked ? "1" : moyenRadio2.checked ? "2" : "0";
-  currentRstPreview = previewRadio1.checked ? "1" : previewRadio2.checked ? "2" : "0";
-  currentRstThumb = thumbRadio1.checked ? "1" : thumbRadio2.checked ? "2" : "0";
+  currentRstPreview = previewRow.dataset.value;
+  currentRstThumb = thumbRow.dataset.value;
+  currentRstMini = miniRow.dataset.value;
   currentRstConf = confRadio1.checked ? "1" : confRadio2.checked ? "2" : "0";
   currentRstOptions = optionsCheckbox.checked;
   currentRstIcons = iconsCheckbox.checked;
@@ -1435,6 +1735,7 @@ function saveConfigWindow() {
     GM.setValue("rst_moyen", currentRstMoyen),
     GM.setValue("rst_preview", currentRstPreview),
     GM.setValue("rst_thumb", currentRstThumb),
+    GM.setValue("rst_mini", currentRstMini),
     GM.setValue("rst_conf", currentRstConf),
     GM.setValue("rst_options", currentRstOptions),
     GM.setValue("rst_icons", currentRstIcons),
@@ -1481,7 +1782,8 @@ function showConfigWindow() {
     localCurrentRstNotifs = false;
   }
   choiceRehostRadio.checked = currentRstChoice === "rehost";
-  choiceWeservRadio.checked = currentRstChoice !== "rehost";
+  choiceWeservRadio.checked = currentRstChoice === "weserv";
+  choiceDiberieRadio.checked = currentRstChoice === "diberie";
   sansRadio1.checked = currentRstSans === "1";
   sansRadio2.checked = currentRstSans === "2";
   sansRadio0.checked = currentRstSans === "0";
@@ -1501,9 +1803,15 @@ function showConfigWindow() {
   previewRadio1.checked = currentRstPreview === "1";
   previewRadio2.checked = currentRstPreview === "2";
   previewRadio0.checked = currentRstPreview === "0";
+  previewRow.dataset.value = currentRstPreview;
   thumbRadio1.checked = currentRstThumb === "1";
   thumbRadio2.checked = currentRstThumb === "2";
   thumbRadio0.checked = currentRstThumb === "0";
+  thumbRow.dataset.value = currentRstThumb;
+  miniRadio1.checked = currentRstMini === "1";
+  miniRadio2.checked = currentRstMini === "2";
+  miniRadio0.checked = currentRstMini === "0";
+  miniRow.dataset.value = currentRstMini;
   confRadio1.checked = currentRstConf === "1";
   confRadio2.checked = currentRstConf === "2";
   confRadio0.checked = currentRstConf === "0";
@@ -1537,7 +1845,7 @@ function showConfigWindow() {
 function addContextmenuAttribute() {
   currentImageUrl = this.src;
   currentIsGif = false;
-  if(currentRstChoice === "rehost" && GIF_REGEXP.test(currentImageUrl)) {
+  if(currentRstChoice !== "weserv" && GIF_REGEXP.test(currentImageUrl)) {
     currentIsGif = true;
   }
   createRehostMenu();
@@ -1567,6 +1875,7 @@ Promise.all([
   GM.getValue("rst_moyen", rstMoyenDefault),
   GM.getValue("rst_preview", rstPreviewDefault),
   GM.getValue("rst_thumb", rstThumbDefault),
+  GM.getValue("rst_mini", rstMiniDefault),
   GM.getValue("rst_conf", rstConfDefault),
   GM.getValue("rst_options", rstOptionsDefault),
   GM.getValue("rst_icons", rstIconsDefault),
@@ -1582,6 +1891,7 @@ Promise.all([
   rstMoyen,
   rstPreview,
   rstThumb,
+  rstMini,
   rstConf,
   rstOptions,
   rstIcons,
@@ -1598,6 +1908,7 @@ Promise.all([
   currentRstMoyen = rstMoyen;
   currentRstPreview = rstPreview;
   currentRstThumb = rstThumb;
+  currentRstMini = rstMini;
   currentRstConf = rstConf;
   currentRstOptions = rstOptions;
   currentRstIcons = rstIcons;
