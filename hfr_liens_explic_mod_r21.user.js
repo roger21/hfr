@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Liens explicites mod_r21
-// @version       2.6.5
+// @version       2.6.6
 // @namespace     roger21.free.fr
 // @description   Remplace le texte des liens internes du forum dans les posts par une description précise du lien.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -21,7 +21,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2020 roger21@free.fr
+Copyright © 2011-2012, 2014-2022 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -36,9 +36,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 3395 $
 
 // historique :
+// 2.6.6 (03/01/2022) :
+// - mise à jour des cats / sous-cats (ajout de la sous-cat windows 11)
 // 2.6.5 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 2.6.4 (01/01/2020) :
@@ -288,6 +290,7 @@ var id2subcat = {
   579: "VR-Realite-Virtuelle",
   569: "mobiles",
   // Windows & Software
+  580: "windows-11",
   570: "windows-10",
   555: "windows-8",
   521: "Windows-7-seven",
@@ -501,6 +504,7 @@ var id2nomsubcat = {
   579: "Réalité virtuelle",
   569: "Mobiles",
   // Windows & Software
+  580: "Win 11",
   570: "Win 10",
   555: "Win 8",
   521: "Win 7",
@@ -661,7 +665,7 @@ boucleliens: for(let lien of liens) {
   }
   // Gestion des liens extratopics
   else {
-    switch (linkURL.type) {
+    switch(linkURL.type) {
       case "rewrite":
         lien.textContent = "Topic \"" + linkURL.nomtopic + "\", page " + linkURL.page;
         lien.setAttribute("hlexp_page", linkURL.page);

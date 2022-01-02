@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Recherche Google
-// @version       1.5.5
+// @version       1.5.6
 // @namespace     roger21.free.fr
 // @description   Remplace le champ de recherche du forum (en haut à droite) par un champ de recherche par Google.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -18,7 +18,7 @@
 
 /*
 
-Copyright © 2012-2020 roger21@free.fr
+Copyright © 2012-2022 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -33,9 +33,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 3395 $
 
 // historique :
+// 1.5.6 (03/01/2022) :
+// - mise à jour des cats / sous-cats (ajout de la sous-cat windows 11)
 // 1.5.5 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 1.5.4 (01/01/2020) :
@@ -520,46 +522,50 @@ var cats = {
     name: "Windows & Software",
     subcats: {
       subcat0: {
+        key: "windows-11",
+        name: "Win 11"
+      },
+      subcat1: {
         key: "windows-10",
         name: "Win 10"
       },
-      subcat1: {
+      subcat2: {
         key: "windows-8",
         name: "Win 8"
       },
-      subcat2: {
+      subcat3: {
         key: "Windows-7-seven",
         name: "Win 7"
       },
-      subcat3: {
+      subcat4: {
         key: "Windows-vista",
         name: "Win Vista"
       },
-      subcat4: {
+      subcat5: {
         key: "Windows-nt-2k-xp",
         name: "Win NT/2K/XP"
       },
-      subcat5: {
+      subcat6: {
         key: "Win-9x-me",
         name: "Win 9x/Me"
       },
-      subcat6: {
+      subcat7: {
         key: "Securite",
         name: "Sécurité"
       },
-      subcat7: {
+      subcat8: {
         key: "Virus-Spywares",
         name: "Virus/Spywares"
       },
-      subcat8: {
+      subcat9: {
         key: "Stockage-Sauvegarde",
         name: "Stockage/Sauvegarde"
       },
-      subcat9: {
+      subcat10: {
         key: "Logiciels",
         name: "Logiciels"
       },
-      subcat10: {
+      subcat11: {
         key: "Tutoriels",
         name: "Tutoriels"
       }
