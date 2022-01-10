@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Bloque liste mod_r21
-// @version       4.1.0
+// @version       4.1.1
 // @namespace     roger21.free.fr
 // @description   Permet de filtrer les messages des utilisateurs.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -25,7 +25,7 @@
 
 /*
 
-Copyright © 2021 roger21@free.fr
+Copyright © 2021-2022 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -40,9 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3006 $
+// $Rev: 3424 $
 
 // historique :
+// 4.1.1 (10/01/2022) :
+// - signalement de la présence d'une citation non bloquée sur l'aperçu des messages ->
+// contenant une citation bloquée
 // 4.1.0 (21/07/2021) :
 // - ajout du filtrage intermédiaire "sauf pour les citations" pour les utilisateurs
 // - désactivation de l'option "sauf pour les citations" si l'option "masquer les aperçus" n'est pas cochée
@@ -1852,7 +1855,23 @@ function hide_quotes() {
 // fonction de masquage des messages contenant une citation d'un utilisateur bloqué
 function hide_posts_with_blocked_quote() {
   if(gmhfrblr21_parameters[profile].h) {
+    // mise à jour de la présence d'une citation non bloquée
     let l_post_trs = document.querySelectorAll(
+      "div#mesdiscussions.mesdiscussions " +
+      "table.messagetable.gmhfrblr21_with_blocked_quote_type > " +
+      "tbody > tr:not(.gmhfrblr21_snippet_type)");
+    for(let l_post_tr of l_post_trs) {
+      let l_quote = l_post_tr.querySelector(
+        "div.container:not(.gmhfrblr21_blocked_type) > table.citation, " +
+        "div.container:not(.gmhfrblr21_blocked_type) > table.oldcitation");
+      if(l_quote !== null) {
+        l_post_tr.previousElementSibling.querySelector("span.gmhfrblr21_quote").innerHTML =
+          " (<b>et au moins une citation non bloquée</b>)";
+      } else {
+        l_post_tr.previousElementSibling.querySelector("span.gmhfrblr21_quote").textContent = "";
+      }
+    }
+    l_post_trs = document.querySelectorAll(
       "div#mesdiscussions.mesdiscussions " +
       "table.messagetable:not(.gmhfrblr21_blocked_type):not(.gmhfrblr21_with_blocked_quote_type) > " +
       "tbody > tr");
@@ -1877,12 +1896,22 @@ function hide_posts_with_blocked_quote() {
             "table.gmhfrblr21_snippet_type.gmhfrblr21_always_hide_snippets") !== null) {
           l_snippet.classList.add("gmhfrblr21_with_always_hide_snippets");
         }
+        // la présence d'une citation non bloquée
+        let l_quote_text = "";
+        let l_quote = l_post_tr.querySelector(
+          "div.container:not(.gmhfrblr21_blocked_type) > table.citation, " +
+          "div.container:not(.gmhfrblr21_blocked_type) > table.oldcitation");
+        if(l_quote !== null) {
+          l_quote_text = " (<b>et au moins une citation non bloquée</b>)";
+        }
         let l_snippet_td = document.createElement("td");
         l_snippet_td.setAttribute("colspan", "2");
         let l_snippet_span = document.createElement("span");
         l_snippet_span.setAttribute("class", "cLink");
         l_snippet_span.innerHTML =
-          "Afficher le message de <b>" + l_pseudo + "</b> qui contient une citation bloquée";
+          "<span class=\"gmhfrblr21_action\">Afficher</span> le message de <b>" + l_pseudo +
+          "</b> qui contient au moins une citation bloquée<span class=\"gmhfrblr21_quote\">" +
+          l_quote_text + "</span>";
         l_snippet_span.dataset.status = "hidden";
         l_snippet_span.addEventListener("click", prevent_default, false);
         l_snippet_span.addEventListener("contextmenu", prevent_default, false);
@@ -1892,13 +1921,11 @@ function hide_posts_with_blocked_quote() {
           if(this.dataset.status === "hidden") {
             this.dataset.status = "shown";
             l_post_tr.parentElement.parentElement.classList.remove("gmhfrblr21_hidden");
-            this.innerHTML =
-              "Masquer le message de <b>" + l_pseudo + "</b> qui contient une citation bloquée";
+            this.querySelector("span.gmhfrblr21_action").firstChild.nodeValue = "Masquer";
           } else {
             this.dataset.status = "hidden";
             l_post_tr.parentElement.parentElement.classList.add("gmhfrblr21_hidden");
-            this.innerHTML =
-              "Afficher le message de <b>" + l_pseudo + "</b> qui contient une citation bloquée";
+            this.querySelector("span.gmhfrblr21_action").firstChild.nodeValue = "Afficher";
           }
         }, false);
         l_snippet_td.appendChild(l_snippet_span);
@@ -1962,8 +1989,7 @@ function rehide_contents() {
       let l_snippet_span =
         l_post_tr.parentElement.querySelector("tr.gmhfrblr21_snippet_type > td > span");
       l_snippet_span.dataset.status = "hidden";
-      l_snippet_span.innerHTML =
-        "Afficher le message de <b>" + l_pseudo + "</b> qui contient une citation bloquée";
+      l_snippet_span.querySelector("span.gmhfrblr21_action").firstChild.nodeValue = "Afficher";
     }
   }
 }
@@ -2039,6 +2065,17 @@ function show_posts_with_blocked_quote() {
       l_post_tr.parentElement.removeChild(l_post_tr.previousElementSibling); // l'aperçu
       l_post_tr.parentElement.parentElement.classList.remove("gmhfrblr21_with_blocked_quote_type");
       l_post_tr.parentElement.parentElement.classList.remove("gmhfrblr21_hidden");
+    } else {
+      // mise à jour de la présence d'une citation non bloquée
+      let l_quote = l_post_tr.querySelector(
+        "div.container:not(.gmhfrblr21_blocked_type) > table.citation, " +
+        "div.container:not(.gmhfrblr21_blocked_type) > table.oldcitation");
+      if(l_quote !== null) {
+        l_post_tr.previousElementSibling.querySelector("span.gmhfrblr21_quote").innerHTML =
+          " (<b>et au moins une citation non bloquée</b>)";
+      } else {
+        l_post_tr.previousElementSibling.querySelector("span.gmhfrblr21_quote").textContent = "";
+      }
     }
   }
 }
