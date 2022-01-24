@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Ouverture en masse mod_r21
-// @version       4.2.4
+// @version       4.2.5
 // @namespace     roger21.free.fr
 // @description   Permet d'ouvrir ses drapeaux dans de nouveaux onglets avec un seul clic.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -27,7 +27,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2021 roger21@free.fr
+Copyright © 2011-2012, 2014-2022 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -42,9 +42,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2827 $
+// $Rev: 3448 $
 
 // historique :
+// 4.2.5 (24/01/2022) :
+// - ajout d'une option pour réutiliser la page des drapals / topics pour l'ouverture en masse
+// - coloration en gris du champ "ouvrir les onglets à la fin" pour gm4
+// - correction de la gestion du champ "inverser l'ordre des onglets" pour gm4
 // 4.2.4 (02/02/2021) :
 // - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 4.2.3 (05/05/2020) :
@@ -229,6 +233,7 @@ var img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%
 var nb_tabs_default = 9;
 var reverse_order_default = false;
 var open_at_end_default = true;
+var reuse_page_default = false;
 var enable_pms_default = true;
 var more_than_one_default = false;
 var always_pm_page_default = false;
@@ -242,6 +247,7 @@ var excluded_topics_default = [];
 var nb_tabs = nb_tabs_default;
 var reverse_order = reverse_order_default;
 var open_at_end = open_at_end_default;
+var reuse_page = reuse_page_default;
 var enable_pms = enable_pms_default;
 var more_than_one = more_than_one_default;
 var always_pm_page = always_pm_page_default;
@@ -376,15 +382,15 @@ function update_pm_link() {
     if(!always_pm_page && enable_pms && (!more_than_one || (more_than_one && pms.length > 1))) {
       pm_link.removeAttribute("href");
       if(pms.length === 0) {
-        pm_link.setAttribute("title", "Ouvrir la page des mps dans un nouvel onglet" +
+        pm_link.setAttribute("title", "Ouvrir la page des messages privés" +
           "\n(clic droit pour configurer)");
       } else if(pms.length === 1) {
-        pm_link.setAttribute("title", "Ouvrir le nouveau mp dans un nouvel onglet" +
+        pm_link.setAttribute("title", "Ouvrir le nouveau message privé" +
           "\n(clic droit pour configurer)");
       } else {
         let l_local_nb_tabs = Math.min(pms.length, nb_tabs);
         pm_link.setAttribute("title", "Ouvrir les " + l_local_nb_tabs +
-          (pms.length > nb_tabs ? " premiers " : "") + " nouveaux mps" +
+          (pms.length > nb_tabs ? " premiers " : "") + " nouveaux messages privés" +
           "\n(clic droit pour configurer)");
       }
       pm_link.addEventListener("contextmenu", prevent_default, false);
@@ -410,12 +416,14 @@ function update_pm_link() {
 
 // fonction générale de rafraîchissements de la page
 function do_refresh_page() {
-  window.location.reload(true);
+  if(!reuse_page) {
+    window.location.reload(true);
+  }
 }
 
 // fonction de gestion du rafraîchissements de la page après une ouverture en masse
 function do_refresh_after() {
-  if(refresh_after) {
+  if(refresh_after && !reuse_page) {
     scheduled_for_refresh_after = true;
     window.clearTimeout(refresh_after_timer);
     refresh_after_timer = window.setTimeout(do_refresh_page, refresh_after_time * 1000);
@@ -424,7 +432,7 @@ function do_refresh_after() {
 
 // fonction de gestion du rafraîchissements de la page toutes les X minutes
 function do_refresh_every() {
-  if(list_page && refresh_every) {
+  if(list_page && refresh_every && !reuse_page) {
     window.clearTimeout(refresh_every_timer);
     refresh_every_timer = window.setTimeout(do_refresh_page, refresh_every_time * 60 * 1000);
   }
@@ -454,15 +462,39 @@ function open_topics(p_event) {
         }
       }
     }
+    // ouverture des drapals / topics
     if(l_urls.length > 0) {
       l_urls = l_urls.slice(0, nb_tabs);
-      if((gm4 && !reverse_order) ||
-        (!gm4 && ((reverse_order && open_at_end) || (!reverse_order && !open_at_end)))) {
+      let l_length = l_urls.length;
+      if((gm4 && reverse_order) ||
+        (!gm4 && reverse_order === open_at_end)) {
         l_urls.reverse();
       }
-      // ouverture des topics
-      for(let l_url of l_urls) {
-        GM.openInTab(l_url, open_in_background);
+      let l_first_url = null;
+      let l_last_url = null;
+      l_urls.forEach(function(l_url, l_index) {
+        let l_open = true;
+        if(l_index === 0) {
+          if(reuse_page && (gm4 || (!gm4 && open_at_end))) {
+            l_open = false;
+            l_first_url = l_url;
+          }
+        }
+        if(l_open && l_index === l_length - 1) {
+          if(reuse_page && !gm4 && !open_at_end) {
+            l_open = false;
+            l_last_url = l_url;
+          }
+        }
+        if(l_open) {
+          GM.openInTab(l_url, open_in_background);
+        }
+      });
+      if(l_first_url !== null) {
+        window.location = l_first_url;
+      }
+      if(l_last_url !== null) {
+        window.location = l_last_url;
       }
       // rafraîchissements de la page si configuré
       do_refresh_after();
@@ -483,15 +515,39 @@ function open_pms(p_event) {
       l_pms.push(pm_page);
     } else {
       l_pms = l_pms.slice(0, nb_tabs);
-      if((gm4 && !reverse_order) ||
-        (!gm4 && ((reverse_order && open_at_end) || (!reverse_order && !open_at_end)))) {
+      if((gm4 && reverse_order) ||
+        (!gm4 && reverse_order === open_at_end)) {
         l_pms.reverse();
       }
     }
     // ouverture des mps
-    for(let l_pm of l_pms) {
-      GM.openInTab(l_pm, (!l_less_than_two || p_event.button === 1) ?
-        open_in_background : (gm4 ? false : open_in_foreground));
+    let l_length = l_pms.length;
+    let l_first_pm = null;
+    let l_last_pm = null;
+    l_pms.forEach(function(l_pm, l_index) {
+      let l_open = true;
+      if(l_index === 0) {
+        if(reuse_page && (gm4 || (!gm4 && open_at_end))) {
+          l_open = false;
+          l_first_pm = l_pm;
+        }
+      }
+      if(l_open && l_index === l_length - 1) {
+        if(reuse_page && !gm4 && !open_at_end) {
+          l_open = false;
+          l_last_pm = l_pm;
+        }
+      }
+      if(l_open) {
+        GM.openInTab(l_pm, (!l_less_than_two || p_event.button === 1) ?
+          open_in_background : (gm4 ? false : open_in_foreground));
+      }
+    });
+    if(l_first_pm !== null) {
+      window.location = l_first_pm;
+    }
+    if(l_last_pm !== null) {
+      window.location = l_last_pm;
     }
     // rafraîchissements de la page si configuré
     if(!l_no_pms) {
@@ -523,7 +579,7 @@ style.textContent =
   "#gm_hfr_oem_config_window legend{font-size:14px;}" +
   "#gm_hfr_oem_config_window p{margin:0 0 0 4px;}" +
   "#gm_hfr_oem_config_window p:not(:last-child){margin-bottom:6px;}" +
-  "#gm_hfr_oem_config_window p.gm_hfr_oem_disabled{color:#808080;}" +
+  "#gm_hfr_oem_config_window .gm_hfr_oem_disabled{color:#808080;}" +
   "#gm_hfr_oem_config_window input[type=\"checkbox\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
   "#gm_hfr_oem_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
   "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;}" +
@@ -634,6 +690,37 @@ open_at_end_label.textContent = " ouvrir les onglets à la fin";
 open_at_end_label.setAttribute("for", "gm_hfr_oem_open_at_end_checkbox");
 reverse_and_open_p.appendChild(open_at_end_label);
 tabs_fieldset.appendChild(reverse_and_open_p);
+
+// reuse page
+var reuse_page_p = document.createElement("p");
+var reuse_page_checkbox = document.createElement("input");
+reuse_page_checkbox.setAttribute("id", "gm_hfr_oem_reuse_page_checkbox");
+reuse_page_checkbox.setAttribute("type", "checkbox");
+
+function update_reuse() {
+  if(reuse_page_checkbox.checked) {
+    refresh_after_p.className = "gm_hfr_oem_disabled";
+    refresh_every_p.className = "gm_hfr_oem_disabled";
+    refresh_after_checkbox.disabled = true;
+    refresh_after_time_input.disabled = true;
+    refresh_every_checkbox.disabled = true;
+    refresh_every_time_input.disabled = true;
+  } else {
+    refresh_after_p.className = "";
+    refresh_every_p.className = "";
+    refresh_after_checkbox.disabled = false;
+    refresh_after_time_input.disabled = false;
+    refresh_every_checkbox.disabled = false;
+    refresh_every_time_input.disabled = false;
+  }
+}
+reuse_page_checkbox.addEventListener("input", update_reuse, false);
+reuse_page_p.appendChild(reuse_page_checkbox);
+var reuse_page_label = document.createElement("label");
+reuse_page_label.textContent = " réutiliser la page des drapals / topics pour l'ouverture en masse";
+reuse_page_label.setAttribute("for", "gm_hfr_oem_reuse_page_checkbox");
+reuse_page_p.appendChild(reuse_page_label);
+tabs_fieldset.appendChild(reuse_page_p);
 
 // pms section
 var pms_fieldset = document.createElement("fieldset");
@@ -923,6 +1010,8 @@ function save_config_window() {
   open_at_end = open_at_end_checkbox.checked;
   open_in_background.insert = !open_at_end;
   open_in_foreground.insert = !open_at_end;
+  // reuse page
+  reuse_page = reuse_page_checkbox.checked;
   // pms
   enable_pms = enable_pms_checkbox.checked;
   more_than_one = more_than_one_checkbox.checked;
@@ -969,6 +1058,7 @@ function save_config_window() {
     GM.setValue("nb_tabs", nb_tabs),
     GM.setValue("reverse_order", reverse_order),
     GM.setValue("open_at_end", open_at_end),
+    GM.setValue("reuse_page", reuse_page),
     GM.setValue("enable_pms", enable_pms),
     GM.setValue("more_than_one", more_than_one),
     GM.setValue("always_pm_page", always_pm_page),
@@ -1021,10 +1111,14 @@ function show_config_window() {
   // initialisation des paramètres
   nb_tabs_input.value = nb_tabs;
   reverse_order_checkbox.checked = reverse_order;
-  open_at_end_checkbox.checked = open_at_end && !gm4;
+  open_at_end_checkbox.checked = open_at_end;
   if(gm4) {
+    open_at_end_checkbox.checked = false;
     open_at_end_checkbox.disabled = true;
+    open_at_end_label.className = "gm_hfr_oem_disabled";
   }
+  reuse_page_checkbox.checked = reuse_page;
+  update_reuse();
   enable_pms_checkbox.checked = enable_pms;
   more_than_one_checkbox.checked = more_than_one;
   always_pm_page_checkbox.checked = always_pm_page;
@@ -1064,6 +1158,7 @@ Promise.all([
   GM.getValue("nb_tabs", nb_tabs_default),
   GM.getValue("reverse_order", reverse_order_default),
   GM.getValue("open_at_end", open_at_end_default),
+  GM.getValue("reuse_page", reuse_page_default),
   GM.getValue("enable_pms", enable_pms_default),
   GM.getValue("more_than_one", more_than_one_default),
   GM.getValue("always_pm_page", always_pm_page_default),
@@ -1080,6 +1175,7 @@ Promise.all([
   l_nb_tabs,
   l_reverse_order,
   l_open_at_end,
+  l_reuse_page,
   l_enable_pms,
   l_more_than_one,
   l_always_pm_page,
@@ -1099,6 +1195,7 @@ Promise.all([
   open_at_end = l_open_at_end;
   open_in_background.insert = !open_at_end;
   open_in_foreground.insert = !open_at_end;
+  reuse_page = l_reuse_page;
   enable_pms = l_enable_pms;
   more_than_one = l_more_than_one;
   always_pm_page = l_always_pm_page;
@@ -1265,7 +1362,6 @@ Promise.all([
     for(let m of l) {
       pms.push(m.parentElement.parentElement.querySelector("td.sujetCase9 a").href);
     }
-
     // mise à jour du lien des mps en fonction de la configuration
     update_pm_link();
   }).catch(function(e) {
