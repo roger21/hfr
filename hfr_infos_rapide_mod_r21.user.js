@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.1.2
+// @version       4.1.3
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3473 $
+// $Rev: 3479 $
 
 // historique :
+// 4.1.3 (12/02/2022) :
+// - meilleur gestion du support pour [HFR] Chat
 // 4.1.2 (12/02/2022) :
 // - ajout du support pour [HFR] Chat
 // 4.1.1 (21/09/2020) :
@@ -697,6 +699,7 @@ function get_real_pseudal_value(p_pseudal_value) {
 
 // fonction d'ajout des popup d'info sur les pseudals
 function add_info_pseudal(p_pseudal, p_profillink, p_avatarimg, p_avatar_not_present) {
+  p_pseudal.setAttribute("gm_hfr_infos_rapides_r21", "gm_hfr_infos_rapides_r21");
   let l_real_pseudal = get_real_pseudal_value(p_pseudal.firstChild.textContent.trim());
   if(l_real_pseudal !== "Profil supprimé" && l_real_pseudal !== "Modération" && l_real_pseudal !== "Publicité") {
     let l_profileurl = null;
@@ -717,24 +720,28 @@ function add_info_pseudal(p_pseudal, p_profillink, p_avatarimg, p_avatar_not_pre
 }
 
 // récupération des différents pseudal et ajout de la popup d'info
-var pseudos = root.querySelectorAll("table.messagetable td.messCase1 > div:not([postalrecall]) > b.s2");
+var pseudos = root.querySelectorAll(
+  "table.messagetable td.messCase1 > div:not([postalrecall]) > b.s2:not([gm_hfr_infos_rapides_r21])");
 for(let l_pseudal of pseudos) {
   let l_avatar_div = l_pseudal.parentElement.parentElement.querySelector("div.avatar_center");
   add_info_pseudal(l_pseudal, true, false, l_avatar_div === null);
 }
-var pseudos_citation = root.querySelectorAll("table.messagetable td.messCase2 div.container table.citation " +
-  "td b.s1, table.messagetable td.messCase2 div.container table.oldcitation td b.s1");
+var pseudos_citation = root.querySelectorAll(
+  "table.messagetable td.messCase2 div.container table.citation td b.s1:not([gm_hfr_infos_rapides_r21]), " +
+  "table.messagetable td.messCase2 div.container table.oldcitation td b.s1:not([gm_hfr_infos_rapides_r21])");
 for(let l_pseudal of pseudos_citation) {
   add_info_pseudal(l_pseudal, false, true, false);
 }
 window.setTimeout(function() {
-  var pseudos_hfr_chat = root.querySelectorAll("table.messagetable td.messCase2 > div.toolbar > span > span > b.s2");
+  var pseudos_hfr_chat = root.querySelectorAll(
+    "table.messagetable td.messCase2 > div.toolbar > span > span > b.s2:not([gm_hfr_infos_rapides_r21])");
   for(let l_pseudal of pseudos_hfr_chat) {
-    add_info_pseudal(l_pseudal, true, true, false);
+    add_info_pseudal(l_pseudal, true, false, false);
   }
 }, 1000); // 1 seconde
 window.setTimeout(function() {
-  var pseudos_recall = root.querySelectorAll("table.messagetable td.messCase1 > div[postalrecall] > b.s2");
+  var pseudos_recall = root.querySelectorAll(
+    "table.messagetable td.messCase1 > div[postalrecall] > b.s2:not([gm_hfr_infos_rapides_r21])");
   for(let l_pseudal of pseudos_recall) {
     add_info_pseudal(l_pseudal, true, true, false);
   }
