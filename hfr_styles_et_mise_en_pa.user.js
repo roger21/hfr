@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.0.7
+// @version       1.0.8
 // @namespace     roger21.free.fr
 // @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2879 $
+// $Rev: 3561 $
 
 // historique :
+// 1.0.8 (11/06/2022) :
+// - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
+// éviter des débordements de ligne sur certaines configurations
+// - redécoupage de certaines lignes longues dans le code
 // 1.0.7 (27/04/2021) :
 // - ajout/correction du style de limitation de la taille de l'icône dans l'onglet
 // 1.0.6 (02/02/2021) :
@@ -51,7 +55,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 1.0.3 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 1.0.2 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur ->
+// (free.fr -> github.com)
 // 1.0.1 (11/01/2020) :
 // - mise à jour des images des boutons de la fenêtre de configuration
 // 1.0.0 (30/11/2019) :
@@ -148,36 +153,43 @@ var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
   // styles pour la fenêtre d'aide
-  "#gm_hfr_semep_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;z-index:1003;" +
-  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;text-align:justify;}" +
-  "#gm_hfr_semep_config_window img.gm_hfr_semep_help_button{cursor:help;vertical-align:text-bottom;}" +
+  "#gm_hfr_semep_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
+  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;z-index:1003;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
+  "text-align:justify;}" +
+  "#gm_hfr_semep_config_window img.gm_hfr_semep_help_button{cursor:help;" +
+  "vertical-align:text-bottom;}" +
   // styles pour la fenêtre de configuration
-  "#gm_hfr_semep_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
-  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
-  "#gm_hfr_semep_config_window{position:fixed;min-width:450px;height:auto;background:#ffffff;z-index:1002;" +
+  "#gm_hfr_semep_config_background{position:fixed;left:0;top:0;background-color:#242424;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;z-index:1001;}" +
+  "#gm_hfr_semep_config_window{position:fixed;min-width:450px;height:auto;background:#ffffff;" +
   "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;}" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;z-index:1002;}" +
   "#gm_hfr_semep_config_window div.gm_hfr_semep_main_title{font-size:16px;text-align:center;" +
   "font-weight:bold;margin:0 0 8px;}" +
-  "#gm_hfr_semep_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:6px 10px 10px;" +
-  "background:linear-gradient(to bottom, #ffffff 20px, transparent);transition:background-color 0.3s ease 0s;}" +
+  "#gm_hfr_semep_config_window fieldset{margin:0 0 8px;border:1px solid #888888;" +
+  "padding:6px 10px 10px;background:linear-gradient(to bottom, #ffffff 20px, transparent);" +
+  "transition:background-color 0.3s ease 0s;}" +
   "#gm_hfr_semep_config_window fieldset.gm_hfr_semep_red{background-color:#ffc0b0;}" +
   "#gm_hfr_semep_config_window fieldset.gm_hfr_semep_green{background-color:#c0ffb0;}" +
   "#gm_hfr_semep_config_window legend{font-size:14px;background-color:#ffffff;}" +
-  "#gm_hfr_semep_config_window p{margin:0 0 0 4px;}" +
+  "#gm_hfr_semep_config_window p{margin:0 0 0 4px;white-space:nowrap;}" +
   "#gm_hfr_semep_config_window p:not(:last-child){margin-bottom:4px;}" +
-  "#gm_hfr_semep_config_window img.gm_hfr_semep_test{margin:0 3px 1px 0;max-width:16px;max-height:16px;" +
-  "vertical-align:text-bottom;}" +
+  "#gm_hfr_semep_config_window img.gm_hfr_semep_test{margin:0 3px 1px 0;max-width:16px;" +
+  "max-height:16px;vertical-align:text-bottom;}" +
   "#gm_hfr_semep_config_window img.gm_hfr_semep_reset{cursor:pointer;margin:0 0 0 3px;}" +
-  "#gm_hfr_semep_config_window div.gm_hfr_semep_mise_en_page_div{display:flex;justify-content:space-around;}" +
-  "#gm_hfr_semep_config_window div.gm_hfr_semep_mise_en_page_div:not(:last-child){margin-bottom:8px;}" +
-  "#gm_hfr_semep_config_window input[type=\"checkbox\"]{margin:0 0 1px 1px;vertical-align:text-bottom;}" +
-  "#gm_hfr_semep_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;}" +
+  "#gm_hfr_semep_config_window div.gm_hfr_semep_mise_en_page_div{display:flex;" +
+  "justify-content:space-around;}" +
+  "#gm_hfr_semep_config_window div.gm_hfr_semep_mise_en_page_div:not(:last-child)" +
+  "{margin-bottom:8px;}" +
+  "#gm_hfr_semep_config_window input[type=\"checkbox\"]{margin:0 0 1px 1px;" +
+  "vertical-align:text-bottom;}" +
+  "#gm_hfr_semep_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;height:14px;}" +
   "div.gm_hfr_semep_save_close_div{text-align:right;margin:16px 0 0;}" +
   "div.gm_hfr_semep_save_close_div div.gm_hfr_semep_info_reload_div{float:left;}" +
-  "div.gm_hfr_semep_save_close_div div.gm_hfr_semep_info_reload_div img{vertical-align:text-bottom;}" +
+  "div.gm_hfr_semep_save_close_div div.gm_hfr_semep_info_reload_div " +
+  "img{vertical-align:text-bottom;}" +
   "div.gm_hfr_semep_save_close_div > img{margin-left:8px;cursor:pointer;}" +
   "img.gm_hfr_semep_onglet_img{max-width:16px;max-height:16px;}";
 document.getElementsByTagName("head")[0].appendChild(style);
@@ -347,8 +359,8 @@ taille_reponse_p.appendChild(hauteur_reponse_input);
 taille_reponse_p.appendChild(document.createTextNode(" "));
 taille_reponse_p.appendChild(create_help_button(230,
   "Vous pouvez préciser l'unité, soit \u00ab\u202fpx\u202f\u00bb, soit \u00ab\u202f%\u202f\u00bb, " +
-  "sans unité \u00ab\u202fpx\u202f\u00bb est retenu et le \u00ab\u202f%\u202f\u00bb est par rapport " +
-  "à la taille de la fenêtre."));
+  "sans unité \u00ab\u202fpx\u202f\u00bb est retenu et le \u00ab\u202f%\u202f\u00bb est " +
+  "par rapport à la taille de la fenêtre."));
 styles_fieldset.appendChild(taille_reponse_p);
 
 // taille_normale
@@ -373,8 +385,8 @@ taille_normale_p.appendChild(hauteur_normale_input);
 taille_normale_p.appendChild(document.createTextNode(" "));
 taille_normale_p.appendChild(create_help_button(230,
   "Vous pouvez préciser l'unité, soit \u00ab\u202fpx\u202f\u00bb, soit \u00ab\u202f%\u202f\u00bb, " +
-  "sans unité \u00ab\u202fpx\u202f\u00bb est retenu et le \u00ab\u202f%\u202f\u00bb est par rapport " +
-  "à la hauteur de la fenêtre."));
+  "sans unité \u00ab\u202fpx\u202f\u00bb est retenu et le \u00ab\u202f%\u202f\u00bb est " +
+  "par rapport à la hauteur de la fenêtre."));
 styles_fieldset.appendChild(taille_normale_p);
 
 // images_smileys
@@ -388,7 +400,8 @@ images_smileys_label.textContent = " homogénéiser l'affichage des images et de
 images_smileys_label.setAttribute("for", "gm_hfr_semep_images_smileys_checkbox");
 images_smileys_p.appendChild(images_smileys_label);
 images_smileys_p.appendChild(create_help_button(165,
-  "Cette option enlève les marges sur les images et alligne les images et les smileys en bas du texte."));
+  "Cette option enlève les marges sur les images et alligne les images et les smileys " +
+  "en bas du texte."));
 styles_fieldset.appendChild(images_smileys_p);
 
 // section mise_em_page
@@ -480,9 +493,9 @@ info_reload_label.textContent = " recharger la page ";
 info_reload_label.setAttribute("for", "gm_hfr_semep_info_reload_checkbox");
 info_reload_div.appendChild(info_reload_label);
 info_reload_div.appendChild(create_help_button(255,
-  "La modification des paramètres de cette fenêtre de configuration n'est visible que sur les nouvelles " +
-  "pages ou après le rechargement de la page courante. Cette option permet de recharger automatiquement la " +
-  "page courante lors de la validation."));
+  "La modification des paramètres de cette fenêtre de configuration n'est visible que sur " +
+  "les nouvelles pages ou après le rechargement de la page courante. Cette option permet " +
+  "de recharger automatiquement la page courante lors de la validation."));
 save_close_div.appendChild(info_reload_div);
 var save_button = document.createElement("img");
 save_button.setAttribute("src", img_save);
@@ -579,7 +592,8 @@ function esc_config_window(p_event) {
   }
 }
 
-// fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
+// fonction de gestion de la fin de la transition d'affichage /
+// disparition de la fenêtre de configuration
 function background_transitionend() {
   if(config_background.style.opacity === "0") {
     config_window.style.visibility = "hidden";
@@ -759,7 +773,8 @@ Promise.all([
   if(smp_images_smileys) {
     let style_images_smileys = document.createElement("style");
     style_images_smileys.setAttribute("type", "text/css");
-    style_images_smileys.textContent = "div[id^=\"para\"] img:not(.ws_toyo_smilies):not(.ws_toyo_help_icon), " +
+    style_images_smileys.textContent =
+      "div[id^=\"para\"] img:not(.ws_toyo_smilies):not(.ws_toyo_help_icon), " +
       "div#apercu_reponse img, body#mesdiscussions img{border:0 !important;margin:0 !important;" +
       "padding:0 !important;vertical-align:bottom !important;}span.gm_hfr_tdi_r21_img_span" +
       "{vertical-align:bottom !important;}";
@@ -770,12 +785,14 @@ Promise.all([
     if(document.getElementById("sujetrelatif")) {
       // suppression du <br> avant les sujets relatifs
       if(document.getElementById("sujetrelatif").previousElementSibling &&
-        (document.getElementById("sujetrelatif").previousElementSibling.nodeName.toLowerCase() === "br")) {
+        (document.getElementById("sujetrelatif").previousElementSibling
+          .nodeName.toLowerCase() === "br")) {
         document.getElementById("sujetrelatif").parentNode
           .removeChild(document.getElementById("sujetrelatif").previousElementSibling);
       }
       // suppression des sujets relatifs
-      document.getElementById("sujetrelatif").parentNode.removeChild(document.getElementById("sujetrelatif"));
+      document.getElementById("sujetrelatif").parentNode
+        .removeChild(document.getElementById("sujetrelatif"));
     }
   }
   // suppression de la version
@@ -783,12 +800,14 @@ Promise.all([
     if(document.querySelector("div.copyright")) {
       // suppression du <br> avant la version
       if(document.querySelector("div.copyright").previousElementSibling &&
-        (document.querySelector("div.copyright").previousElementSibling.nodeName.toLowerCase() === "br")) {
+        (document.querySelector("div.copyright").previousElementSibling
+          .nodeName.toLowerCase() === "br")) {
         document.querySelector("div.copyright").parentNode
           .removeChild(document.querySelector("div.copyright").previousElementSibling);
       }
       // suppression de la version
-      document.querySelector("div.copyright").parentNode.removeChild(document.querySelector("div.copyright"));
+      document.querySelector("div.copyright").parentNode
+        .removeChild(document.querySelector("div.copyright"));
     }
   }
   // suppression du copyright

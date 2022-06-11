@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] New Page Number
-// @version       2.8.8
+// @version       2.8.9
 // @namespace     roger21.free.fr
 // @description   Affiche le nombre de pages en retard sur la page des drapals et permet l'ouverture en masse des pages en retard avec un clic-milieu sur le drapal (fenêtre de configuration complète avec de nombreuses options).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -41,9 +41,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3444 $
+// $Rev: 3561 $
 
 // historique :
+// 2.8.9 (11/06/2022) :
+// - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
+// éviter des débordements de ligne sur certaines configurations
+// - redécoupage de certaines lignes longues dans le code
 // 2.8.8 (24/01/2022) :
 // - coloration en gris du champ "ouvrir les onglets à la fin" pour gm4
 // - correction de la gestion du champ "inverser l'ordre des onglets" pour gm4
@@ -68,11 +72,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - correction de la gestion des attributs spécifiques du script
 // - ajout d'une tempo sur l'actualisation du drapal sur l'ouverture en masse ->
 // pour éventuellement permettre une actualisation plus fiable
-// - correction d'un bug visuel sur la fenêtre de conf (suppression de la règle CSS line-height inutile)
+// - correction d'un bug visuel sur la fenêtre de conf ->
+// (suppression de la règle CSS line-height inutile)
 // 2.7.0 (18/02/2020) :
 // - prise en compte de l'attribut target _blank sur les drapals
 // 2.6.9 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur ->
+// (free.fr -> github.com)
 // 2.6.8 (11/01/2020) :
 // - mise à jour des images des boutons de la fenêtre de configuration
 // 2.6.7 (30/11/2019) :
@@ -91,7 +97,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 2.6.2 (18/09/2019) :
 // - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
 // 2.6.1 (12/09/2019) :
-// - priorité à la couleur de fin sur la couleur de début pour le dégradé en limite auto avec amplitude 0
+// - priorité à la couleur de fin sur la couleur de début pour le dégradé en ->
+// limite auto avec amplitude 0
 // 2.6.0 (09/09/2019) :
 // - nouvelle gestion de l'affichage de la fenêtre de configuration
 // - restylage de la fenêtre de configuration (plus compacte)
@@ -130,7 +137,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 2.3.1 (02/09/2017) :
 // - homogénéisation de la gestion des clics et des preventDefault avec [HFR] drapal esay click
 // 2.3.0 (02/09/2017) :
-// - restauration du lien l'orsque l'ouverture en masse est désactivée (ou limitée à 1 onglet) pour gsi spirit
+// - restauration du lien l'orsque l'ouverture en masse est désactivée ->
+// (ou limitée à 1 onglet) pour gsi spirit
 // - correction de l'affichage du nombre total de pages en retard ->
 // mal géré quand on applique la conf plusieurs fois)
 // 2.2.3 (29/07/2017) :
@@ -143,9 +151,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - n'affiche pas les totaux si c'est 0 (pasque bon :o )
 // 2.2.0 (28/07/2017) :
 // - nouvelle gestion du clic-milieu pour une éventuelle compatibilité avec chrome
-// - ajout de l'affichage du nombre total de pages en retard et du nombre total de topics dans la case "Sujet"
+// - ajout de l'affichage du nombre total de pages en retard et du nombre total de ->
+// topics dans la case "Sujet"
 // 2.1.3 (20/06/2017) :
-// - suppression du text-align-last (maintenant que ça marche, on peut voir que c'était une connerie :o )
+// - suppression du text-align-last (maintenant que ça marche, on peut voir que ->
+// c'était une connerie :o )
 // 2.1.2 (11/02/2017) :
 // - correction du style font-fammily à Verdana,Arial,Sans-serif,Helvetica (HFR Style)
 // 2.1.1 (22/12/2016) :
@@ -178,7 +188,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - contournement du problème d'imposssibilité de réouvrir les onglets fermés
 // - ajout d'un "+" devant le nombre de pages "en plus" du drapal
 // 1.0.6 (07/03/2015) :
-// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
+// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour ->
+// plus de sécurité)
 // 1.0.5 (07/04/2014) :
 // - gestion du annuler sur le menu du script (code de porc is bad)
 // 1.0.4 (04/04/2014) :
@@ -399,7 +410,8 @@ function compute_colors(npn) {
           g: color_g,
           b: color_b
         });
-        background = "#" + pad(color_r.toString(16)) + pad(color_g.toString(16)) + pad(color_b.toString(16));
+        background = "#" + pad(color_r.toString(16)) +
+          pad(color_g.toString(16)) + pad(color_b.toString(16));
       }
     } else if(color_start_type === "trans") { // transparent -> color_end
       let color_end = color_end_type === "auto" ? color_end_auto : color_end_perso;
@@ -474,18 +486,19 @@ style.textContent =
   "text-align:justify;}" +
   "#npn_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
   "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
-  "#npn_config{position:fixed;width:465px;height:auto;background:#ffffff;z-index:1002;" +
+  "#npn_config{position:fixed;min-width:465px;height:auto;background:#ffffff;z-index:1002;" +
   "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;" +
   "border:1px solid black;padding:16px 16px 12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
   "#npn_config fieldset{margin:8px 0 0;border:1px solid #888888;padding:4px 10px 10px;" +
-  "background:linear-gradient(to bottom, #ffffff 20px, transparent);transition:background-color 0.3s ease 0s;}" +
+  "background:linear-gradient(to bottom, #ffffff 20px, transparent);" +
+  "transition:background-color 0.3s ease 0s;}" +
   "#npn_config fieldset.npn_red{background-color:#ffc0b0;}" +
   "#npn_config fieldset.npn_green{background-color:#c0ffb0;}" +
   "#npn_config legend{font-size:14px;font-weight:normal;}" +
-  "#npn_config p{font-size:12px;font-weight:normal;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+  "#npn_config p{font-size:12px;font-weight:normal;font-family:Verdana,Arial,Sans-serif,Helvetica;" +
+  "margin:4px 0 0;white-space:nowrap;}" +
   "#npn_config legend{background-color:#ffffff;}" +
   "#npn_config legend.npn_alone{padding:0 3px 2px;}" +
-  "#npn_config p{margin:4px 0 0;}" +
   "#npn_config input[type=checkbox]{margin:0 0 1px;vertical-align:text-bottom;}" +
   "#npn_config legend input[type=checkbox]{margin-left:2px;}" +
   "#npn_config input[type=text]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
@@ -569,7 +582,8 @@ function change_button() {
 npn_cb_button.addEventListener("change", change_button, false);
 npn_lg_button.appendChild(npn_cb_button);
 var npn_lb_button = document.createElement("label");
-npn_lb_button.appendChild(document.createTextNode(" Afficher le bouton du script sur la page des drapals "));
+npn_lb_button
+  .appendChild(document.createTextNode(" Afficher le bouton du script sur la page des drapals "));
 npn_lb_button.setAttribute("for", "npn_cb_button");
 npn_lg_button.appendChild(npn_lb_button);
 npn_lg_button.appendChild(create_help_button(250,
@@ -630,7 +644,8 @@ function change_mass() {
 npn_cb_mass.addEventListener("change", change_mass, false);
 npn_lg_mass.appendChild(npn_cb_mass);
 var npn_lb_mass = document.createElement("label");
-npn_lb_mass.appendChild(document.createTextNode(" Activer l'ouverture en masse des pages en retard "));
+npn_lb_mass
+  .appendChild(document.createTextNode(" Activer l'ouverture en masse des pages en retard "));
 npn_lb_mass.setAttribute("for", "npn_cb_mass");
 npn_lg_mass.appendChild(npn_lb_mass);
 npn_lg_mass.appendChild(create_help_button(225,
@@ -641,7 +656,8 @@ npn_config.appendChild(npn_fs_mass);
 
 /* max tab, reverse order et open at end */
 var npn_p_maxtab = document.createElement("p");
-npn_p_maxtab.appendChild(document.createTextNode("nombre maximum d'onglets à ouvrir simultanément : "));
+npn_p_maxtab
+  .appendChild(document.createTextNode("nombre maximum d'onglets à ouvrir simultanément : "));
 var npn_in_maxtab = document.createElement("input");
 npn_in_maxtab.setAttribute("type", "text");
 npn_in_maxtab.setAttribute("size", "2");
@@ -666,7 +682,8 @@ npn_p_reverseandopen.appendChild(npn_lb_reverseorder);
 npn_p_reverseandopen.appendChild(create_help_button(250,
   "Certaines configurations ont l'ordre des onglets " +
   "inversé, cette option permet de les remettre à l'endroit."));
-npn_p_reverseandopen.appendChild(document.createTextNode("\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"));
+npn_p_reverseandopen
+  .appendChild(document.createTextNode("\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0"));
 var npn_cb_openatend = document.createElement("input");
 npn_cb_openatend.setAttribute("id", "npn_cb_openatend");
 npn_cb_openatend.setAttribute("type", "checkbox");
@@ -676,8 +693,9 @@ npn_lb_openatend.setAttribute("for", "npn_cb_openatend");
 npn_p_reverseandopen.appendChild(npn_cb_openatend);
 npn_p_reverseandopen.appendChild(npn_lb_openatend);
 npn_p_reverseandopen.appendChild(create_help_button(272,
-  "Permet d'ouvrir les onglets à la fin de tous les onglets ouverts, cela permet de mieux gérer l'ordre " +
-  "d'ouverture des onglets en cas d'ouvertures successives. Non disponible avec Greasemonkey v4."));
+  "Permet d'ouvrir les onglets à la fin de tous les onglets ouverts, cela permet de mieux gérer " +
+  "l'ordre d'ouverture des onglets en cas d'ouvertures successives. " +
+  "Non disponible avec Greasemonkey v4."));
 npn_fs_mass.appendChild(npn_p_reverseandopen);
 
 /* dégradé */
@@ -844,7 +862,8 @@ npn_in_limit_fixed.setAttribute("type", "text");
 npn_in_limit_fixed.setAttribute("size", "3");
 npn_in_limit_fixed.setAttribute("maxlength", "5");
 npn_in_limit_fixed.setAttribute("pattern", "[1-9]([0-9])*");
-npn_in_limit_fixed.setAttribute("title", "nombre de pages nécéssaires pour atteindre la couleur de fin");
+npn_in_limit_fixed.setAttribute("title",
+  "nombre de pages nécéssaires pour atteindre la couleur de fin");
 npn_in_limit_fixed.style.textAlign = "right";
 npn_in_limit_fixed.addEventListener("focus", function() {
   npn_in_limit_fixed.select();
@@ -893,7 +912,8 @@ npn_p_progress.appendChild(create_help_button(200,
   "une forte disparité dans les nombres des pages en retard."));
 npn_fs_gradient.appendChild(npn_p_progress);
 
-/* option_diverses : smaller_text, go_top, refresh_click, display_totals, refresh_page et open_new_tab*/
+/* option_diverses : smaller_text, go_top, refresh_click,
+ display_totals, refresh_page et open_new_tab */
 var npn_fs_misc = document.createElement("fieldset");
 var npn_lg_misc = document.createElement("legend");
 npn_lg_misc.appendChild(document.createTextNode("Options diverses"));
@@ -905,7 +925,8 @@ var npn_cb_smallertext = document.createElement("input");
 npn_cb_smallertext.setAttribute("id", "npn_cb_smallertext");
 npn_cb_smallertext.setAttribute("type", "checkbox");
 var npn_lb_smallertext = document.createElement("label");
-npn_lb_smallertext.appendChild(document.createTextNode(" réduire la taille du texte des nombres "));
+npn_lb_smallertext
+  .appendChild(document.createTextNode(" réduire la taille du texte des nombres "));
 npn_lb_smallertext.setAttribute("for", "npn_cb_smallertext");
 npn_p_smallertext.appendChild(npn_cb_smallertext);
 npn_p_smallertext.appendChild(npn_lb_smallertext);
@@ -918,7 +939,8 @@ var npn_cb_gotop = document.createElement("input");
 npn_cb_gotop.setAttribute("id", "npn_cb_gotop");
 npn_cb_gotop.setAttribute("type", "checkbox");
 var npn_lb_gotop = document.createElement("label");
-npn_lb_gotop.appendChild(document.createTextNode(" ouvrir les nouvelles pages en haut des messages "));
+npn_lb_gotop
+  .appendChild(document.createTextNode(" ouvrir les nouvelles pages en haut des messages "));
 npn_lb_gotop.setAttribute("for", "npn_cb_gotop");
 npn_p_gotop.appendChild(npn_cb_gotop);
 npn_p_gotop.appendChild(npn_lb_gotop);
@@ -960,7 +982,8 @@ var npn_cb_displaytotals = document.createElement("input");
 npn_cb_displaytotals.setAttribute("id", "npn_cb_displaytotals");
 npn_cb_displaytotals.setAttribute("type", "checkbox");
 var npn_lb_displaytotals = document.createElement("label");
-npn_lb_displaytotals.appendChild(document.createTextNode(" afficher le nombre total de pages en retard "));
+npn_lb_displaytotals
+  .appendChild(document.createTextNode(" afficher le nombre total de pages en retard "));
 npn_lb_displaytotals.setAttribute("for", "npn_cb_displaytotals");
 npn_p_displaytotals.appendChild(npn_cb_displaytotals);
 npn_p_displaytotals.appendChild(npn_lb_displaytotals);
@@ -973,7 +996,8 @@ var npn_cb_refreshpage = document.createElement("input");
 npn_cb_refreshpage.setAttribute("id", "npn_cb_refreshpage");
 npn_cb_refreshpage.setAttribute("type", "checkbox");
 var npn_lb_refreshpage = document.createElement("label");
-npn_lb_refreshpage.appendChild(document.createTextNode(" recharger la page des drapals toutes les "));
+npn_lb_refreshpage
+  .appendChild(document.createTextNode(" recharger la page des drapals toutes les "));
 npn_lb_refreshpage.setAttribute("for", "npn_cb_refreshpage");
 var npn_in_refreshpage = document.createElement("input");
 npn_in_refreshpage.setAttribute("id", "npn_in_refreshpage");
@@ -1001,7 +1025,8 @@ var npn_cb_opennewtab = document.createElement("input");
 npn_cb_opennewtab.setAttribute("id", "npn_cb_opennewtab");
 npn_cb_opennewtab.setAttribute("type", "checkbox");
 var npn_lb_opennewtab = document.createElement("label");
-npn_lb_opennewtab.appendChild(document.createTextNode(" ouvrir les drapals dans un nouvel onglet "));
+npn_lb_opennewtab
+  .appendChild(document.createTextNode(" ouvrir les drapals dans un nouvel onglet "));
 npn_lb_opennewtab.setAttribute("for", "npn_cb_opennewtab");
 var npn_cb_newtabforeground = document.createElement("input");
 npn_cb_newtabforeground.setAttribute("id", "npn_cb_newtabforeground");
@@ -1027,8 +1052,8 @@ npn_im_inforeload.setAttribute("src", info_img);
 npn_di_inforeload.appendChild(npn_im_inforeload);
 npn_di_inforeload.appendChild(document.createTextNode(" sans rechargement "));
 npn_di_inforeload.appendChild(create_help_button(255,
-  "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement à la validation, " +
-  "il n'est pas nécessaire de recharger la page."));
+  "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement " +
+  "à la validation, il n'est pas nécessaire de recharger la page."));
 npn_di_saveclose.appendChild(npn_di_inforeload);
 var npn_img_save = document.createElement("img");
 npn_img_save.setAttribute("src", save_icon);
@@ -1282,10 +1307,12 @@ function drapal_mousedown(e) {
 
 function drapal_mouseup(e) {
   e.preventDefault();
-  if(mass_opener && (max_tab > 1) && (this.hasAttribute("data-npn-multi-page-nb")) && (e.button === 1) &&
+  if(mass_opener && (max_tab > 1) &&
+    (this.hasAttribute("data-npn-multi-page-nb")) && (e.button === 1) &&
     !e.altKey && !e.shiftKey && !e.metaKey) {
     // construction du tableau des onglets à ouvrir
-    let local_max_tab = Math.min(max_tab - 1, parseInt(this.getAttribute("data-npn-multi-page-nb"), 10));
+    let local_max_tab = Math.min(max_tab - 1,
+      parseInt(this.getAttribute("data-npn-multi-page-nb"), 10));
     let base_url = /^(.*)#t[0-9]+$/.exec(this.dataset.href)[1];
     let url_array = [this.dataset.href];
     if(base_url.indexOf(".htm") !== -1) { // url verbeuse
@@ -1296,7 +1323,8 @@ function drapal_mouseup(e) {
     } else { // url à paramètres
       let page_number = parseInt(/&page=([0-9]+)&p=/.exec(base_url)[1], 10);
       for(let i = 0; i < local_max_tab; ++i) {
-        url_array.push(base_url.replace(/&page=[0-9]+&p=/, "&page=" + ++page_number + "&p=") + hash_haut);
+        url_array.push(base_url.replace(/&page=[0-9]+&p=/, "&page=" + ++page_number + "&p=") +
+          hash_haut);
       }
     }
     // recupération du dernier onglet
@@ -1320,7 +1348,8 @@ function drapal_mouseup(e) {
         }, 500);
       }
     });
-  } else if(open_new_tab && (e.button === 0) && !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
+  } else if(open_new_tab && (e.button === 0) &&
+    !e.altKey && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
     GM.openInTab(this.dataset.href, new_tab_foreground ?
       (gm4 ? false : open_in_foreground) : open_in_background);
   } else if((this.hasAttribute("target") && this.getAttribute("target") === "_blank") ||
@@ -1435,7 +1464,8 @@ function apply_config() {
         let diff = parseInt(drapal.getAttribute("data-npn-multi-page-nb"), 10);
         let local_max_tab = Math.min(max_tab - 1, diff) + 1;
         if(diff > (max_tab - 1)) {
-          drapal.title = "clic-milieu pour ouvrir les " + local_max_tab + " prochaines pages en retard";
+          drapal.title = "clic-milieu pour ouvrir les " + local_max_tab +
+            " prochaines pages en retard";
         } else {
           drapal.title = "clic-milieu pour ouvrir les " + local_max_tab + " pages en retard";
         }
@@ -1447,7 +1477,8 @@ function apply_config() {
     drapal.setAttribute("data-npn-open-new-tab", open_new_tab ? "true" : "false");
     drapal.setAttribute("data-npn-new-tab-foreground", new_tab_foreground ? "true" : "false");
     // gestion de l'ouverture en masse et de l'ouverture dans un nouvel onglet
-    if(open_new_tab || (mass_opener && (max_tab > 1) && drapal.hasAttribute("data-npn-multi-page-nb"))) {
+    if(open_new_tab ||
+      (mass_opener && (max_tab > 1) && drapal.hasAttribute("data-npn-multi-page-nb"))) {
       drapal.removeAttribute("href");
       drapal.style.cursor = "pointer";
       drapal.addEventListener("mousedown", drapal_mousedown, false);

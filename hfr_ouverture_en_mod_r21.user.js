@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Ouverture en masse mod_r21
-// @version       4.2.5
+// @version       4.2.6
 // @namespace     roger21.free.fr
 // @description   Permet d'ouvrir ses drapeaux dans de nouveaux onglets avec un seul clic.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -42,9 +42,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3448 $
+// $Rev: 3561 $
 
 // historique :
+// 4.2.6 (11/06/2022) :
+// - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
+// éviter des débordements de ligne sur certaines configurations
+// - redécoupage de certaines lignes longues dans le code
 // 4.2.5 (24/01/2022) :
 // - ajout d'une option pour réutiliser la page des drapals / topics pour l'ouverture en masse
 // - coloration en gris du champ "ouvrir les onglets à la fin" pour gm4
@@ -59,7 +63,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 4.2.1 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 4.2.0 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur ->
+// (free.fr -> github.com)
 // 4.1.9 (07/02/2020) :
 // - prise en compte du bouton du clic pour l'ouverture des mps quand il n'y en a pas ou qu'un ->
 // (gauche -> premier plan, milieu -> arrière plan)
@@ -84,7 +89,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - retour des requêtes fetch en mode "same-origin" au lieu de "cors"
 // - correction de la gestion de la compatibilité gm4 (pour violentmonkey)
 // 4.1.1 (23/09/2019) :
-// - passage des requêtes fetch en mode "cors" pour éviter un plantage sous ch+vm en mode "same-origin"
+// - passage des requêtes fetch en mode "cors" pour éviter un plantage sous ch+vm ->
+// en mode "same-origin"
 // 4.1.0 (20/09/2019) :
 // - focus de l'onglet sur l'ouverture de la page des mps ou d'un mp unique
 // - nouveaux tooltips sur les boutons
@@ -92,7 +98,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
 // 4.0.0 (14/08/2019) :
 // - gestion de la compatibilité gm4
-// - ajout d'une fenêtre de configuration (clic droit sur les boutons d'ouverture en masse ou via le menu gm)
+// - ajout d'une fenêtre de configuration (clic droit sur les boutons d'ouverture en ->
+// masse ou via le menu gm)
 // - nouvelle correction pour éviter un plantage avec [HFR] Multi MP
 // - ajout de la fonctionalité de [HFR] Liste MP forcée
 // - ajout de l'avis de licence AGPL v3+ *si toyonos est d'accord*
@@ -131,7 +138,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - homogénéisation du code des auto-refresh
 // 2.0.0 (02/12/2016) :
 // - nouveau numéro de version : 0.2.4.10 -> 2.0.0
-// - nouveau nom : [HFR] Ouverture de drapeaux en masse -> [HFR] ouverture de drapeaux en masse mod_r21
+// - nouveau nom : [HFR] Ouverture de drapeaux en masse ->
+// [HFR] ouverture de drapeaux en masse mod_r21
 // - mise a jour des metadata pour la publication (@modifications, @modtype)
 // - ajout du support pour le clic-milieu (en mouseup) (même effet)
 // - augmentation du délai d'auto-refresh de 1 seconde à 5 secondes
@@ -156,7 +164,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
 // - suppression du module d'auto-update (code mort)
 // 0.2.4.5 (07/03/2015) :
-// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
+// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour ->
+// plus de sécurité)
 // 0.2.4.4 (27/03/2014) :
 // - ajout d'une icone au script
 // - ajout des dates dans l'historique
@@ -335,7 +344,8 @@ function prevent_default(p_event) {
 
 // fonction de mise à jour du lien de réinitialisation des topics bloqués
 function update_reinit_topics() {
-  reinit_topics_span.textContent = "oublier tous les topics bloqués (" + excluded_topics.length + ")";
+  reinit_topics_span.textContent =
+    "oublier tous les topics bloqués (" + excluded_topics.length + ")";
 }
 
 // fonction de mise à jour des boutons en fonction de la configuration
@@ -565,31 +575,35 @@ function open_pms(p_event) {
 var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
-  "#gm_hfr_oem_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;z-index:1003;" +
-  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;text-align:justify;}" +
-  "#gm_hfr_oem_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
-  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
-  "#gm_hfr_oem_config_window{position:fixed;width:550px;height:auto;background:#ffffff;z-index:1002;" +
+  "#gm_hfr_oem_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
+  "z-index:1003;visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
+  "text-align:justify;}" +
+  "#gm_hfr_oem_config_background{position:fixed;left:0;top:0;background-color:#242424;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;z-index:1001;}" +
+  "#gm_hfr_oem_config_window{position:fixed;min-width:550px;height:auto;background:#ffffff;" +
   "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;}" +
-  "#gm_hfr_oem_config_window div.gm_hfr_oem_main_title{font-size:16px;text-align:center;font-weight:bold;" +
-  "margin:0 0 10px;}" +
-  "#gm_hfr_oem_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:6px 10px 10px;}" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;z-index:1002;}" +
+  "#gm_hfr_oem_config_window div.gm_hfr_oem_main_title{font-size:16px;text-align:center;" +
+  "margin:0 0 10px;font-weight:bold;}" +
+  "#gm_hfr_oem_config_window fieldset{margin:0 0 8px;border:1px solid #888888;" +
+  "padding:6px 10px 10px;}" +
   "#gm_hfr_oem_config_window legend{font-size:14px;}" +
-  "#gm_hfr_oem_config_window p{margin:0 0 0 4px;}" +
+  "#gm_hfr_oem_config_window p{margin:0 0 0 4px;white-space:nowrap;}" +
   "#gm_hfr_oem_config_window p:not(:last-child){margin-bottom:6px;}" +
   "#gm_hfr_oem_config_window .gm_hfr_oem_disabled{color:#808080;}" +
   "#gm_hfr_oem_config_window input[type=\"checkbox\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
-  "#gm_hfr_oem_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;}" +
+  "#gm_hfr_oem_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;height:14px;}" +
   "#gm_hfr_oem_config_window img.gm_hfr_oem_test_img{margin:0 3px 0 0;vertical-align:text-bottom;" +
   "width:16px;height:16px;}" +
-  "#gm_hfr_oem_config_window img.gm_hfr_oem_reset_img{cursor:pointer;margin:0 0 0 3px;vertical-align:baseline;}" +
+  "#gm_hfr_oem_config_window img.gm_hfr_oem_reset_img{cursor:pointer;margin:0 0 0 3px;" +
+  "vertical-align:baseline;}" +
   "#gm_hfr_oem_config_window span.gm_hfr_oem_reinit_topics{cursor:pointer;}" +
   "#gm_hfr_oem_config_window span.gm_hfr_oem_reinit_topics:hover{text-decoration:underline;}" +
   "#gm_hfr_oem_config_window div.gm_hfr_oem_save_close_div{text-align:right;margin:16px 0 0;}" +
-  "#gm_hfr_oem_config_window div.gm_hfr_oem_save_close_div div.gm_hfr_oem_info_reload_div{float:left;}" +
+  "#gm_hfr_oem_config_window div.gm_hfr_oem_save_close_div " +
+  "div.gm_hfr_oem_info_reload_div{float:left;}" +
   "#gm_hfr_oem_config_window div.gm_hfr_oem_save_close_div div.gm_hfr_oem_info_reload_div img" +
   "{vertical-align:text-bottom;}" +
   "#gm_hfr_oem_config_window div.gm_hfr_oem_save_close_div > img{margin-left:8px;cursor:pointer;}" +
@@ -680,7 +694,8 @@ var reverse_order_label = document.createElement("label");
 reverse_order_label.textContent = " inverser l'ordre des onglets";
 reverse_order_label.setAttribute("for", "gm_hfr_oem_reverse_order_checkbox");
 reverse_and_open_p.appendChild(reverse_order_label);
-reverse_and_open_p.appendChild(document.createTextNode("\u2003\u2003\u2003\u2003\u2003\u2003\u2003\u2003"));
+reverse_and_open_p
+  .appendChild(document.createTextNode("\u2003\u2003\u2003\u2003\u2003\u2003\u2003\u2003"));
 var open_at_end_checkbox = document.createElement("input");
 open_at_end_checkbox.setAttribute("id", "gm_hfr_oem_open_at_end_checkbox");
 open_at_end_checkbox.setAttribute("type", "checkbox");
@@ -717,7 +732,8 @@ function update_reuse() {
 reuse_page_checkbox.addEventListener("input", update_reuse, false);
 reuse_page_p.appendChild(reuse_page_checkbox);
 var reuse_page_label = document.createElement("label");
-reuse_page_label.textContent = " réutiliser la page des drapals / topics pour l'ouverture en masse";
+reuse_page_label.textContent =
+  " réutiliser la page des drapals / topics pour l'ouverture en masse";
 reuse_page_label.setAttribute("for", "gm_hfr_oem_reuse_page_checkbox");
 reuse_page_p.appendChild(reuse_page_label);
 tabs_fieldset.appendChild(reuse_page_p);
@@ -954,7 +970,8 @@ reinit_topics_span.addEventListener("click", function() {
       GM.setValue("excluded_topics", JSON.stringify(excluded_topics));
       if(!new_topics) {
         for(let l_drapal of all_topics) {
-          let l_checkbox = l_drapal.querySelector("td.sujetCase10 input[name^=\"topic\"][type=\"checkbox\"]");
+          let l_checkbox =
+            l_drapal.querySelector("td.sujetCase10 input[name^=\"topic\"][type=\"checkbox\"]");
           if(l_checkbox !== null) {
             l_checkbox.checked = false;
           }
@@ -1091,7 +1108,8 @@ function esc_config_window(p_event) {
   }
 }
 
-// fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
+// fonction de gestion de la fin de la transition d'affichage /
+// disparition de la fenêtre de configuration
 function background_transitionend() {
   if(config_background.style.opacity === "0") {
     config_window.style.visibility = "hidden";
@@ -1256,9 +1274,12 @@ Promise.all([
     // et mise à jour des checkboxes en fonction de la liste des topics bloqués
     if(!new_topics) {
       for(let l_drapal of all_topics) {
-        let l_checkbox = l_drapal.querySelector("td.sujetCase10 input[name^=\"topic\"][type=\"checkbox\"]");
+        let l_checkbox =
+          l_drapal.querySelector("td.sujetCase10 input[name^=\"topic\"][type=\"checkbox\"]");
         if(l_checkbox !== null) {
-          let l_cat = l_checkbox.parentElement.querySelector("input[name^=\"valuecat\"][type=\"hidden\"]").value;
+          let l_cat =
+            l_checkbox.parentElement
+            .querySelector("input[name^=\"valuecat\"][type=\"hidden\"]").value;
           let l_topic = l_cat + "_" + l_checkbox.value;
           l_checkbox.dataset.topic = l_topic;
           l_checkbox.checked = excluded_topics.includes(l_topic);
@@ -1286,7 +1307,8 @@ Promise.all([
     }
 
     // ajout des boutons par cat
-    let l_cat_trs = document.querySelectorAll("table.main tr.cBackHeader.fondForum1fCat th.padding");
+    let l_cat_trs =
+      document.querySelectorAll("table.main tr.cBackHeader.fondForum1fCat th.padding");
     for(let l_cat_tr of l_cat_trs) {
       let l_cat_header = l_cat_tr.querySelector("a.cHeader");
       if(l_cat_header !== null && l_cat_header.hasAttribute("href")) {
@@ -1317,8 +1339,9 @@ Promise.all([
     update_buttons();
 
     // préparation des catégories pour la fonction de compactage des catégories vides
-    let l_tr_cats = document.querySelectorAll("div#mesdiscussions.mesdiscussions table.main tbody " +
-      "tr.cBackHeader.fondForum1fCat");
+    let l_tr_cats =
+      document.querySelectorAll("div#mesdiscussions.mesdiscussions table.main tbody " +
+        "tr.cBackHeader.fondForum1fCat");
     for(let l_tr of l_tr_cats) {
       if(!l_tr.nextElementSibling ||
         (l_tr.nextElementSibling.classList.contains("cBackHeader") &&
@@ -1344,7 +1367,8 @@ Promise.all([
     pm_link.style.cursor = "pointer";
   }
 
-  // récupération de la liste des nouveaux mps et mise à jour du lien des mps en fonction de la configuration
+  // récupération de la liste des nouveaux mps et mise à jour
+  // du lien des mps en fonction de la configuration
   fetch(pm_page, {
     method: "GET",
     mode: "same-origin",
@@ -1358,7 +1382,8 @@ Promise.all([
     // récupération de la liste des nouveaux mps
     let p = new DOMParser();
     let d = p.parseFromString(r, "text/html");
-    let l = d.documentElement.querySelectorAll("table tr.sujet.ligne_booleen td.sujetCase1 img[alt=\"On\"]");
+    let l = d.documentElement
+      .querySelectorAll("table tr.sujet.ligne_booleen td.sujetCase1 img[alt=\"On\"]");
     for(let m of l) {
       pms.push(m.parentElement.parentElement.querySelector("td.sujetCase9 a").href);
     }

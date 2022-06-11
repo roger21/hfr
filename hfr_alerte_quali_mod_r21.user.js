@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Alerte Qualitaÿ mod_r21
-// @version       3.0.3
+// @version       3.0.4
 // @namespace     roger21.free.fr
 // @description   Permet de signaler une Alerte Qualitaÿ à la communauté.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -30,7 +30,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2021 roger21@free.fr
+Copyright © 2011-2012, 2014-2022 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -45,9 +45,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2898 $
+// $Rev: 3561 $
 
 // historique :
+// 3.0.4 (11/06/2022) :
+// - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
+// éviter des débordements de ligne sur certaines configurations
+// - redécoupage de certaines lignes longues dans le code
 // 3.0.3 (22/05/2021) :
 // - ajout d'une confirmation avant l'accès au formulaire de l'alerte ->
 // (pour éviter une éventuelle confusion avec une alerte de modération)
@@ -64,7 +68,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - ajout de la metadata @authororig (toyonos)
 // - réécriture des metadata @description, @modifications et @modtype
 // 2.0.6 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur ->
+// (free.fr -> github.com)
 // 2.0.5 (11/02/2020) :
 // - utilisation d'une url en data au lieu de l'url chez reho.st pour l'image de fond
 // 2.0.4 (02/10/2019) :
@@ -93,14 +98,17 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 0.1.3.8 (22/11/2015) :
 // - correction d'un bug sur la fonction de changement de l'icone
 // 0.1.3.7 (07/03/2015) :
-// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
+// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour ->
+// plus de sécurité)
 // 0.1.3.6 (08/09/2014) :
-// - repassage à reho.st (au lieu de free.fr) pour l'hebergement des images et icones utilisés par le script
+// - repassage à reho.st (au lieu de free.fr) pour l'hebergement des images et icones ->
+// utilisés par le script
 // - reencodage en base64 des images codées en dur
 // - suppression du module d'auto-update (code mort)
 // - limitation de la taille du bouton à 16px de haut
 // 0.1.3.5 (14/05/2014) :
-// - repassage à free.fr (au lieu de reho.st) pour l'hebergement des images et icones utilisés par le script
+// - repassage à free.fr (au lieu de reho.st) pour l'hebergement des images et icones ->
+// utilisés par le script
 // 0.1.3.4 (04/04/2014) :
 // - ajout de metadata pour la publication (@author, @modifications, @modtype)
 // - ajout d'une icone au script
@@ -228,17 +236,20 @@ style.textContent =
   // styles pour la fenêtre d'aide
   "#gm_hfraq_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
   "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;z-index:1003;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;text-align:justify;}" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
+  "text-align:justify;}" +
   "img.gm_hfraq_r21_help_button{cursor:help;vertical-align:text-bottom;}" +
   // styles pour la fenêtre de configuration
-  "#gm_hfraq_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
-  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
+  "#gm_hfraq_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;z-index:1001;}" +
   "#gm_hfraq_r21_config_window{position:fixed;min-width:200px;height:auto;background-color:#ffffff;" +
-  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;z-index:1002;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;color:#000000;}" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;color:#000000;" +
+  "z-index:1002;}" +
   "#gm_hfraq_r21_config_window div.gm_hfraq_r21_main_title{font-size:16px;text-align:center;" +
   "font-weight:bold;margin:0 0 10px;position:relative;cursor:default;}" +
-  "#gm_hfraq_r21_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:8px 10px 10px;}" +
+  "#gm_hfraq_r21_config_window fieldset{margin:0 0 8px;border:1px solid #888888;" +
+  "padding:8px 10px 10px;}" +
   "#gm_hfraq_r21_config_window legend{font-size:14px;cursor:default;}" +
   "#gm_hfraq_r21_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
   "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;height:16px;}" +
@@ -248,42 +259,48 @@ style.textContent =
   "#gm_hfraq_r21_config_window div.gm_hfraq_r21_div_img > *{display:block;}" +
   "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img_button{margin:0 5px 0 0;height:16px;}" +
   "#gm_hfraq_r21_config_window img.gm_hfraq_r21_reset_img{cursor:pointer;margin:0 0 0 3px;}" +
-  "#gm_hfraq_r21_config_window p.gm_hfraq_r21_p_img{margin:0 0 4px 4px;cursor:default;}" +
+  "#gm_hfraq_r21_config_window p.gm_hfraq_r21_p_img{margin:0 0 4px 4px;cursor:default;" +
+  "white-space:nowrap;}" +
   "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img{display:block;margin: 0 auto;}" +
   "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img:not(:last-child){margin: 0 auto 8px;}" +
   "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img.gm_hfraq_r21_light{background:#efefef;}" +
   "#gm_hfraq_r21_config_window img.gm_hfraq_r21_test_img.gm_hfraq_r21_dark{background:#3f3f3f;}" +
   "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div{text-align:right;margin:16px 0 0;" +
   "cursor:default;}" +
-  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div div.gm_hfraq_r21_info_reload_div{float:left;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div div.gm_hfraq_r21_info_reload_div" +
+  "{float:left;}" +
   "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div div.gm_hfraq_r21_info_reload_div img" +
   "{vertical-align:text-bottom;}" +
-  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div > img{margin-left:8px;cursor:pointer;}" +
+  "#gm_hfraq_r21_config_window div.gm_hfraq_r21_save_close_div > img" +
+  "{margin-left:8px;cursor:pointer;}" +
   // styles pour la popup de signalement
-  "div#gm_hfraq_r21_alerte_popup{display:none;position:absolute;right:0;top:0;width:auto;height:auto;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;font-size:12px;padding:4px 6px;" +
+  "div#gm_hfraq_r21_alerte_popup{display:none;position:absolute;right:0;top:0;width:auto;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;font-size:12px;" +
   "background:linear-gradient(#ffffff, #f7f7ff);color:#000000;z-index:999;min-width:400px;" +
-  "background-color:#ffffff;}" +
+  "background-color:#ffffff;padding:4px 6px;height:auto;}" +
   "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div{font-size:11px;font-weight:bold;" +
   "margin:0 0 4px;white-space:pre-line;}" +
-  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div.gm_hfraq_r21_disabled{color:#808080;}" +
-  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div.gm_hfraq_r21_pixel{padding-left:1px;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div.gm_hfraq_r21_disabled" +
+  "{color:#808080;}" +
+  "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div.gm_hfraq_r21_pixel" +
+  "{padding-left:1px;}" +
   "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_new_post_div " +
   "input[type=\"radio\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
-  "div#gm_hfraq_r21_alerte_popup input[type=\"text\"]{padding:1px 4px;border:1px solid #c0c0c0;margin:0 0 4px;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;box-sizing:border-box;" +
-  "width:100%;height:20px;}" +
+  "div#gm_hfraq_r21_alerte_popup input[type=\"text\"]{padding:1px 4px;border:1px solid #c0c0c0;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;" +
+  "box-sizing:border-box;width:100%;height:20px;margin:0 0 4px;}" +
   "div#gm_hfraq_r21_alerte_popup select{padding:0 20px 0 0;border:1px solid #c0c0c0;margin:0 0 4px;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;box-sizing:border-box;" +
-  "width:100%;appearance:none;-moz-appearance:none;-webkit-appearance:none;background-repeat:no-repeat;" +
-  "background-image:url(\"" + img_select + "\");background-position:right 5px center;height:20px;}" +
-  "div#gm_hfraq_r21_alerte_popup select option{appearance:none;-moz-appearance:none;-webkit-appearance:none;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;" +
+  "box-sizing:border-box;width:100%;appearance:none;-moz-appearance:none;-webkit-appearance:none;" +
+  "background-repeat:no-repeat;background-image:url(\"" + img_select + "\");" +
+  "background-position:right 5px center;height:20px;}" +
+  "div#gm_hfraq_r21_alerte_popup select option{appearance:none;-moz-appearance:none;" +
+  "-webkit-appearance:none;font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;}" +
   "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_plus_title{margin:0 0 4px;white-space:pre-line;" +
   "padding:0 1px;}" +
   "div#gm_hfraq_r21_alerte_popup textarea{padding:1px 4px;border:1px solid #c0c0c0;margin:0 0 4px;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;box-sizing:border-box;" +
-  "width:100%;height:50px;resize:none;}" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;display:block;" +
+  "box-sizing:border-box;width:100%;height:50px;resize:none;}" +
   "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_save_close{height:16px;}" +
   "div#gm_hfraq_r21_alerte_popup div.gm_hfraq_r21_save_close " +
   "img.gm_hfraq_r21_throbber{display:none;float:right;cursor:default;}" +
@@ -488,8 +505,8 @@ info_reload_img.setAttribute("src", img_info);
 info_reload_div.appendChild(info_reload_img);
 info_reload_div.appendChild(document.createTextNode(" sans rechargement "));
 info_reload_div.appendChild(create_help_button(255,
-  "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement à la validation, " +
-  "il n'est pas nécessaire de recharger la page."));
+  "Les paramètres de cette fenêtre de configuration sont appliqués immédiatement " +
+  "à la validation, il n'est pas nécessaire de recharger la page."));
 save_close_div.appendChild(info_reload_div);
 var save_button = document.createElement("img");
 save_button.setAttribute("src", img_save);
@@ -543,7 +560,8 @@ function esc_config_window(p_event) {
   }
 }
 
-// fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
+// fonction de gestion de la fin de la transition d'affichage /
+// disparition de la fenêtre de configuration
 function background_transitionend() {
   if(config_background.style.opacity === "0") {
     config_window.style.visibility = "hidden";
@@ -701,7 +719,8 @@ function new_post_changed(p_event) {
   }
 }
 
-// fonction de gestion du log de la réponse, de l'affichage de la réponse et de la fermeture de la popup
+// fonction de gestion du log de la réponse, de l'affichage de la réponse
+// et de la fermeture de la popup
 function do_answer(p_message, p_response, p_alerte_id, p_title, p_topic_id, p_topic_title,
   p_pseudal, p_poster, p_post_id, p_post_url, p_comment, p_class) {
   console.log(script_name + " : " + p_message + " (" + p_response + ")\n" +
@@ -737,7 +756,8 @@ function save_alerte(p_event) {
   // vérification de la présence du nom de l'alerte en cas de nouvelle alerte
   let l_title = new_title.value.trim();
   if(l_alerte_id === "-1" && l_title === "") {
-    // si le nom n'est pas renseigné, affichage de l'erreur et arrêt de l'enregistrement de l'alerte
+    // si le nom n'est pas renseigné, affichage de l'erreur
+    // et arrêt de l'enregistrement de l'alerte
     new_title.required = true;
     new_title.reportValidity();
     return;
@@ -759,7 +779,8 @@ function save_alerte(p_event) {
   if((l_alerte_id === "-1" && (l_title === "" || topic_id === "" || topic_title === "")) ||
     pseudal === "" || l_poster === "" || l_post_id === "" || l_post_url === "") {
     // si il manque un parramètre, affichage de l'erreur et arrêt de l'enregistrement de l'alerte
-    do_answer("erreur : un des paramètres est absent", "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
+    do_answer("erreur : un des paramètres est absent", "-1",
+      l_alerte_id, l_title, topic_id, topic_title, pseudal,
       l_poster, l_post_id, l_post_url, l_comment);
     return;
   }
@@ -793,35 +814,44 @@ function save_alerte(p_event) {
       let l_response = p_response.responseText;
       switch(l_response) {
         case "1":
-          do_answer("Ce post a été signalé avec succès !", l_response, l_alerte_id, l_title, topic_id,
-            topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment, "gm_hfraq_r21_success");
+          do_answer("Ce post a été signalé avec succès !",
+            l_response, l_alerte_id, l_title, topic_id,
+            topic_title, pseudal, l_poster, l_post_id, l_post_url,
+            l_comment, "gm_hfraq_r21_success");
           break;
         case "-2":
-          do_answer("erreur : l'alerte spécifiée n'existe pas", l_response, l_alerte_id, l_title, topic_id,
+          do_answer("erreur : l'alerte spécifiée n'existe pas",
+            l_response, l_alerte_id, l_title, topic_id,
             topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment);
           break;
         case "-3":
-          do_answer("erreur : un des paramètres est manquant", l_response, l_alerte_id, l_title, topic_id,
+          do_answer("erreur : un des paramètres est manquant",
+            l_response, l_alerte_id, l_title, topic_id,
             topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment);
           break;
         case "-4":
-          do_answer("vous ne pouvez pas signaler plusieurs fois la même alerte", l_response, l_alerte_id, l_title,
-            topic_id, topic_title, pseudal, l_poster, l_post_id, l_post_url, l_comment, "gm_hfraq_r21_meh");
+          do_answer("vous ne pouvez pas signaler plusieurs fois la même alerte",
+            l_response, l_alerte_id, l_title,
+            topic_id, topic_title, pseudal, l_poster, l_post_id, l_post_url,
+            l_comment, "gm_hfraq_r21_meh");
           break;
         default:
-          do_answer("une erreur imprévue est survenue", l_response, l_alerte_id, l_title, topic_id, topic_title,
+          do_answer("une erreur imprévue est survenue",
+            l_response, l_alerte_id, l_title, topic_id, topic_title,
             pseudal, l_poster, l_post_id, l_post_url, l_comment);
           console.log(p_response);
       }
     },
     // gestion des erreurs
     onerror: function(p_response) {
-      do_answer("une erreur inconnue est survenue", "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
+      do_answer("une erreur inconnue est survenue",
+        "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
         l_poster, l_post_id, l_post_url, l_comment);
       console.log(p_response);
     },
     ontimeout: function(p_response) {
-      do_answer("erreur : la demande n'a pas aboutit", "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
+      do_answer("erreur : la demande n'a pas aboutit",
+        "-1", l_alerte_id, l_title, topic_id, topic_title, pseudal,
         l_poster, l_post_id, l_post_url, l_comment);
       console.log(p_response);
     },
@@ -874,7 +904,8 @@ function show_popup(p_event) {
       // il n'existe pas d'alerte qualitaÿ sur le topic, on ne peut qu'en signaler une nouvelle
       new_only_div.style.display = "block";
     } else {
-      // il existe des alertes qualitaÿ sur le topic on autorise le choix entre signalement et association
+      // il existe des alertes qualitaÿ sur le topic on autorise le choix entre
+      // signalement et association
       new_div.style.display = "block";
       post_div.style.display = "block";
     }
@@ -924,8 +955,9 @@ function mj(p_color) {
 function update_config() {
   hfraq_img_1 = mj(color_1);
   hfraq_img_2 = mj(color_2);
-  let l_posts = document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable > " +
-    "tbody > tr.message");
+  let l_posts =
+    document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable > " +
+      "tbody > tr.message");
   for(let l_post of l_posts) {
     if(l_post.hasAttribute("data-alerte") && l_post.getAttribute("data-alerte") !== "") {
       l_post.style.backgroundImage = "url(" + (l_post.classList.contains("cBackCouleurTab1") ?
@@ -963,7 +995,8 @@ Promise.all([
     .getAttribute("href").split("/");
   color_1 = l_the_style[13].toLowerCase();
   color_2 = l_the_style[14].toLowerCase();
-  // détermination des images de signalement à utiliser pour les posts en fonction des couleurs de fond
+  // détermination des images de signalement à utiliser pour les posts
+  // en fonction des couleurs de fond
   hfraq_img_1 = mj(color_1);
   hfraq_img_2 = mj(color_2);
   // récupération de l'id du topic
@@ -972,7 +1005,8 @@ Promise.all([
   } else { // url à paramètres
     topic_id = /&post=([0-9]+)&page=/.exec(window.location.href);
   }
-  topic_id = topic_id !== "" && topic_id !== null && typeof topic_id[1] !== "undefined" ? topic_id[1] : "";
+  topic_id = topic_id !== "" && topic_id !== null && typeof topic_id[1] !== "undefined" ?
+    topic_id[1] : "";
   // récupération du titre du topic
   topic_title = document.querySelector("div#mesdiscussions.mesdiscussions table.main " +
     "tr.cBackHeader.fondForum2Title th div.left h3");
@@ -1000,7 +1034,8 @@ Promise.all([
           if(alerte_default === null) {
             alerte_default = l_alerte.getAttribute("id");
           }
-          // construction des options du select pour le choix de l'alerte qualitaÿ existante à associer à un post
+          // construction des options du select pour le choix de l'alerte qualitaÿ
+          // existante à associer à un post
           let l_option = document.createElement("option");
           l_option.textContent = l_alerte.getAttribute("nom") + " (par " +
             l_alerte.getAttribute("pseudoInitiateur") + ", le " +
@@ -1021,7 +1056,8 @@ Promise.all([
           }
         }
         // désactivation du radio d'association d'un post à une alerte qualitaÿ ->
-        // si il n'y a pas encore d'alerte qualitaÿ sur le topic (la fonctionalité est en fait masquée au final)
+        // si il n'y a pas encore d'alerte qualitaÿ sur le topic
+        // (la fonctionalité est en fait masquée au final)
         if(alerte_default === null) {
           post_radio.disabled = true;
           post_div.classList.add("gm_hfraq_r21_disabled");
@@ -1029,8 +1065,9 @@ Promise.all([
         }
         // récupération de la liste des posts pour la mise en valeur des posts signalés
         // et l'ajout du bouton de signalement d'une alerte qualitaÿ
-        let l_posts = document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable > " +
-          "tbody > tr.message");
+        let l_posts =
+          document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable > " +
+            "tbody > tr.message");
         for(let l_post of l_posts) {
           // récupération de l'auteur, de l'id et de l'url du post
           let l_poster = l_post.querySelector(":scope > td.messCase1 > div b.s2");
@@ -1064,8 +1101,10 @@ Promise.all([
               l_aq_img.setAttribute("class", "gm_hfraq_r21_aq_button");
               l_aq_img.setAttribute("src", hfraq_img_icon);
               l_aq_img.setAttribute("alt", "AQ");
-              l_aq_img.setAttribute("title", "Signaler une Alerte Qualitaÿ\n(clic droit pour configurer)");
-              // ajout des données de l'alerte (si le post est déjà signalé) et des données du post sur le bouton
+              l_aq_img.setAttribute("title",
+                "Signaler une Alerte Qualitaÿ\n(clic droit pour configurer)");
+              // ajout des données de l'alerte (si le post est déjà signalé)
+              // et des données du post sur le bouton
               l_aq_img.setAttribute("data-alerte", l_data_alerte);
               l_aq_img.setAttribute("data-poster", l_poster);
               l_aq_img.setAttribute("data-post-id", l_post_id);

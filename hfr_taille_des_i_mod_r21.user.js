@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Taille des images mod_r21
-// @version       3.0.9
+// @version       3.1.0
 // @namespace     roger21.free.fr
 // @description   Permet de limiter la taille des images dans les posts et de leur rendre leur taille originale en cliquant sur un bouton intégré à l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -26,7 +26,7 @@
 
 /*
 
-Copyright © 2012, 2014-2017, 2019-2021 roger21@free.fr
+Copyright © 2012, 2014-2017, 2019-2022 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -41,15 +41,20 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2833 $
+// $Rev: 3561 $
 
 // historique :
+// 3.1.0 (11/06/2022) :
+// - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
+// éviter des débordements de ligne sur certaines configurations
+// - redécoupage de certaines lignes longues dans le code
 // 3.0.9 (02/02/2021) :
 // - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 3.0.8 (17/03/2020) :
 // - conversion des click -> select() en focus -> select() sur les champs de saisie
 // 3.0.7 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur ->
+// (free.fr -> github.com)
 // 3.0.6 (11/01/2020) :
 // - mise à jour des images des boutons de la fenêtre de configuration
 // 3.0.5 (22/12/2019) :
@@ -71,7 +76,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // (en cas de rehost typiquement)
 // - ajout de la directive "@inject-into page" pour explicitement autoriser le script à accéder ->
 // à la page (unsafeWindow) sous violentmonkey et sécuridsation de l'objet GM
-// - nouveau nom : [HFR] limitation de la taille des images mod_r21 -> [HFR] Taille des images mod_r21
+// - nouveau nom : ->
+// [HFR] limitation de la taille des images mod_r21 -> [HFR] Taille des images mod_r21
 // - ajout de l'avis de licence AGPL v3+ *si toyonos est d'accord*
 // - maj de la metadata @homepageURL
 // - appropriation des metadata @namespace et @author (passage en roger21)
@@ -79,7 +85,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - réécriture des metadata @description, @modifications et @modtype
 // - suppression des @grant inutiles
 // 2.1.3 (21/04/2019) :
-// - amélioration du code de redimensionnement des images pour prendre en compte une contrainte CSS exterieur...
+// - amélioration du code de redimensionnement des images pour prendre en compte une ->
+// contrainte CSS exterieur...
 // 2.1.2 (28/11/2017) :
 // - passage au https
 // 2.1.1 (06/08/2016) :
@@ -90,7 +97,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 2.0.0 (21/11/2015) :
 // - ajout de la prise en compte des titles déjà modifiés par [HFR] Smart Auto Rehost
 // - nouveau numéro de version : 0.2.4b.10 -> 2.0.0
-// - nouveau nom : [HFR] Limitation de la taille des images -> [HFR] Limitation de la taille des images mod_r21
+// - nouveau nom : ->
+// [HFR] Limitation de la taille des images -> [HFR] Limitation de la taille des images mod_r21
 // - modification de l'année dans les dates de l'historique : passage de 2 a 4 chiffres
 // 0.2.4b.10 (22/08/2015) :
 // - ajout des images dans le code en base64
@@ -99,14 +107,17 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - remplacement des ' par des " (pasque !)
 // - amélioration des fonctions de saisie des tailles
 // 0.2.4b.9 (07/03/2015) :
-// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
+// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour ->
+// plus de sécurité)
 // 0.2.4b.8 (08/09/2014) :
-// - repassage à reho.st (au lieu de free.fr) pour l'hebergement des images et icones utilisés par le script
+// - repassage à reho.st (au lieu de free.fr) pour l'hebergement des images et icones ->
+// utilisés par le script
 // - suppression du module d'auto-update (code mort)
 // 0.2.4b.7 (01/09/2014) :
 // - ajout du support pour le nouveau SDK de unsafeWindow (ff 30+ / gm 2+)
 // 0.2.4b.6 (14/05/2014) :
-// - repassage à free.fr (au lieu de reho.st) pour l'hebergement des images et icones utilisés par le script
+// - repassage à free.fr (au lieu de reho.st) pour l'hebergement des images et icones ->
+// utilisés par le script
 // 0.2.4b.5 (04/04/2014) :
 // - ajout de metadata pour la publication (@author, @modifications, @modtype)
 // - ajout d'une icone au script
@@ -195,57 +206,63 @@ style.setAttribute("type", "text/css");
 style.textContent =
   // styles pour l'affichage des images et des boutons
   "span.gm_hfr_tdi_r21_img_span{display:inline-block;position:relative;}" +
-  "#mesdiscussions img.gm_hfr_tdi_r21_resize_button{position:absolute;top:0;left:0;z-index:100;cursor:pointer;" +
-  "margin:5px;}#mesdiscussions img.gm_hfr_tdi_r21_resize_button:hover{opacity:1 !important;}" +
+  "#mesdiscussions img.gm_hfr_tdi_r21_resize_button{position:absolute;top:0;left:0;z-index:100;" +
+  "cursor:pointer;margin:5px;}" +
+  "#mesdiscussions img.gm_hfr_tdi_r21_resize_button:hover{opacity:1 !important;}" +
   // styles pour la fenêtre de configuration
-  "#gm_hfr_tdi_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;z-index:1003;" +
+  "#gm_hfr_tdi_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
   "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
-  "text-align:justify;}" +
-  "#gm_hfr_tdi_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;z-index:1001;" +
-  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;}" +
-  "#gm_hfr_tdi_r21_config_window{position:fixed;min-width:400px;height:auto;background:#ffffff;z-index:1002;" +
+  "text-align:justify;z-index:1003;}" +
+  "#gm_hfr_tdi_r21_config_background{position:fixed;left:0;top:0;background-color:#242424;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;z-index:1001;}" +
+  "#gm_hfr_tdi_r21_config_window{position:fixed;min-width:400px;height:auto;background:#ffffff;" +
   "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;}" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;z-index:1002;}" +
   "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_main_title{font-size:16px;text-align:center;" +
   "font-weight:bold;margin:0 0 10px;}" +
-  "#gm_hfr_tdi_r21_config_window fieldset{margin:0 0 8px;border:1px solid #888888;padding:6px 10px 10px;}" +
+  "#gm_hfr_tdi_r21_config_window fieldset{margin:0 0 8px;border:1px solid #888888;" +
+  "padding:6px 10px 10px;}" +
   "#gm_hfr_tdi_r21_config_window legend{font-size:14px;}" +
   "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_table{display:table;width:100%;}" +
   "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_cell{display:table-cell;width:50%;}" +
-  "#gm_hfr_tdi_r21_config_window p{margin:0 0 0 4px;}" +
+  "#gm_hfr_tdi_r21_config_window p{margin:0 0 0 4px;white-space:nowrap;}" +
   "#gm_hfr_tdi_r21_config_window p:not(:last-child){margin-bottom:4px;}" +
   "#gm_hfr_tdi_r21_config_window p.gm_hfr_tdi_r21_no_margin{margin-bottom:2px;}" +
   "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_div_img{display:flex;justify-content:center;" +
   "align-items:center;margin:0 0 4px 0;}" +
   "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_div_img > *{display:block;}" +
   "#gm_hfr_tdi_r21_config_window input[type=\"radio\"]{margin:0 0 2px;vertical-align:text-bottom;}" +
-  "#gm_hfr_tdi_r21_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;height:14px;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;}" +
+  "#gm_hfr_tdi_r21_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;height:14px;}" +
   "#gm_hfr_tdi_r21_config_window input[type=\"range\"]{padding:0;border:0;margin:-1px 0 0 0;" +
-  "vertical-align:text-bottom;font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;width:265px;" +
-  "-webkit-appearance:none;}" +
+  "vertical-align:text-bottom;font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;" +
+  "-webkit-appearance:none;width:265px;}" +
   "#gm_hfr_tdi_r21_config_window input[type=\"range\"]:focus{outline:none;}" +
   "#gm_hfr_tdi_r21_config_window input[type=\"range\"]:focus::-webkit-slider-runnable-track{" +
   "background:#888888;}" +
   "#gm_hfr_tdi_r21_config_window input[type=\"range\"]::-moz-range-thumb{background-color:#ffffff;" +
   "width:3px;height:11px;border:1px solid #666666;border-radius:2px;}" +
-  "#gm_hfr_tdi_r21_config_window input[type=\"range\"]::-webkit-slider-thumb{-webkit-appearance:none;" +
-  "background-color:#ffffff;width:5px;height:13px;border:1px solid #666666;border-radius:2px;margin-top:-6px;}" +
-  "#gm_hfr_tdi_r21_config_window input[type=\"range\"]::-moz-range-track{background:#888888;height:1px;" +
-  "border:0;}" +
-  "#gm_hfr_tdi_r21_config_window input[type=\"range\"]::-webkit-slider-runnable-track{background:#888888;" +
-  "height:1px;border:0;margin-top:-16px;}" +
-  "#gm_hfr_tdi_r21_config_window input[type=\"checkbox\"]{margin:0 0 1px;vertical-align:text-bottom;}" +
+  "#gm_hfr_tdi_r21_config_window input[type=\"range\"]::-webkit-slider-thumb{" +
+  "-webkit-appearance:none;background-color:#ffffff;width:5px;height:13px;border:1px solid #666666;" +
+  "border-radius:2px;margin-top:-6px;}" +
+  "#gm_hfr_tdi_r21_config_window input[type=\"range\"]::-moz-range-track{background:#888888;" +
+  "height:1px;border:0;}" +
+  "#gm_hfr_tdi_r21_config_window input[type=\"range\"]::-webkit-slider-runnable-track{" +
+  "background:#888888;height:1px;border:0;margin-top:-16px;}" +
+  "#gm_hfr_tdi_r21_config_window input[type=\"checkbox\"]" +
+  "{margin:0 0 1px;vertical-align:text-bottom;}" +
   "#gm_hfr_tdi_r21_config_window img.gm_hfr_tdi_r21_test_img{margin:0 4px 0 0;}" +
   "#gm_hfr_tdi_r21_config_window img.gm_hfr_tdi_r21_test_img:hover{opacity:1 !important;}" +
   "#gm_hfr_tdi_r21_config_window img.gm_hfr_tdi_r21_reset_img{cursor:pointer;margin:0 0 0 4px;}" +
-  "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_save_close_div{text-align:right;margin:16px 0 0;}" +
-  "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_save_close_div div.gm_hfr_tdi_r21_info_reload_div" +
-  "{float:left;}" +
-  "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_save_close_div div.gm_hfr_tdi_r21_info_reload_div img" +
-  "{vertical-align:text-bottom;}" +
-  "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_save_close_div > img{margin-left:8px;cursor:pointer;}" +
+  "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_save_close_div" +
+  "{text-align:right;margin:16px 0 0;}" +
+  "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_save_close_div " +
+  "div.gm_hfr_tdi_r21_info_reload_div{float:left;}" +
+  "#gm_hfr_tdi_r21_config_window div.gm_hfr_tdi_r21_save_close_div " +
+  "div.gm_hfr_tdi_r21_info_reload_div img{vertical-align:text-bottom;}" +
+  "#gm_hfr_tdi_r21_config_window " +
+  "div.gm_hfr_tdi_r21_save_close_div > img{margin-left:8px;cursor:pointer;}" +
   "#gm_hfr_tdi_r21_config_window img.gm_hfr_tdi_r21_help_button{margin-right:1px;cursor:help;}";
 document.getElementsByTagName("head")[0].appendChild(style);
 
@@ -548,9 +565,9 @@ info_reload_label.textContent = " recharger la page ";
 info_reload_label.setAttribute("for", "gm_hfr_tdi_r21_info_reload_checkbox");
 info_reload_div.appendChild(info_reload_label);
 info_reload_div.appendChild(create_help_button(255,
-  "La modification des paramètres de cette fenêtre de configuration n'est visible que sur les nouvelles " +
-  "pages ou après le rechargement de la page courante. Cette option permet de recharger automatiquement la " +
-  "page courante lors de la validation."));
+  "La modification des paramètres de cette fenêtre de configuration n'est visible que " +
+  "sur les nouvelles pages ou après le rechargement de la page courante. Cette option " +
+  "permet de recharger automatiquement la page courante lors de la validation."));
 save_close_div.appendChild(info_reload_div);
 var save_button = document.createElement("img");
 save_button.setAttribute("src", img_save);
@@ -622,7 +639,8 @@ function esc_config_window(e) {
   }
 }
 
-// fonction de gestion de la fin de la transition d'affichage / disparition de la fenêtre de configuration
+// fonction de gestion de la fin de la transition d'affichage /
+// disparition de la fenêtre de configuration
 function background_transitionend() {
   if(config_background.style.opacity === "0") {
     config_window.style.visibility = "hidden";
