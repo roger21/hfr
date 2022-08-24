@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Bloque liste mod_r21
-// @version       4.1.1
+// @version       4.1.2
 // @namespace     roger21.free.fr
 // @description   Permet de filtrer les messages des utilisateurs.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3424 $
+// $Rev: 3597 $
 
 // historique :
+// 4.1.2 (23/08/2022) :
+// - nouvelle correction de la détection des citations
 // 4.1.1 (10/01/2022) :
 // - signalement de la présence d'une citation non bloquée sur l'aperçu des messages ->
 // contenant une citation bloquée
@@ -1781,7 +1783,7 @@ function hide_quotes() {
   for(let l_quote of l_quotes) {
     let l_title =
       l_quote.querySelector(":scope > tbody > tr.none > td > b.s1 > a.Topic");
-    if(l_title !== null && l_title.firstChild.nodeValue !== null) {
+    if(l_title !== null && l_title.firstChild && l_title.firstChild.nodeValue !== null) {
       let l_pseudo =
         l_title.firstChild.nodeValue.replace(/ a écrit :$/, "");
       let l_buggy_and_normalized_pseudo = add_buggy_encoding_and_normalize_pseudo(l_pseudo);
@@ -1963,7 +1965,7 @@ function rehide_contents() {
   for(let l_quote of l_quotes) {
     let l_title =
       l_quote.querySelector(":scope > tbody > tr.none > td > b.s1 > a.Topic");
-    if(l_title !== null && l_title.firstChild.nodeValue !== null) {
+    if(l_title !== null && l_title.firstChild && l_title.firstChild.nodeValue !== null) {
       let l_pseudo =
         l_title.firstChild.nodeValue.replace(/ a écrit :$/, "");
       l_quote.parentElement.classList.add("gmhfrblr21_hidden");
@@ -2023,7 +2025,7 @@ function show_quotes() {
   for(let l_quote of l_quotes) {
     let l_title =
       l_quote.querySelector(":scope > tbody > tr.none > td > b.s1 > a.Topic");
-    if(l_title !== null && l_title.firstChild.nodeValue !== null) {
+    if(l_title !== null && l_title.firstChild && l_title.firstChild.nodeValue !== null) {
       let l_pseudo =
         l_title.firstChild.nodeValue.replace(/ a écrit :$/, "");
       if(!is_quoted_pseudo_blocked(l_pseudo)) {
@@ -2134,7 +2136,7 @@ function add_always_hide_snippets() {
   for(let l_snippet of l_quote_snippets) {
     let l_title =
       l_snippet.parentElement.querySelector(":scope > table > tbody > tr.none > td > b.s1 > a.Topic");
-    if(l_title !== null && l_title.firstChild.nodeValue !== null) {
+    if(l_title !== null && l_title.firstChild && l_title.firstChild.nodeValue !== null) {
       let l_pseudo =
         l_title.firstChild.nodeValue.replace(/ a écrit :$/, "");
       if(is_quoted_pseudo_always_hidden(l_pseudo)) {
@@ -2185,7 +2187,7 @@ function remove_always_hide_snippets() {
   for(let l_snippet of l_quote_snippets) {
     let l_title =
       l_snippet.parentElement.querySelector(":scope > table > tbody > tr.none > td > b.s1 > a.Topic");
-    if(l_title !== null && l_title.firstChild.nodeValue !== null) {
+    if(l_title !== null && l_title.firstChild && l_title.firstChild.nodeValue !== null) {
       let l_pseudo =
         l_title.firstChild.nodeValue.replace(/ a écrit :$/, "");
       if(!is_quoted_pseudo_always_hidden(l_pseudo)) {
