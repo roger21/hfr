@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          [HFR] Recherche Google et DuckDuckGo
-// @version       2.0.0
+// @version       2.1.0
 // @namespace     roger21.free.fr
-// @description   Remplace le bouton de recherche du forum (en haut à droite) par un champ de recherche par Google ou DuckDuckGo.
+// @description   Remplace le bouton de recherche du forum (en haut à droite) par un champ de recherche par Google, DuckDuckGo ou les deux.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
@@ -39,9 +39,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3588 $
+// $Rev: 3628 $
 
 // historique :
+// 2.1.0 (01/09/2022) :
+// - Why Not Both?
 // 2.0.0 (20/08/2022) :
 // - nouveau nom : [HFR] Recherche Google -> [HFR] Recherche Google et DuckDuckGo
 // - possibilité de choisir entre Google et DuckDuckGo
@@ -160,10 +162,11 @@ let gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 const img_google = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm%2B48GgAAAgNJREFUOI2lkjto02EUxX%2Ff90%2BszaPB0iaVLkaCQiIIidJKl1gf6FCXVuiondwEJw0SpWhRxKEiLdJB3Yov8AHSksRQxKFJXBRxEotV0epi0zzJ%2FzqYpDESEL3T5Xyc851z74X%2FLNUMfD%2Fc12EWK2OCGkHhA1wotSxCXAzzes98%2BnVLgZX9u8Ii6i7Q1eJDE1FRd2LxYg2w1Jqv%2B3YfEuERYK1CAiyB5EH5qnhRNOlGRQ2QjXg9KG6vk%2BWZVkbAHU953fG039igu4BJUzPkiS3O%2FRGhHLOcKWa6J%2FLxXtDyMltwDniTyUKLGL9VNYIabgt9w9Kbo%2FRi8%2FnuqUydvHd8NYBVb2wmGmUpxaKOV7UZ%2BACMnlzZGX47x1SDRUPdx5TtzQKmwQ%2FApf%2FGZouy1iMUTWO5TVdcHyr27FkJ9kNiYd2CuopIJ4CIdCilItWHT3WBdxXH8%2FclZ%2BDy2s5NRVNfCt88Npg8fqsAkIjYZ2pagxPZ08ivXkSSUF3jlXwwOr4W%2FFwUA5Tak21ffdp356i%2FRgw9HrL1z0yeQ8wLVUi0oW5AwyWGZkcOKuQJDYcksKQgC2wFbEbej%2B3LCbTpuhaPOE7WHQBkRu%2FNK60PACv19LAF2AHYACrtb8h5pmc7ffZT9RE1j3bg4RFnKW8dA4YFtQ3EBXwEWVAwnRp9kGq1ln%2Bqn%2FOsr7FXPj6GAAAAAElFTkSuQmCC";
 const img_duckduckgo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm%2B48GgAAAV9QTFRFAAAA2Vkz21Ux3F0u3Vcy3lg03lcz4Fw54Fs44Fs44Fw45oRp5oVq5oZr5oRp5oVq54Zr6pV96pZ%2B6pV96paA65mE6pV96pZ%2B6pd%2F65mC65qD6piD65qE7qiV7qqW762aZbxHabxLbblGno49ur%2FSvHQ5wnA4wszeyOe90OrG193p3lgz3lkz3lk13lo131sy31wx314632pL4JR14WIw4WdF4WhH4WlI4mpJ4pR%2B4pqF4vLc5G8s5IRq5LKZ5Xtd5n9i5n9j5oBk5oFl5oNn5qKR54No54Rp54Vp54Vq54Zr57er6H4m6IAr6aOL6fTn6oUk6qGM6rKl6u706%2FXs7NHK7Y8g7ban7ffp7pIg7pYe766c766d76%2Bd77Cf8J0c8LWl8Obk8bam8b%2By8qUZ8ryt8%2FDh9Pb59rUc9vb3%2BMEj%2BPn6%2Buzo%2Bvr8%2Bvv8%2FNEk%2FPz9%2Fvv6%2F%2Fnd%2F%2Fvq%2F%2F%2F%2F%2FjITPgAAACB0Uk5TABQVFlJUVYKDhIXY2dna2tv19fb29vf39%2Ff3%2BPj%2B%2Fv66jP7VAAAAz0lEQVQYV2NgwAaYufilpfk5mWF8NolodzMz9xgxVihf1iE81V5bW9tRFizCLO6gF5hTmGCore0kzAQU4IrWtg3OK0kPAqqJ5QAKCHhou%2BZqlRSo6Gpre%2FIABWTMtC2z1UtK0nzjA8ylgAJSptpGmSVF%2BVkpPjpmokABPjdt7cSS4ozIsCh9L5AWziRt7dCSEgsTGwPtOHaQtRIu2t4R1sZqqtrOQowgh7DKu1lpKigqKTvLsUCcyiqS7K8R4mcnCOUzMDBx8EpLcrOD1WMAAG67I%2F%2Bh5MSaAAAAAElFTkSuQmCC";
-let img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
-let img_info = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg%3D%3D";
+const img_gooduck = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABhklEQVQ4y63Tv2tTURjG8c/NzaVSapFY6mBdK4oOqbq4dOgiLiJk6Ryc/QMC1aWruAkK/kQIuHQTpBkyOAhCxUmEDG5qurRNk+aHNw65SW8Nhg4903sO7/t9n/c553DSa2ft4vt2Radd8XGpXLifLxeCSfmZ9GZ7OX8lrmdvIcLNfKb3GM+ODUAxrmdHm4VMF4r5cmH5f4Bs0rmCWVzu1w+Z58IePXAX1UkKXuE6pqHfngZnM51h3sFxRniOnxC3ToHTQQ9aeDMRMFfdej1X3SqiCDoDH3LhAWxgO120st5YXFlvXBt5kPhwFU8g3psSzjM1ULCK1Xy58B3vcrWXOdxL1F4YmriATcxDvxMOPAj30o0XUYqjXZnuLJxPe/BgWAzxTgSioDs2cz9sD8NaGrB0JKsbJB78GAPE2f1h+CENOGJS/CsaxdGYggY08SgNWEsOE8Lh87+dbf2jYHcfdyqlmVr6Gj/hBl7g659vURNd/A4CX/AZbwkeNs88vVQpzWye2O/9C4nYcy1K62IBAAAAAElFTkSuQmCC";
+let img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII=";
+let img_info = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg==";
 let img_save = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
-let img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
+let img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg==";
 
 /* -------------- */
 /* les constantes */
@@ -178,7 +181,7 @@ const insite = " site:forum.hardware.fr";
 /* les paramètres par défaut */
 /* ------------------------- */
 
-// "google" ou "duckduckgo"
+// "google", "duckduckgo" ou "both"
 const gmhfrrgedr21_search_engine_default = "duckduckgo";
 // 0, 1, 2 ou 3 (forum, cat, sous-cat ou topic)
 const gmhfrrgedr21_max_context_level_default = 2;
@@ -1115,12 +1118,7 @@ l_style.textContent =
   "#gmhfrrgedr21_config_window fieldset{margin:0 0 12px;border:1px solid #888888;" +
   "padding:8px 10px 10px;cursor:default;}" +
   "#gmhfrrgedr21_config_window legend{font-size:14px;cursor:default;}" +
-  "#gmhfrrgedr21_config_window div.gmhfrrgedr21_engine_div{display:flex;cursor:default;" +
-  "justify-content:center;align-items:center;}" +
-  "#gmhfrrgedr21_config_window div.gmhfrrgedr21_radio_div{width:calc(50% - 4px)}" +
-  "#gmhfrrgedr21_config_window div.gmhfrrgedr21_left{text-align:right;margin:0 4px 0 0}" +
-  "#gmhfrrgedr21_config_window div.gmhfrrgedr21_right{text-align:left;margin:0 0 0 4px}" +
-  "#gmhfrrgedr21_config_window div.gmhfrrgedr21_context_div{display:flex;cursor:default;" +
+  "#gmhfrrgedr21_config_window div.gmhfrrgedr21_div{display:flex;cursor:default;" +
   "justify-content:space-evenly;align-items:center;}" +
   "#gmhfrrgedr21_config_window input[type=\"radio\"]{margin:0 0 1px;" +
   "vertical-align:text-bottom;}" +
@@ -1211,26 +1209,24 @@ config_window.appendChild(engine_fieldset);
 
 // div moteur
 let engine_div = document.createElement("div");
-engine_div.setAttribute("class", "gmhfrrgedr21_engine_div");
+engine_div.setAttribute("class", "gmhfrrgedr21_div");
 engine_fieldset.appendChild(engine_div);
 
 // google
 let google_div = document.createElement("div");
-google_div.setAttribute("class", "gmhfrrgedr21_radio_div gmhfrrgedr21_left");
-let google_label = document.createElement("label");
-google_label.textContent = "Google ";
-google_label.setAttribute("for", "gmhfrrgedr21_google_radio");
-google_div.appendChild(google_label);
 let google_radio = document.createElement("input");
 google_radio.setAttribute("type", "radio");
 google_radio.setAttribute("id", "gmhfrrgedr21_google_radio");
 google_radio.setAttribute("name", "gmhfrrgedr21_engine_radios");
 google_div.appendChild(google_radio);
+let google_label = document.createElement("label");
+google_label.textContent = " Google";
+google_label.setAttribute("for", "gmhfrrgedr21_google_radio");
+google_div.appendChild(google_label);
 engine_div.appendChild(google_div);
 
 // duckduckgo
 let duckduckgo_div = document.createElement("div");
-duckduckgo_div.setAttribute("class", "gmhfrrgedr21_radio_div gmhfrrgedr21_right");
 let duckduckgo_radio = document.createElement("input");
 duckduckgo_radio.setAttribute("type", "radio");
 duckduckgo_radio.setAttribute("id", "gmhfrrgedr21_duckduckgo_radio");
@@ -1241,6 +1237,19 @@ duckduckgo_label.textContent = " DuckDuckGo";
 duckduckgo_label.setAttribute("for", "gmhfrrgedr21_duckduckgo_radio");
 duckduckgo_div.appendChild(duckduckgo_label);
 engine_div.appendChild(duckduckgo_div);
+
+// both
+let both_div = document.createElement("div");
+let both_radio = document.createElement("input");
+both_radio.setAttribute("type", "radio");
+both_radio.setAttribute("id", "gmhfrrgedr21_both_radio");
+both_radio.setAttribute("name", "gmhfrrgedr21_engine_radios");
+both_div.appendChild(both_radio);
+let both_label = document.createElement("label");
+both_label.textContent = " Why Not Both?";
+both_label.setAttribute("for", "gmhfrrgedr21_both_radio");
+both_div.appendChild(both_label);
+engine_div.appendChild(both_div);
 
 // section niveau de contextualisation
 let context_fieldset = document.createElement("fieldset");
@@ -1256,7 +1265,7 @@ config_window.appendChild(context_fieldset);
 
 // div contexte
 let context_div = document.createElement("div");
-context_div.setAttribute("class", "gmhfrrgedr21_context_div");
+context_div.setAttribute("class", "gmhfrrgedr21_div");
 context_fieldset.appendChild(context_div);
 
 // forum
@@ -1363,7 +1372,8 @@ function save_config_window() {
   // fermeture de la fenêtre
   hide_config_window();
   // récupération des paramètres
-  gmhfrrgedr21_search_engine = google_radio.checked ? "google" : "duckduckgo";
+  gmhfrrgedr21_search_engine = google_radio.checked ? "google" :
+    (duckduckgo_radio.checked ? "duckduckgo" : "both");
   gmhfrrgedr21_max_context_level =
     forum_radio.checked ? 0 : (cat_radio.checked ? 1 : (subcat_radio.checked ? 2 : 3));
   gmhfrrgedr21_open_in_foreground = open_foreground_checkbox.checked;
@@ -1408,6 +1418,7 @@ function show_config_window() {
   // initialisation des paramètres
   google_radio.checked = gmhfrrgedr21_search_engine === "google";
   duckduckgo_radio.checked = gmhfrrgedr21_search_engine === "duckduckgo";
+  both_radio.checked = gmhfrrgedr21_search_engine === "both";
   forum_radio.checked = gmhfrrgedr21_max_context_level === 0;
   cat_radio.checked = gmhfrrgedr21_max_context_level === 1;
   subcat_radio.checked = gmhfrrgedr21_max_context_level === 2;
@@ -1439,9 +1450,12 @@ function update_search() {
     if(gmhfrrgedr21_search_engine === "google") {
       search_title = "[HFR] Recherche Google";
       search_image = img_google;
-    } else {
+    } else if(gmhfrrgedr21_search_engine === "duckduckgo") {
       search_title = "[HFR] Recherche DuckDuckGo";
       search_image = img_duckduckgo;
+    } else {
+      search_title = script_name;
+      search_image = img_gooduck;
     }
     let context = gmhfrrgedr21_max_context_level === 0 ? "forum" :
       (gmhfrrgedr21_max_context_level === 1 ? "cat" :
@@ -1453,20 +1467,19 @@ function update_search() {
   }
 }
 
-function gourl() {
+function gogogo() {
   let inurl = "";
   if(gmhfrrgedr21_max_context_level > 0 && cat) inurl += " inurl:" + cat.key;
   if(gmhfrrgedr21_max_context_level > 1 && subcat) inurl += "/" + subcat.key;
   if(gmhfrrgedr21_max_context_level > 2 && topic) inurl += "/" + topic;
-  if(gmhfrrgedr21_search_engine === "google") {
-    return google_url + encodeURIComponent(search_input.value + insite + inurl);
-  } else {
-    return duckduckgo_url + encodeURIComponent(search_input.value + insite + inurl);
+  if(gmhfrrgedr21_search_engine !== "duckduckgo") { // "google" ou "both"
+    GM.openInTab(google_url + encodeURIComponent(search_input.value + insite + inurl),
+      !gmhfrrgedr21_open_in_foreground);
   }
-}
-
-function gogogo() {
-  GM.openInTab(gourl(), !gmhfrrgedr21_open_in_foreground);
+  if(gmhfrrgedr21_search_engine !== "google") { // "duckduckgo" ou "both"
+    GM.openInTab(duckduckgo_url + encodeURIComponent(search_input.value + insite + inurl),
+      !gmhfrrgedr21_open_in_foreground);
+  }
 }
 
 function goinput(p_event) {
