@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.1.3
+// @version       4.1.4
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3479 $
+// $Rev: 3643 $
 
 // historique :
+// 4.1.4 (21/09/2022) :
+// - ajout d'un message spécifique en cas de sanction (pour l'édition des mots-clés)
 // 4.1.3 (12/02/2022) :
 // - meilleur gestion du support pour [HFR] Chat
 // 4.1.2 (12/02/2022) :
@@ -646,6 +648,9 @@ function set_keywords(p_callback, p_smiley_code, p_keywords) {
     } else if(p_text.includes(
         "Ce smiley étant vérouillé, vous ne pouvez pas en modifier les mots clés")) {
       p_callback("smiley verrouillé");
+    } else if(p_text.includes(
+        "Vous ne pouvez pas modifier les mots clés d'un smiley si vous êtes sous le coup d'une sanction")) {
+      p_callback("sous le coup d'une sanction");
     } else {
       console.log(script_name + " ERROR set_keywords : ", p_text);
       p_callback("error");

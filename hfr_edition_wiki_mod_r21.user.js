@@ -1,13 +1,13 @@
 // ==UserScript==
-// @name          [HFR] Edition du wiki partout mod_r21
-// @version       3.2.9
+// @name          [HFR] Édition du wiki partout mod_r21
+// @version       3.3.0
 // @namespace     roger21.free.fr
-// @description   Permet d'afficher les mots-clés des smileys persos en passant la souris sur le smiley et permet de modifier facilement les mots-clés des smileys persos via un double-clic sur le smiley.
+// @description   Permet de consulter et de modifier facilement les mots-clés des smileys persos.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
 // @authororig    toyonos
-// @modifications Simplification des étapes de modification des mots-clés, réécriture et modernisation du code.
+// @modifications Simplification des étapes de modification des mots-clés, réécriture du code et modernisation de l'interface.
 // @modtype       réécriture et évolutions
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_edition_wiki_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_edition_wiki_mod_r21.user.js
@@ -40,9 +40,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3506 $
+// $Rev: 3643 $
 
 // historique :
+// 3.3.0 (21/09/2022) :
+// - nouveau nom : [HFR] Edition du wiki partout mod_r21 -> [HFR] Édition du wiki partout mod_r21
+// - modification des metadonnées @description et @modifications
+// - ajout d'un message spécifique en cas de sanction (pour l'édition des mots-clés)
 // 3.2.9 (08/03/2022) :
 // - correction du style du champ d'édition dans l'aperçu de la réponse normale
 // 3.2.8 (21/06/2020) :
@@ -218,7 +222,7 @@ var tooltip_canceled = false;
 /* les constantes */
 /* -------------- */
 
-const script_name = "[HFR] Edition du wiki partout";
+const script_name = "[HFR] Édition du wiki partout";
 const smileys_persos_url = "https://forum-images.hardware.fr/images/perso/";
 const query_smileys_persos =
   "img[alt][src^=\"" + smileys_persos_url + "\"]:not([src*=\"/tempo/\"]):not([onload]):not([data-edwi-done])";
@@ -590,6 +594,9 @@ function set_keywords(p_callback, p_smiley_code, p_keywords) {
     } else if(p_text.includes(
         "Ce smiley étant vérouillé, vous ne pouvez pas en modifier les mots clés")) {
       p_callback("smiley verrouillé");
+    } else if(p_text.includes(
+        "Vous ne pouvez pas modifier les mots clés d'un smiley si vous êtes sous le coup d'une sanction")) {
+      p_callback("sous le coup d'une sanction");
     } else {
       console.log(script_name + " ERROR set_keywords : ", p_text);
       p_callback("error");
