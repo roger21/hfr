@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Bloque liste mod_r21
-// @version       4.1.2
+// @version       4.2.0
 // @namespace     roger21.free.fr
 // @description   Permet de filtrer les messages des utilisateurs.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,9 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3597 $
+// $Rev: 3669 $
 
 // historique :
+// 4.2.0 (03/12/2022) :
+// - gestion du masquage des messages de la page de réponse normale
 // 4.1.2 (23/08/2022) :
 // - nouvelle correction de la détection des citations
 // 4.1.1 (10/01/2022) :
@@ -229,6 +231,15 @@ l_style.textContent =
   "div.container.gmhfrblr21_blocked_type.gmhfrblr21_hidden > table:not(.gmhfrblr21_snippet_type), " +
   "div#mesdiscussions.mesdiscussions table.gmhfrblr21_with_blocked_quote_type.gmhfrblr21_hidden > " +
   "tbody > tr:not(.gmhfrblr21_snippet_type), " +
+  "div#mesdiscussions.mesdiscussions > " +
+  "form#hop ~ form#apercu_form ~ table.gmhfrblr21_blocked_type.gmhfrblr21_hidden > " +
+  "tbody > tr.message:not(.gmhfrblr21_snippet_type), " +
+  "div#mesdiscussions.mesdiscussions > " +
+  "form#hop ~ form#apercu_form ~ table > tbody > tr.message > td.messCase1bis + td " +
+  "div.container.gmhfrblr21_blocked_type.gmhfrblr21_hidden > table:not(.gmhfrblr21_snippet_type), " +
+  "div#mesdiscussions.mesdiscussions > " +
+  "form#hop ~ form#apercu_form ~ table.gmhfrblr21_with_blocked_quote_type.gmhfrblr21_hidden > " +
+  "tbody > tr.message:not(.gmhfrblr21_snippet_type), " +
   ".gmhfrblr21_hide_snippets, " +
   ".gmhfrblr21_always_hide_snippets, " +
   ".gmhfrblr21_soft_always_hide_snippets, " +
@@ -337,7 +348,7 @@ document.body.appendChild(config_window);
 
 // titre de la fenêtre de configuration
 let main_title = document.createElement("div");
-main_title.className = "gmhfrblr21_main_title";
+main_title.setAttribute("class", "gmhfrblr21_main_title");
 main_title.textContent = "Conf du script [HFR] Bloque liste";
 config_window.appendChild(main_title);
 
@@ -1036,6 +1047,18 @@ function update_styles() {
       "table.citation{background-color:" + l_hidden_rgb_combined + ";}" +
       "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr > td.messCase2 " +
       "div.container.gmhfrblr21_blocked_type > " +
+      "table.oldcitation{background-color:" + l_hidden_rgba + ";}" +
+      // réponse normale
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table.gmhfrblr21_blocked_type > " +
+      "tbody > tr > td{background-color:" + l_hidden_rgba + ";}" +
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table > tbody > tr.message > td.messCase1bis + td " +
+      "div.container.gmhfrblr21_blocked_type > " +
+      "table.citation{background-color:" + l_hidden_rgb_combined + ";}" +
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table > tbody > tr.message > td.messCase1bis + td " +
+      "div.container.gmhfrblr21_blocked_type > " +
       "table.oldcitation{background-color:" + l_hidden_rgba + ";}" :
       "div#mesdiscussions.mesdiscussions " +
       "table.messagetable.gmhfrblr21_blocked_type:not(.gmhfrblr21_hidden) > " +
@@ -1044,6 +1067,18 @@ function update_styles() {
       "div.container.gmhfrblr21_blocked_type:not(.gmhfrblr21_hidden) > " +
       "table.citation{background-color:" + l_hidden_rgb_combined + ";}" +
       "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr > td.messCase2 " +
+      "div.container.gmhfrblr21_blocked_type:not(.gmhfrblr21_hidden) > " +
+      "table.oldcitation{background-color:" + l_hidden_rgba + ";}" +
+      // réponse normale
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table.gmhfrblr21_blocked_type:not(.gmhfrblr21_hidden) > " +
+      "tbody > tr > td{background-color:" + l_hidden_rgba + ";}" +
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table > tbody > tr.message > td.messCase1bis + td " +
+      "div.container.gmhfrblr21_blocked_type:not(.gmhfrblr21_hidden) > " +
+      "table.citation{background-color:" + l_hidden_rgb_combined + ";}" +
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table > tbody > tr.message > td.messCase1bis + td " +
       "div.container.gmhfrblr21_blocked_type:not(.gmhfrblr21_hidden) > " +
       "table.oldcitation{background-color:" + l_hidden_rgba + ";}";
     document.getElementsByTagName("head")[0].appendChild(l_new_blocked_style);
@@ -1055,9 +1090,17 @@ function update_styles() {
     l_new_with_blocked_quote_style.textContent = gmhfrblr21_always_color_snippets ?
       "div#mesdiscussions.mesdiscussions " +
       "table.messagetable.gmhfrblr21_with_blocked_quote_type > " +
+      "tbody > tr > td{background-color:" + l_posts_with_hidden_rgba + ";}" +
+      // réponse normale
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table.gmhfrblr21_with_blocked_quote_type > " +
       "tbody > tr > td{background-color:" + l_posts_with_hidden_rgba + ";}" :
       "div#mesdiscussions.mesdiscussions " +
       "table.messagetable.gmhfrblr21_with_blocked_quote_type:not(.gmhfrblr21_hidden) > " +
+      "tbody > tr > td{background-color:" + l_posts_with_hidden_rgba + ";}" +
+      // réponse normale
+      "div#mesdiscussions.mesdiscussions > form#hop ~ form#apercu_form ~ " +
+      "table.gmhfrblr21_with_blocked_quote_type:not(.gmhfrblr21_hidden) > " +
       "tbody > tr > td{background-color:" + l_posts_with_hidden_rgba + ";}";
     document.getElementsByTagName("head")[0].appendChild(l_new_with_blocked_quote_style);
   }
@@ -1769,6 +1812,70 @@ function hide_posts() {
       l_post_tr.parentElement.insertBefore(l_snippet, l_post_tr);
     }
   }
+  hide_posts_normal();
+}
+
+// fonction de masquage des messages des utilisateurs bloqués sur la page de réponse normale
+function hide_posts_normal() {
+  let l_post_authors = document.querySelectorAll(
+    "div#mesdiscussions.mesdiscussions > form#hop ~ form#apercu_form ~ table > " +
+    "tbody > tr.message > td.messCase1bis");
+  for(let l_post_author of l_post_authors) {
+    let l_pseudo =
+      l_post_author.firstChild.nodeValue;
+    let l_normalized_pseudo = normalize_pseudo(l_pseudo);
+    if(is_normalized_pseudo_blocked(l_normalized_pseudo)) {
+      let l_post_tr = l_post_author.parentElement;
+      l_post_tr.parentElement.parentElement.classList.add("gmhfrblr21_blocked_type");
+      l_post_tr.parentElement.parentElement.classList.add("gmhfrblr21_hidden");
+      l_post_tr.parentElement.parentElement.classList.remove("gmhfrblr21_with_blocked_quote_type");
+      let l_snippet_with_blocked_quote = l_post_tr.parentElement.querySelector("tr.gmhfrblr21_snippet_type");
+      if(l_snippet_with_blocked_quote !== null) {
+        l_post_tr.parentElement.removeChild(l_snippet_with_blocked_quote);
+      }
+      let l_snippet = document.createElement("tr");
+      l_snippet.classList.add("gmhfrblr21_snippet_type");
+      l_snippet.style.backgroundColor = l_post_tr.style.backgroundColor;
+      if(gmhfrblr21_parameters[profile].s) {
+        l_snippet.classList.add("gmhfrblr21_hide_snippets");
+      }
+      // masquage des aperçus des messages des utilisateurs toujours masqués
+      if(is_normalized_pseudo_always_hidden(l_normalized_pseudo)) {
+        l_snippet.classList.add("gmhfrblr21_always_hide_snippets");
+      }
+      // masquage des aperçus des messages des utilisateurs toujours masqués mais pas trop
+      if(is_normalized_pseudo_soft_always_hidden(l_normalized_pseudo)) {
+        l_snippet.classList.add("gmhfrblr21_soft_always_hide_snippets");
+      }
+      let l_snippet_td = document.createElement("td");
+      l_snippet_td.setAttribute("colspan", "2");
+      let l_snippet_span = document.createElement("span");
+      l_snippet_span.setAttribute("class", "cLink");
+      l_snippet_span.innerHTML =
+        "Afficher le message de <b>" + l_pseudo + "</b> qui est bloqué";
+      l_snippet_span.dataset.status = "hidden";
+      l_snippet_span.addEventListener("click", prevent_default, false);
+      l_snippet_span.addEventListener("contextmenu", prevent_default, false);
+      l_snippet_span.addEventListener("mousedown", prevent_default, false);
+      l_snippet_span.addEventListener("mouseup", function(p_event) {
+        p_event.preventDefault();
+        if(this.dataset.status === "hidden") {
+          this.dataset.status = "shown";
+          l_post_tr.parentElement.parentElement.classList.remove("gmhfrblr21_hidden");
+          this.innerHTML =
+            "Masquer le message de <b>" + l_pseudo + "</b> qui est bloqué";
+        } else {
+          this.dataset.status = "hidden";
+          l_post_tr.parentElement.parentElement.classList.add("gmhfrblr21_hidden");
+          this.innerHTML =
+            "Afficher le message de <b>" + l_pseudo + "</b> qui est bloqué";
+        }
+      }, false);
+      l_snippet_td.appendChild(l_snippet_span);
+      l_snippet.appendChild(l_snippet_td);
+      l_post_tr.parentElement.insertBefore(l_snippet, l_post_tr);
+    }
+  }
 }
 
 // fonction de masquage des citations des utilisateurs bloqués
@@ -1852,6 +1959,90 @@ function hide_quotes() {
     }
   }
   hide_posts_with_blocked_quote();
+  hide_quotes_normal();
+}
+
+// fonction de masquage des citations des utilisateurs bloqués sur la page de réponse normale
+function hide_quotes_normal() {
+  let l_quotes = document.querySelectorAll(
+    "div#mesdiscussions.mesdiscussions > form#hop ~ form#apercu_form ~ table > " +
+    "tbody > tr > td.messCase1bis + td " +
+    "div.container:not(.gmhfrblr21_blocked_type) > table.citation, " +
+    "div#mesdiscussions.mesdiscussions > form#hop ~ form#apercu_form ~ table > " +
+    "tbody > tr > td.messCase1bis + td " +
+    "div.container:not(.gmhfrblr21_blocked_type) > table.oldcitation");
+  for(let l_quote of l_quotes) {
+    let l_title =
+      l_quote.querySelector(":scope > tbody > tr.none > td > b.s1 > a.Topic");
+    if(l_title !== null && l_title.firstChild && l_title.firstChild.nodeValue !== null) {
+      let l_pseudo =
+        l_title.firstChild.nodeValue.replace(/ a écrit :$/, "");
+      let l_buggy_and_normalized_pseudo = add_buggy_encoding_and_normalize_pseudo(l_pseudo);
+      if(is_normalized_pseudo_blocked(l_buggy_and_normalized_pseudo)) {
+        l_quote.parentElement.classList.add("gmhfrblr21_blocked_type");
+        l_quote.parentElement.classList.add("gmhfrblr21_hidden");
+        let l_snippet = document.createElement("table");
+        l_snippet.classList.add("gmhfrblr21_snippet_type");
+        l_snippet.classList.add(l_quote.classList.contains("citation") ?
+          "citation" : "oldcitation");
+        if(gmhfrblr21_parameters[profile].s && !gmhfrblr21_parameters[profile].e) {
+          l_snippet.classList.add("gmhfrblr21_hide_snippets");
+        }
+        // masquage des aperçus des citations des utilisateurs toujours masqués
+        if(is_normalized_pseudo_always_hidden(l_buggy_and_normalized_pseudo)) {
+          l_snippet.classList.add("gmhfrblr21_always_hide_snippets");
+        }
+        let l_snippet_tbody = document.createElement("tbody");
+        let l_snippet_tr = document.createElement("tr");
+        l_snippet_tr.setAttribute("class", "none");
+        let l_snippet_td = document.createElement("td");
+        let l_snippet_span = document.createElement("span");
+        l_snippet_span.setAttribute("class", "cLink");
+        l_snippet_span.innerHTML =
+          "Afficher la citation de <b>" + l_pseudo + "</b> qui est bloqué";
+        l_snippet_span.dataset.status = "hidden";
+        l_snippet_span.addEventListener("click", prevent_default, false);
+        l_snippet_span.addEventListener("contextmenu", prevent_default, false);
+        l_snippet_span.addEventListener("mousedown", prevent_default, false);
+        l_snippet_span.addEventListener("mouseup", function(p_event) {
+          p_event.preventDefault();
+          if(this.dataset.status === "hidden") {
+            this.dataset.status = "shown";
+            l_quote.parentElement.classList.remove("gmhfrblr21_hidden");
+            this.innerHTML =
+              "Masquer la citation de <b>" + l_pseudo + "</b> qui est bloqué";
+            l_snippet.style.marginBottom = "-9px";
+          } else {
+            this.dataset.status = "hidden";
+            l_quote.parentElement.classList.add("gmhfrblr21_hidden");
+            this.innerHTML =
+              "Afficher la citation de <b>" + l_pseudo + "</b> qui est bloqué";
+            l_snippet.style.marginBottom = "";
+          }
+        }, false);
+        l_snippet_td.appendChild(l_snippet_span);
+        l_snippet_tr.appendChild(l_snippet_td);
+        l_snippet_tbody.appendChild(l_snippet_tr);
+        l_snippet.appendChild(l_snippet_tbody);
+        l_quote.parentElement.insertBefore(l_snippet, l_quote);
+      }
+    }
+  }
+  // masquage des aperçus des messages des utilisateurs bloqués
+  // contenant une citation d'un utilisateur toujours masqué
+  if(gmhfrblr21_parameters[profile].h) {
+    let l_snippets = document.querySelectorAll(
+      "div#mesdiscussions.mesdiscussions > form#hop ~ form#apercu_form ~ " +
+      "table.gmhfrblr21_blocked_type > " +
+      "tbody > tr.gmhfrblr21_snippet_type:not(.gmhfrblr21_with_always_hide_snippets)");
+    for(let l_snippet of l_snippets) {
+      if(l_snippet.parentElement.querySelector("div.container.gmhfrblr21_blocked_type > " +
+          "table.gmhfrblr21_snippet_type.gmhfrblr21_always_hide_snippets") !== null) {
+        l_snippet.classList.add("gmhfrblr21_with_always_hide_snippets");
+      }
+    }
+  }
+  hide_posts_with_blocked_quote_normal();
 }
 
 // fonction de masquage des messages contenant une citation d'un utilisateur bloqué
@@ -1890,6 +2081,86 @@ function hide_posts_with_blocked_quote() {
         l_snippet.classList.add("gmhfrblr21_snippet_type");
         l_snippet.classList.add(l_post_tr.classList.contains("cBackCouleurTab1") ?
           "cBackCouleurTab1" : "cBackCouleurTab2");
+        if(gmhfrblr21_parameters[profile].s && !gmhfrblr21_parameters[profile].e) {
+          l_snippet.classList.add("gmhfrblr21_hide_snippets");
+        }
+        // masquage des aperçus des messages contenant une citation d'un utilisateur toujours masqué
+        if(l_post_tr.querySelector("div.container.gmhfrblr21_blocked_type > " +
+            "table.gmhfrblr21_snippet_type.gmhfrblr21_always_hide_snippets") !== null) {
+          l_snippet.classList.add("gmhfrblr21_with_always_hide_snippets");
+        }
+        // la présence d'une citation non bloquée
+        let l_quote_text = "";
+        let l_quote = l_post_tr.querySelector(
+          "div.container:not(.gmhfrblr21_blocked_type) > table.citation, " +
+          "div.container:not(.gmhfrblr21_blocked_type) > table.oldcitation");
+        if(l_quote !== null) {
+          l_quote_text = " (<b>et au moins une citation non bloquée</b>)";
+        }
+        let l_snippet_td = document.createElement("td");
+        l_snippet_td.setAttribute("colspan", "2");
+        let l_snippet_span = document.createElement("span");
+        l_snippet_span.setAttribute("class", "cLink");
+        l_snippet_span.innerHTML =
+          "<span class=\"gmhfrblr21_action\">Afficher</span> le message de <b>" + l_pseudo +
+          "</b> qui contient au moins une citation bloquée<span class=\"gmhfrblr21_quote\">" +
+          l_quote_text + "</span>";
+        l_snippet_span.dataset.status = "hidden";
+        l_snippet_span.addEventListener("click", prevent_default, false);
+        l_snippet_span.addEventListener("contextmenu", prevent_default, false);
+        l_snippet_span.addEventListener("mousedown", prevent_default, false);
+        l_snippet_span.addEventListener("mouseup", function(p_event) {
+          p_event.preventDefault();
+          if(this.dataset.status === "hidden") {
+            this.dataset.status = "shown";
+            l_post_tr.parentElement.parentElement.classList.remove("gmhfrblr21_hidden");
+            this.querySelector("span.gmhfrblr21_action").firstChild.nodeValue = "Masquer";
+          } else {
+            this.dataset.status = "hidden";
+            l_post_tr.parentElement.parentElement.classList.add("gmhfrblr21_hidden");
+            this.querySelector("span.gmhfrblr21_action").firstChild.nodeValue = "Afficher";
+          }
+        }, false);
+        l_snippet_td.appendChild(l_snippet_span);
+        l_snippet.appendChild(l_snippet_td);
+        l_post_tr.parentElement.insertBefore(l_snippet, l_post_tr);
+      }
+    }
+  }
+}
+
+// fonction de masquage des messages contenant une citation d'un utilisateur bloqué sur la page de réponse normale
+function hide_posts_with_blocked_quote_normal() {
+  if(gmhfrblr21_parameters[profile].h) {
+    // mise à jour de la présence d'une citation non bloquée
+    let l_post_trs = document.querySelectorAll(
+      "div#mesdiscussions.mesdiscussions > " +
+      "form#hop ~ form#apercu_form ~ table.gmhfrblr21_with_blocked_quote_type > " +
+      "tbody > tr.message:not(.gmhfrblr21_snippet_type)");
+    for(let l_post_tr of l_post_trs) {
+      let l_quote = l_post_tr.querySelector(
+        "div.container:not(.gmhfrblr21_blocked_type) > table.citation, " +
+        "div.container:not(.gmhfrblr21_blocked_type) > table.oldcitation");
+      if(l_quote !== null) {
+        l_post_tr.previousElementSibling.querySelector("span.gmhfrblr21_quote").innerHTML =
+          " (<b>et au moins une citation non bloquée</b>)";
+      } else {
+        l_post_tr.previousElementSibling.querySelector("span.gmhfrblr21_quote").textContent = "";
+      }
+    }
+    l_post_trs = document.querySelectorAll(
+      "div#mesdiscussions.mesdiscussions > form#hop ~ form#apercu_form ~ " +
+      "table:not(.gmhfrblr21_blocked_type):not(.gmhfrblr21_with_blocked_quote_type) > " +
+      "tbody > tr.message");
+    for(let l_post_tr of l_post_trs) {
+      if(l_post_tr.querySelector("div.container.gmhfrblr21_blocked_type") !== null) {
+        let l_pseudo =
+          l_post_tr.querySelector(":scope > td.messCase1bis").firstChild.nodeValue;
+        l_post_tr.parentElement.parentElement.classList.add("gmhfrblr21_with_blocked_quote_type");
+        l_post_tr.parentElement.parentElement.classList.add("gmhfrblr21_hidden");
+        let l_snippet = document.createElement("tr");
+        l_snippet.classList.add("gmhfrblr21_snippet_type");
+        l_snippet.style.backgroundColor = l_post_tr.style.backgroundColor;
         if(gmhfrblr21_parameters[profile].s && !gmhfrblr21_parameters[profile].e) {
           l_snippet.classList.add("gmhfrblr21_hide_snippets");
         }
