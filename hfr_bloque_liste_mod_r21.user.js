@@ -40,11 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3669 $
+// $Rev: 3671 $
 
 // historique :
 // 4.2.0 (03/12/2022) :
-// - gestion du masquage des messages de la page de réponse normale
+// - gestion du masquage des messages sur la page de réponse / édition normale
 // 4.1.2 (23/08/2022) :
 // - nouvelle correction de la détection des citations
 // 4.1.1 (10/01/2022) :
