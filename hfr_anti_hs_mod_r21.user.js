@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Anti HS mod_r21
-// @version       3.3.1
+// @version       3.3.2
 // @namespace     roger21.free.fr
 // @description   Permet de filtrer les messages sans intérêts d'un topic via un ensemble de règles configurables.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -27,7 +27,7 @@
 
 /*
 
-Copyright © 2012, 2014-2021 roger21@free.fr
+Copyright © 2012, 2014-2021,2023 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -42,9 +42,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3283 $
+// $Rev: 3766 $
 
 // historique :
+// 3.3.2 (17/02/2023) :
+// - prise en compte des gif/gifv dans les urls encodées dans la détection des gifs (signalé par H00d)
 // 3.3.1 (24/11/2021) :
 // - prise en compte des gifv (quand utilisés en images) dans la détection des gifs (signalé par H00d)
 // 3.3.0 (02/02/2021) :
@@ -657,11 +659,15 @@ var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] img[src*=\".gif&\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] img[src*=\".gif%\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] img[src$=\".gifv\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] img[src*=\".gifv?\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] img[src*=\".gifv&\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] img[src*=\".gifv%\" i]:not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
     let quoted_gifs = message.querySelectorAll(
       "div[id^=\"para\"] table.citation img[src$=\".gif\" i]" +
@@ -673,6 +679,9 @@ var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
       "div[id^=\"para\"] table.citation img[src*=\".gif&\" i]" +
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.citation img[src*=\".gif%\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] table.oldcitation img[src$=\".gif\" i]" +
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
@@ -680,6 +689,9 @@ var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] table.oldcitation img[src*=\".gif&\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src*=\".gif%\" i]" +
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] table.citation img[src$=\".gifv\" i]" +
@@ -691,6 +703,9 @@ var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
       "div[id^=\"para\"] table.citation img[src*=\".gifv&\" i]" +
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.citation img[src*=\".gifv%\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] table.oldcitation img[src$=\".gifv\" i]" +
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
@@ -698,6 +713,9 @@ var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
       "div[id^=\"para\"] table.oldcitation img[src*=\".gifv&\" i]" +
+      ":not([src^=\"http://forum-images.hardware.fr\"])" +
+      ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])," +
+      "div[id^=\"para\"] table.oldcitation img[src*=\".gifv%\" i]" +
       ":not([src^=\"http://forum-images.hardware.fr\"])" +
       ":not([src^=\"https://forum-images.hardware.fr\"]):not([src^=\"data:image\"])");
     return gifs.length - quoted_gifs.length > 0;
