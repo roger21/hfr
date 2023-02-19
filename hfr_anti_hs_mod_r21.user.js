@@ -42,11 +42,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3766 $
+// $Rev: 3769 $
 
 // historique :
 // 3.3.2 (17/02/2023) :
-// - prise en compte des gif/gifv dans les urls encodées dans la détection des gifs (signalé par H00d)
+// - prise en compte des urls encodées dans la détection des gifs (signalé par H00d)
 // 3.3.1 (24/11/2021) :
 // - prise en compte des gifv (quand utilisés en images) dans la détection des gifs (signalé par H00d)
 // 3.3.0 (02/02/2021) :

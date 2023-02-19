@@ -40,11 +40,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3758 $
+// $Rev: 3769 $
 
 // historique :
 // 4.1.4 (11/02/2023) :
-// - ajout du support pour les lives de youtube
+// - ajout du support pour les lives de youtube (signalé par Umibozu)
 // 4.1.3 (29/11/2021) :
 // - ajout du support pour les shorts de youtube
 // 4.1.2 (07/07/2021) :
