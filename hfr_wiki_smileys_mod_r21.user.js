@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] wiki smileys et raccourcis mod_r21
-// @version       2.4.2
+// @version       2.4.3
 // @namespace     http://toyonos.info
 // @description   Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -14,7 +14,7 @@
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
-// @connect       hfr-mirror.toyonos.info
+// @connect       generateurs.super-h.fr
 // @grant         GM_getValue
 // @grant         GM_setValue
 // @grant         GM_addStyle
@@ -22,9 +22,13 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 3221 $
+// modifications roger21 $Rev: 3788 $
 
 // historique :
+// 2.4.3 (12/04/2023) :
+// - suppression des raccourcis pour les générateurs
+// - mise à jour du lien vers les générateurs
+// - mise à jour du lien vers l'api du smiley helper
 // 2.4.2 (13/11/2021) :
 // - retour à reho.st pour le raccourci rehost
 // 2.4.1 (17/09/2020) :
@@ -327,36 +331,6 @@ var cmScript = {
       sample: "<span style=\"color:#bf00ff;\">texte</span>",
       right: "[/#bf00ff]",
       key: 102
-    },
-    "ws_alerte": {
-      left: "[img]http://hfr.toyonos.info/generateurs/alerte/?smiley&t=",
-      sample: "Scripts",
-      right: "[/img]",
-      key: 87
-    },
-    "ws_nazi": {
-      left: "[img]http://hfr.toyonos.info/generateurs/nazi/?t=",
-      sample: "Grammar",
-      right: "[/img]",
-      key: 90
-    },
-    "ws_fb": {
-      left: "[img]http://hfr.toyonos.info/generateurs/fb/?t=",
-      sample: "HFR",
-      right: "[/img]",
-      key: 75
-    },
-    "ws_seagal": {
-      left: "[img]http://hfr.toyonos.info/generateurs/StevenSeagal/?t=",
-      sample: "Happy",
-      right: "[/img]",
-      key: 86
-    },
-    "ws_bulle": {
-      left: "[img]http://hfr.toyonos.info/generateurs/bulle/?t=",
-      sample: "C Ratal",
-      right: "[/img]",
-      key: 84
     }
   },
   keysBinding: {
@@ -939,42 +913,6 @@ if($("content_form")) {
       event.preventDefault();
       insertBBCode(textAreaId, "[#bf00ff]", "[/#bf00ff]");
     }
-    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_alerte")) {
-      event.preventDefault();
-      insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/alerte/?smiley&t=", "[/img]");
-    }
-    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_nazi")) {
-      event.preventDefault();
-      insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/nazi/?t=", "[/img]");
-    }
-    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_fb")) {
-      event.preventDefault();
-      insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/fb/?t=", "[/img]");
-    }
-    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_seagal")) {
-      event.preventDefault();
-      insertBBCode(textAreaId, "[img]http://hfr.toyonos.info/generateurs/StevenSeagal/?t=", "[/img]");
-    }
-    if(((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey("ws_bulle")) {
-      event.preventDefault();
-      var url = "http://hfr.toyonos.info/generateurs/bulle/?t=";
-      var text = window.prompt("Entrez le contenu de la bulle :");
-      url += text;
-      var smiley = window.prompt("Entrez le code du smiley si nécessaire :");
-      if(smiley != null && smiley != "") {
-        url += "&s=" + smiley;
-        var rang = window.prompt("Quel est son rang ?", "0");
-        if(rang != null && rang != "" && rang != "0") {
-          url += "&r=" + rang;
-        }
-      } else {
-        var delta = window.prompt("Décalage du smiley (en pixels) :");
-        if(delta != null && delta != "") {
-          url += "&d=" + delta;
-        }
-      }
-      insertBBCode(textAreaId, "[img]" + url, "[/img]");
-    }
   }
   var findSmilies = function(inputId, targetId) {
     var hashCheck = getElementByXpath("//input[@name=\"hash_check\"]", document).pop().value;
@@ -1283,7 +1221,7 @@ if($("content_form")) {
         timerSmiliesHelper = setTimeout(function() {
           GM_xmlhttpRequest({
             method: "GET",
-            url: "http://hfr-mirror.toyonos.info/smileys/getByName.php5?pattern=" + pattern,
+            url: "https://generateurs.super-h.fr/_api/get_by_name.php?pattern=" + pattern,
             onload: function(response) {
               if(smiliesHelperCanceled) {
                 return;
@@ -1485,7 +1423,7 @@ if($("content_form")) {
       lastClickTime = clickTime;
     }, false);
     var newA = document.createElement("a");
-    newA.href = "http://hfr.toyonos.info/generateurs/";
+    newA.href = "https://generateurs.super-h.fr/";
     newA.target = "_blank";
     newA.className = "s1Ext";
     newA.innerHTML = "Générateurs";
