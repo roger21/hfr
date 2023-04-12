@@ -23,7 +23,7 @@
 
 // historique modifs r21 :
 // 0.6.3a.4 (12/04/2023) :
-// - mise à jour des raccourcis vers les générateurs
+// - mise à jour des raccourcis pour les générateurs
 // - mise à jour du lien vers les générateurs
 // - mise à jour du lien vers l'api du smiley helper
 // 0.6.3a.3 (28/10/2018) :

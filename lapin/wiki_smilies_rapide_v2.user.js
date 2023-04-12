@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Wiki smilies & raccourcis dans la reponse/edition rapide
-// @version 0.6.4b.3
+// @version 0.6.4b.4
 // @namespace http://toyonos.info
 // @description Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide du forum hardware.fr
 // @include https://forum.hardware.fr/*
@@ -22,8 +22,10 @@
 
 
 // historique modifs r21 :
+// 0.6.4b.4 (12/04/2023) :
+// - correction du raccourcis seagal (mise à jour incomplète)
 // 0.6.4b.3 (12/04/2023) :
-// - mise à jour des raccourcis vers les générateurs
+// - mise à jour des raccourcis pour les générateurs
 // - mise à jour du lien vers les générateurs
 // - mise à jour du lien vers l'api du smiley helper
 // 0.6.4b.2 (28/10/2018) :
@@ -93,7 +95,7 @@ var cmScript =
   'ws_alerte' : {left : '[img]https://generateurs.super-h.fr/alerte/?smiley&t=', sample : 'Scripts', right : '[/img]', key : 87},
   'ws_nazi' : {left : '[img]https://generateurs.super-h.fr/nazi/?t=', sample : 'Grammar', right : '[/img]', key : 90},
   'ws_fb' : {left : '[img]https://generateurs.super-h.fr/fb/?t=', sample : 'HFR', right : '[/img]', key : 75},
-  'ws_seagal' : {left : '[img]https://generateurs.super-h.fr/StevenSeagal/?t=', sample : 'Happy', right : '[/img]', key : 86},
+  'ws_seagal' : {left : '[img]https://generateurs.super-h.fr/seagal/?t=', sample : 'Happy', right : '[/img]', key : 86},
   'ws_bulle' : {left : '[img]https://generateurs.super-h.fr/bulle/?t=', sample : 'C Ratal', right : '[/img]', key : 84}
   },
 
@@ -706,7 +708,7 @@ if ($('content_form'))
     if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_alerte')) { event.preventDefault(); insertBBCode(textAreaId, "[img]https://generateurs.super-h.fr/alerte/?smiley&t=", "[/img]"); }
     if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_nazi')) { event.preventDefault(); insertBBCode(textAreaId, "[img]https://generateurs.super-h.fr/nazi/?t=", "[/img]"); }
     if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_fb')) { event.preventDefault(); insertBBCode(textAreaId, "[img]https://generateurs.super-h.fr/fb/?t=", "[/img]"); }
-    if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_seagal')) { event.preventDefault(); insertBBCode(textAreaId, "[img]https://generateurs.super-h.fr/StevenSeagal/?t=", "[/img]"); }
+    if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_seagal')) { event.preventDefault(); insertBBCode(textAreaId, "[img]https://generateurs.super-h.fr/seagal/?t=", "[/img]"); }
     if (((event.altKey && event.ctrlKey) || event.getModifierState("AltGraph")) && key == cmScript.getShortcutKey('ws_bulle'))
     {
       event.preventDefault();
