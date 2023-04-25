@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] RSS Signature
-// @version 0.1.3.2
+// @version 0.1.3.3
 // @namespace http://toyonos.info
 // @description Permet d'avoir une signature dynamique qui reprend le dernier élément d'un flux RSS
 // @include https://forum.hardware.fr/*
@@ -17,10 +17,14 @@
 // @grant GM_registerMenuCommand
 // @grant GM_setClipboard
 // @grant GM_xmlhttpRequest
+// @connect url.super-h.fr
 // ==/UserScript==
 
 
 // historique modifs r21 :
+// 0.1.3.3 (25/04/2023) :
+// - nouveau service de compactage d'URL (hébergé par LibreArbitre)
+// - désactivation du module d'auto update de toyo (service mort)
 // 0.1.3.2 (10/12/2017) :
 // - commentage des alert XML
 // 0.1.3.1 (03/12/2017) :
@@ -56,14 +60,14 @@ var toyoAjaxLib = (function()
 				req.open(method, url, true);
 				if (method == 'POST') req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 				if (method == 'POST') req.send(arguments);
-				else  req.send();
+				else req.send();
 			}
 		}
 	}
 
 	function processReqChange(req, responseHandler)
 	{
-		return function ()
+		return function()
 		{
 			try
 			{
@@ -73,7 +77,7 @@ var toyoAjaxLib = (function()
 					// only if "OK"
 					if (req.status == 200)
 					{
-						var content = req.responseXML != null && req.responseXML.documentElement != null  ? req.responseXML.documentElement : req.responseText;
+						var content = req.responseXML != null && req.responseXML.documentElement != null ? req.responseXML.documentElement : req.responseText;
 						if (responseHandler != null) responseHandler(content);
 					}
 					else
@@ -83,20 +87,20 @@ var toyoAjaxLib = (function()
 					}
 				}
 			}
-			catch(e){}
+			catch (e) {}
 		}
 	}
 
 	// Public members
 
 	return {
-		"loadDoc" : function(url, method, arguments, responseHandler)
+		"loadDoc": function(url, method, arguments, responseHandler)
 		{
 			try
 			{
 				loadPage(url, method, arguments, responseHandler);
 			}
-			catch(e)
+			catch (e)
 			{
 				var msg = (typeof e == "string") ? e : ((e.message) ? e.message : "Unknown Error");
 				alert("Unable to get data:\n" + msg);
@@ -106,58 +110,62 @@ var toyoAjaxLib = (function()
 	};
 })();
 
-var getElementByXpath = function (path, element)
+var getElementByXpath = function(path, element)
 {
-	var arr = Array(), xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
-	for (;item = xpr.iterateNext();) arr.push(item);
+	var arr = Array(),
+		xpr = document.evaluate(path, element, null, XPathResult.UNORDERED_NODE_ITERATOR_TYPE, null);
+	for (; item = xpr.iterateNext();) arr.push(item);
 	return arr;
 };
 
-var rssSignature =
-{
-	signatureSize : 255,
-	
-	rssPattern : '###LAST_ENTRY###',
+var rssSignature = {
+	signatureSize: 255,
+
+	rssPattern: '###LAST_ENTRY###',
 
 	get signatureTemplate()
 	{
 		return GM_getValue('signature_template', null);
 	},
-	
+
 	get updateInterval()
 	{
 		return GM_getValue('update_interval', 86400000);
 	},
-	
+
 	get lastUpdate()
 	{
 		return GM_getValue('last_update', 0);
 	},
-	
+
 	get rssFeed()
 	{
 		return GM_getValue('rss_feed', null);
 	},
-	
-	reduceUrl : function (url, cbf)
+
+	reduceUrl: function(url, cbf)
 	{
 		GM_xmlhttpRequest({
 			method: "GET",
-			url: 'http://api.bitly.com/v3/shorten?login=o_797nnlsgvk&apiKey=R_8b12db4dfdb50b01ea9403d649362938&longUrl=' + encodeURIComponent(url) + '&format=json',
+			url: 'https://url.super-h.fr/short.php?token=57fe85b7-3761-4ad4-b4fe-4867d0c6d6ff&url=' + encodeURIComponent(url),
 			onload: function(response)
 			{
-				var respJson = eval('(' + response.responseText + ')');
-				var newUrl = respJson.status_code == '200' ? respJson.data.url : url;
+				let newUrl = url;
+				if (response.status == 200)
+				{
+					var respJson = JSON.parse(response.responseText);
+					newUrl = respJson.short_url ? "https://url.super-h.fr/" + respJson.short_url : url;
+				}
 				cbf(newUrl);
 			}
 		});
 	},
-	
-	retrieveLastEntry : function (cbf)
+
+	retrieveLastEntry: function(cbf)
 	{
 		var self = this;
 		var rssFeed = this.rssFeed;
-		
+
 		GM_xmlhttpRequest({
 			method: "GET",
 			url: rssFeed,
@@ -173,7 +181,10 @@ var rssSignature =
 					var url = items[0].getElementsByTagName('link').item(0).firstChild.nodeValue;
 					self.reduceUrl(url, function(newUrl)
 					{
-						cbf({title : title, url : newUrl});
+						cbf({
+							title: title,
+							url: newUrl
+						});
 					});
 				}
 				else
@@ -188,20 +199,23 @@ var rssSignature =
 						var url = linkNode.firstChild ? linkNode.firstChild.nodeValue : linkNode.getAttribute('href');
 						self.reduceUrl(url, function(newUrl)
 						{
-							cbf({title : title, url : newUrl});
+							cbf({
+								title: title,
+								url: newUrl
+							});
 						});
 					}
 				}
 			}
 		});
 	},
-	
-	retrieveSignature : function (cbf)
+
+	retrieveSignature: function(cbf)
 	{
 		var signature = this.signatureTemplate;
 		if (signature == null)
 		{
-			toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function (pageContent)
+			toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function(pageContent)
 			{
 				var contentNode = document.createElement('div');
 				contentNode.innerHTML = pageContent;
@@ -212,8 +226,8 @@ var rssSignature =
 		}
 		else cbf(signature);
 	},
-	
-	insertGmMenuCommands : function()
+
+	insertGmMenuCommands: function()
 	{
 		var self = this;
 
@@ -221,38 +235,34 @@ var rssSignature =
 		{
 			var param = prompt("Template de la signature ? (Pattern = " + self.rssPattern + ")", self.signatureTemplate);
 			if (param == null) return;
-			GM_setValue('signature_template', param);		
-		}
-		);
+			GM_setValue('signature_template', param);
+		});
 
 		GM_registerMenuCommand("[HFR] RSS Signature -> Intervalle d'update", function()
 		{
 			var param = prompt("Intervalle d'update (en heures)", self.updateInterval / 3600000);
 			if (param == null) return;
-			GM_setValue('update_interval', param * 3600000);		
-		}
-		);
-		
+			GM_setValue('update_interval', param * 3600000);
+		});
+
 		GM_registerMenuCommand("[HFR] RSS Signature -> Url du flux RSS", function()
 		{
 			var param = prompt("Url du flux RSS ?", self.rssFeed);
 			if (param == null) return;
-			GM_setValue('rss_feed', param);		
-		}
-		);
+			GM_setValue('rss_feed', param);
+		});
 
 		GM_registerMenuCommand("[HFR] RSS Signature -> Forcer la mise à jour", function()
 		{
 			GM_setValue('last_update', '0');
 			self.updateSignature(self.signatureTemplate);
-		}
-		);		
+		});
 	},
-	
-	updateSignature : function(signature)
+
+	updateSignature: function(signature)
 	{
 		var self = this;
-	
+
 		// Le pattern n'apparait pas dans la signature, on arrête là.
 		if (signature.indexOf(self.rssPattern) == -1) return;
 
@@ -276,11 +286,11 @@ var rssSignature =
 					bbCode += '[/url]';
 					signature = signature.replace(self.rssPattern, bbCode);
 
-					toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function (pageContent)
+					toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil.php', 'get', 'config=hfr.inc&page=2', function(pageContent)
 					{
 						var contentNode = document.createElement('div');
 						contentNode.innerHTML = pageContent;
-					
+
 						var args = 'page=2&signature=' + encodeURIComponent(signature) + '&hash_check=' + hashCheck;
 						args += '&citation=' + encodeURIComponent(getElementByXpath('.//input[@name="citation"]', contentNode).pop().value);
 						args += '&active_signature=' + encodeURIComponent(getElementByXpath('.//select[@name="active_signature"]', contentNode).pop().value);
@@ -288,16 +298,16 @@ var rssSignature =
 						toyoAjaxLib.loadDoc('https://forum.hardware.fr/user/editprofil_validation.php?config=hfr.inc', 'post', args, null);
 					});
 				}
-			});				
-		}	
+			});
+		}
 	},
 
-	launch : function ()
-	{	
+	launch: function()
+	{
 		var self = this;
 		if (!document.getElementById('mesdiscussions')) return;
 
-		self.retrieveSignature(function (signature)
+		self.retrieveSignature(function(signature)
 		{
 			self.insertGmMenuCommands();
 			self.updateSignature(signature);
@@ -309,7 +319,7 @@ rssSignature.launch();
 
 // ============ Module d'auto update du script ============
 ({
-	check4Update : function()
+	check4Update: function()
 	{
 		var autoUpdate = this;
 		var mirrorUrl = GM_getValue('mirrorUrl', 'null');
@@ -321,15 +331,14 @@ rssSignature.launch();
 		{
 			GM_setValue('currentVersion', '0.1.3');
 			currentVersion = '0.1.3';
-		}			
+		}
 		// Par contre, si la version stockée est plus récente que la version courante -> création un menu d'update pour la dernière version
 		else if (autoUpdate.isLater(currentVersion, '0.1.3'))
 		{
 			GM_registerMenuCommand("[HFR] RSS Signature -> Installer la version " + currentVersion, function()
 			{
 				GM_openInTab(mirrorUrl + 'hfr_rss_signature.user.js');
-			}
-			);
+			});
 		}
 		// Si la version courante et la version stockée sont identiques, on ne fait rien
 
@@ -366,35 +375,35 @@ rssSignature.launch();
 		}
 	},
 
-	max : function(v1, v2)
+	max: function(v1, v2)
 	{
 		var tabV1 = v1.split('.');
 		var tabV2 = v2.split('.');
-		
+
 		if (isNaN(tabV1[2].substring(tabV1[2].length - 1))) tabV1[2] = tabV1[2].substring(0, tabV1[2].length - 1);
 		if (isNaN(tabV2[2].substring(tabV2[2].length - 1))) tabV2[2] = tabV2[2].substring(0, tabV2[2].length - 1);
 
-		if ((tabV1[0] > tabV2[0])
-		|| (tabV1[0] == tabV2[0] && tabV1[1] > tabV2[1])
-		|| (tabV1[0] == tabV2[0] && tabV1[1] == tabV2[1] && tabV1[2] > tabV2[2]))
+		if ((tabV1[0] > tabV2[0]) ||
+			(tabV1[0] == tabV2[0] && tabV1[1] > tabV2[1]) ||
+			(tabV1[0] == tabV2[0] && tabV1[1] == tabV2[1] && tabV1[2] > tabV2[2]))
 		{
 			return v1;
 		}
 		else
 		{
 			return v2;
-		}		
+		}
 	},
 
-	isLater : function(v1, v2)
+	isLater: function(v1, v2)
 	{
 		return v1 != v2 && this.max(v1, v2) == v1;
 	},
 
-	retrieveMirrorUrl : function()
-	{	
+	retrieveMirrorUrl: function()
+	{
 		var mirrors = 'http://hfr.toyonos.info/gm/;http://hfr-mirror.toyonos.info/gm/'.split(';');
-		var checkMirror = function (i)
+		var checkMirror = function(i)
 		{
 			var mirror = mirrors[i];
 			GM_xmlhttpRequest({
@@ -420,8 +429,8 @@ rssSignature.launch();
 						}
 					}
 				}
-			});		
+			});
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+}) //.check4Update();

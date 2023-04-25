@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Image Preview mod_r21
-// @version       3.0.2
+// @version       3.0.3
 // @namespace     roger21.free.fr
 // @description   Permet d'afficher l'aperçu d'une image en passant la souris sur son lien.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -28,7 +28,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2021 roger21@free.fr
+Copyright © 2011-2012, 2014-2021, 2023 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -43,9 +43,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2823 $
+// $Rev: 3793 $
 
 // historique :
+// 3.0.3 (25/04/2023) :
+// - ajout de url.super-h.fr dans la liste des url-shortener
 // 3.0.2 (02/02/2021) :
 // - ajout du support pour GM.registerMenuCommand() (pour gm4)
 // 3.0.1 (17/09/2020) :
@@ -709,7 +711,7 @@ function image_preview(p_link) {
 
         // ne traite pas les liens vers des url shorteners (pour eviter de niquer ses drapoils)
         // basé sur http://bit.do/list-of-url-shorteners.php et http://dig.do/about/url-shortener
-        if(p_link.href.match(/^https?:\/\/(?:[^\/]+\.)?(?:1click\.im|1dl\.us|1o2\.ir|1y\.lt|2tag\.nl|4ks\.net|4u2bn\.com|4zip\.in|9en\.us|ad4\.us|ad7\.biz|adbooth\.com|adbooth\.net|adf\.ly|adfa\.st|adfoc\.us|adfro\.gs|adlock\.in|adnld\.com|adshor\.tk|adspl\.us|adurl\.biz|adzip\.us|articleshrine\.com|asso\.in|at5\.us|awe\.sm|b2s\.me|bc\.vc|bih\.cc|bit\.do|bit\.ly|biturl\.net|bizz\.cc|budurl\.com|buraga\.org|cc\.cr|cf\.ly|cf6\.co|clicky\.me|cutt\.us|dai3\.net|dollarfalls\.info|domainonair\.com|dstats\.net|fur\.ly|goo\.gl|gooplu\.com|hide4\.me|hotshorturl\.com|iiiii\.in|ik\.my|ilikear\.ch|infovak\.com|is\.gd|ity\.im|itz\.bz|j\.gs|jetzt-hier-klicken\.de|kaaf\.com|kly\.so|l1nks\.org|lst\.bz|magiclinker\.com|miniurl\.com|mrte\.ch|multiurl\.com|multiurlscript\.com|nicbit\.com|nowlinks\.net|nsyed\.com|omani\.ac|onelink\.ir|ooze\.us|ozn\.st|prettylinkpro\.com|rlu\.ru|s2r\.co|scriptzon\.com|seomafia\.net|short2\.in|shortxlink\.com|shr\.tn|shrinkonce\.com|shrt\.in|sitereview\.me|sk\.gy|snpurl\.biz|socialcampaign\.com|soo\.gd|swyze\.com|t\.co|tab\.bz|theminiurl\.com|tiny\.cc|tinylord\.com|tinyurl\.ms|tip\.pe|ty\.by|1url\.com|7vd\.cn|adcraft\.co|adcrun\.ch|aka\.gr|bitly\.com|buzurl\.com|crisco\.com|cur\.lv|db\.tt|dft\.ba|filoops\.info|j\.mp|lnkd\.in|ow\.ly|q\.gs|qr\.ae|qr\.net|scrnch\.me|tinyarrows\.com|tinyurl\.com|tr\.im|tweez\.me|twitthis\.com|u\.bb|u\.to|v\.gd|viralurl\.biz|viralurl\.com|virl\.ws|vur\.me|vurl\.bz|vzturl\.com|x\.co|yourls\.org)\/.*$/gi) === null) {
+        if(p_link.href.match(/^https?:\/\/(?:[^\/]+\.)?(?:1click\.im|1dl\.us|1o2\.ir|1y\.lt|2tag\.nl|4ks\.net|4u2bn\.com|4zip\.in|9en\.us|ad4\.us|ad7\.biz|adbooth\.com|adbooth\.net|adf\.ly|adfa\.st|adfoc\.us|adfro\.gs|adlock\.in|adnld\.com|adshor\.tk|adspl\.us|adurl\.biz|adzip\.us|articleshrine\.com|asso\.in|at5\.us|awe\.sm|b2s\.me|bc\.vc|bih\.cc|bit\.do|bit\.ly|biturl\.net|bizz\.cc|budurl\.com|buraga\.org|cc\.cr|cf\.ly|cf6\.co|clicky\.me|cutt\.us|dai3\.net|dollarfalls\.info|domainonair\.com|dstats\.net|fur\.ly|goo\.gl|gooplu\.com|hide4\.me|hotshorturl\.com|iiiii\.in|ik\.my|ilikear\.ch|infovak\.com|is\.gd|ity\.im|itz\.bz|j\.gs|jetzt-hier-klicken\.de|kaaf\.com|kly\.so|l1nks\.org|lst\.bz|magiclinker\.com|miniurl\.com|mrte\.ch|multiurl\.com|multiurlscript\.com|nicbit\.com|nowlinks\.net|nsyed\.com|omani\.ac|onelink\.ir|ooze\.us|ozn\.st|prettylinkpro\.com|rlu\.ru|s2r\.co|scriptzon\.com|seomafia\.net|short2\.in|shortxlink\.com|shr\.tn|shrinkonce\.com|shrt\.in|sitereview\.me|sk\.gy|snpurl\.biz|socialcampaign\.com|soo\.gd|swyze\.com|t\.co|tab\.bz|theminiurl\.com|tiny\.cc|tinylord\.com|tinyurl\.ms|tip\.pe|ty\.by|1url\.com|7vd\.cn|adcraft\.co|adcrun\.ch|aka\.gr|bitly\.com|buzurl\.com|crisco\.com|cur\.lv|db\.tt|dft\.ba|filoops\.info|j\.mp|lnkd\.in|ow\.ly|q\.gs|qr\.ae|qr\.net|scrnch\.me|tinyarrows\.com|tinyurl\.com|tr\.im|tweez\.me|twitthis\.com|u\.bb|u\.to|v\.gd|viralurl\.biz|viralurl\.com|virl\.ws|vur\.me|vurl\.bz|vzturl\.com|x\.co|yourls\.org|url\.super-h\.fr)\/.*$/gi) === null) {
 
           //console.log(p_link.href + " [" + script_name + " DEBUG ] OK 5");
 
