@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Bloque liste mod_r21
-// @version       4.2.2
+// @version       4.2.3
 // @namespace     roger21.free.fr
 // @description   Permet de filtrer les messages des utilisateurs.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -40,11 +40,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3823 $
+// $Rev: 3830 $
 
 // historique :
+// 4.2.3 (23/09/2023) :
+// - gestion du support pour [HFR] Live après le chargement complet du script
 // 4.2.2 (21/09/2023) :
-// - gestion de la mise à jour des boutons et du filtrage après le chargement de [HFR] Live
+// - gestion de la mise à jour des boutons et du filtrage après les chargements de [HFR] Live
 // 4.2.1 (04/12/2022) :
 // - prise en compte du profil et du premier message sur la page de réponse / édition normale
 // 4.2.0 (03/12/2022) :
@@ -2657,23 +2659,23 @@ Promise.all([
   update_styles();
   add_buttons();
   gmhfrblr21_parameters[profile].d ? disable_bloque_liste() : enable_bloque_liste();
-});
 
-/* ------------------------------------------------------------------------ */
-/* mise à jour des boutons et du filtrage après le chargement de [HFR] Live */
-/* ------------------------------------------------------------------------ */
+  /* -------------------------------------------------------------------------- */
+  /* mise à jour des boutons et du filtrage après les chargements de [HFR] Live */
+  /* -------------------------------------------------------------------------- */
 
-window.addEventListener("message", function(p_event) {
-  if(p_event.origin === window.location.origin && p_event.data === "hfr_live_updated") {
+  window.addEventListener("message", function(p_event) {
+    if(p_event.origin === window.location.origin && p_event.data === "hfr_live_updated") {
 
-    // DEBUG
-    if(do_debug) {
-      console.log(
-        "DEBUG [HFR] Bloque liste : ",
-        p_event.data);
+      // DEBUG
+      if(do_debug) {
+        console.log(
+          "DEBUG [HFR] Bloque liste : ",
+          p_event.data);
+      }
+
+      add_buttons();
+      gmhfrblr21_parameters[profile].d ? disable_bloque_liste() : enable_bloque_liste();
     }
-
-    add_buttons();
-    gmhfrblr21_parameters[profile].d ? disable_bloque_liste() : enable_bloque_liste();
-  }
+  });
 });
