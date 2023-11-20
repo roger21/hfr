@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.0.9
+// @version       1.1.0
 // @namespace     roger21.free.fr
 // @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -22,7 +22,7 @@
 
 /*
 
-Copyright © 2019-2021 roger21@free.fr
+Copyright © 2019-2023 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3567 $
+// $Rev: 3849 $
 
 // historique :
+// 1.1.0 (20/11/2023) :
+// - prise en compte des nouveaux liens pour les smileys générés de toyonos
 // 1.0.9 (02/07/2022) :
 // - LE HTML A CHANGÉ ! mouveau code pour supprimer la ligne de copyright ...
 // 1.0.8 (11/06/2022) :
@@ -821,8 +823,13 @@ Promise.all([
   }
   // reconversion des smileys générés de toyonos en images dans les quotes
   if(smp_toyonos_quotes) {
-    a2img("http://hfr.toyonos.info/smileys/generate/");
-    a2img("http://hfr.toyonos.info/generateurs/");
+    a2img("hfr.toyonos.info/smileys/generate/");
+    a2img("hfr.toyonos.info/generateurs/");
+    a2img("https://avatar.super-h.fr/");
+    a2img("https://smiley.super-h.fr/");
+    a2img("https://generateurs.super-h.fr/");
+    a2img("https://toyogen.000webhostapp.com/");
+    a2img("https://toyogens.000webhostapp.com/");
   }
   // reconversion des émojis de [HFR] Copié/Collé en images dans les quotes
   if(smp_emojis_quotes) {
