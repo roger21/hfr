@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Video Link Replacer mod_r21
-// @version       4.1.4
+// @version       4.1.5
 // @namespace     roger21.free.fr
 // @description   Remplace les liens vers des videos par les lecteurs intégrés correspondants pour youtube, dailymotion, vimeo, twitch, coub et streamable.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -25,7 +25,7 @@
 
 /*
 
-Copyright © 2014-2021,2023 roger21@free.fr
+Copyright © 2014-2021,2023,2024 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -40,9 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3769 $
+// $Rev: 4070 $
 
 // historique :
+// 4.1.5 (13/11/2024) :
+// - force le mode "en cliquant" sur les videos dailymotion
+// - petites corrections / homogénéisations du code
 // 4.1.4 (11/02/2023) :
 // - ajout du support pour les lives de youtube (signalé par Umibozu)
 // 4.1.3 (29/11/2021) :
@@ -259,12 +262,16 @@ var allow_vimeo_default = true;
 var allow_twitch_default = true;
 var allow_coub_default = true;
 var allow_streamable_default = true;
+var width = width_default;
+var height = height_default;
+var needclick = needclick_default;
 var allows = {
   "youtu": allow_youtube_default,
   "dai": allow_dailymotion_default,
   "vimeo": allow_vimeo_default,
   "video": allow_twitch_default,
   "twitch": allow_twitch_default,
+  "collections": allow_twitch_default,
   "clip": allow_twitch_default,
   "coub": allow_coub_default,
   "streamable": allow_streamable_default,
@@ -725,13 +732,17 @@ function add_video(iframe, params, external_link, link) {
   link.parentNode.replaceChild(outer_div, link);
 }
 
-function replace(links, width, height, needclick, allows) {
+function replace(links, needclick) {
   for(let link of links) {
     let href = link.href;
     for(let match of re_links) {
       if(match.test(href)) {
         let tokens = href.match(match);
         let name = tokens[1];
+        let local_needclick = needclick;
+        if(name === "dai") {
+          local_needclick = true;
+        }
         let src = tokens[2];
         if(allows[name]) {
           let start = "";
@@ -791,7 +802,7 @@ function replace(links, width, height, needclick, allows) {
           img_external_link.setAttribute("src", img_link);
           img_external_link.style.verticalAlign = "bottom";
           external_link.appendChild(img_external_link);
-          if(!needclick && link.firstChild && link.firstChild.nodeType === 3 &&
+          if(!local_needclick && link.firstChild && link.firstChild.nodeType === 3 &&
             link.firstChild.nodeValue.indexOf(href.substr(0, 34)) === 0) {
             add_video(iframe, params, external_link, link);
           } else {
@@ -824,9 +835,9 @@ Promise.all([
   GM.getValue("allow_coub", allow_coub_default),
   GM.getValue("allow_streamable", allow_streamable_default),
 ]).then(function([
-  width,
-  height,
-  needclick,
+  width_value,
+  height_value,
+  needclick_value,
   allow_youtube,
   allow_dailymotion,
   allow_vimeo,
@@ -834,6 +845,9 @@ Promise.all([
   allow_coub,
   allow_streamable,
 ]) {
+  width = width_value;
+  height = height_value;
+  needclick = needclick_value;
   allows.youtu = allow_youtube;
   allows.dai = allow_dailymotion;
   allows.vimeo = allow_vimeo;
@@ -843,6 +857,6 @@ Promise.all([
   allows.clip = allow_twitch;
   allows.coub = allow_coub;
   allows.streamable = allow_streamable;
-  replace(links, width, height, false || needclick, allows);
-  replace(linksq, width, height, true, allows);
+  replace(links, false || needclick);
+  replace(linksq, true);
 });

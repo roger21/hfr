@@ -7,13 +7,13 @@
 // @include       https://forum.hardware.fr/*
 // @exclude       https://forum.hardware.fr/message.php*
 // @author        toyonos
-// @modifications remplacement de l'url (morte) des aliases, ajout du support pour reho.st, ajout d'un throbber au chargement de l'image de test, meilleur alignement de l'image de test (et grosse maj des aliases dans http://roger21.free.fr/scripts/stealthrehost.php)
+// @modifications remplacement de l'url (morte) des aliases, ajout du support pour reho.st, ajout d'un throbber au chargement de l'image de test, meilleur alignement de l'image de test (et grosse maj des aliases dans http://roger21.free.fr/hfr/stealthrehost.php)
 // @modtype       évolution de fonctionnalités
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_stealth_re_s_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_stealth_re_s_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_stealth_re_s_mod_r21.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/scripts/
+// @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         GM_getValue
 // @grant         GM_setValue
