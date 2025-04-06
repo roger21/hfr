@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Navigateur de laureka
-// @version       3.1.5
+// @version       3.1.6
 // @namespace     roger21.free.fr
 // @description   Ajoute une barre de navigation qui permet de naviguer directement d'un laureka à l'autre sur le topic culture générale (la barre a de nombreuses options, voir les tooltips pour les détails).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -23,7 +23,7 @@
 
 /*
 
-Copyright © 2014-2021 roger21@free.fr
+Copyright © 2014-2021, 2025 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -38,9 +38,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2872 $
+// $Rev: 4193 $
 
 // historique :
+// 3.1.6 (06/04/2025) :
+// - correction d'un bug sur le mode kontinue (incompatibilité avec les autres scripts)
+// - remise en forme du texte des tooltips
+// - léger renforcement de l'opacité de la barre de navigation pour plus de lisibilité
 // 3.1.5 (16/04/2021) :
 // - modernisation du code de défilement de la page (pour la navigation) ->
 // et du code de positionnement de la barre
@@ -228,46 +232,46 @@ var tooltipnon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf
 // ***** les tooltips
 
 // tooltip de fermeture
-var titleclose = "Fermer le navigateur, réouvrir avec le laureka dans la barre du topic.";
+var titleclose = "Fermer le navigateur de laureka, pour le réouvrir \nutilisez le laureka dans la barre du topic.";
 
 // tooltips des questions
-var titlequestionoui = "Le navigateur s'arrête sur les questions, cliquez pour changer.";
-var titlequestionall = "Le navigateur s'arrête sur les questions et les questions quotées, cliquez pour changer.";
-var titlequestionnon = "Le navigateur ne s'arrête pas sur les questions, cliquez pour changer.";
+var titlequestionoui = "Le navigateur s'arrête sur les questions.\n(cliquez pour changer)";
+var titlequestionall = "Le navigateur s'arrête sur les questions et\nles questions quotées. (cliquez pour changer)";
+var titlequestionnon = "Le navigateur ne s'arrête pas sur les questions.\n(cliquez pour changer)";
 
 // tooltips des laureka
 var titlelaurekaor = "Ouvrir le navigateur de laureka.";
 var titlelaurekagris = "Fermer le navigateur de laureka.";
-var titlelaurekaoui = "Le navigateur s'arrête sur les laureka d'argent, cliquez pour désactiver.";
-var titlelaurekanon = "Le navigateur ne s'arrête pas sur les laureka d'argent, cliquez pour activer.";
+var titlelaurekaoui = "Le navigateur s'arrête sur les laureka d'argent.\n(cliquez pour changer)";
+var titlelaurekanon = "Le navigateur ne s'arrête pas sur les laureka d'argent.\n(cliquez pour changer)";
 
 // tooltips des tillow
-var titletillowoui = "Le navigateur s'arrête sur les laurekalembours, cliquez pour désactiver.";
-var titletillownon = "Le navigateur de ne s'arrête pas sur les laurekalembours, cliquez pour activer.";
+var titletillowoui = "Le navigateur s'arrête sur les laurekalembours.\n(cliquez pour changer)";
+var titletillownon = "Le navigateur de ne s'arrête pas sur les laurekalembours.\n(cliquez pour changer)";
 
 // tooltips des color
-var titlecoloroui = "Le navigateur colore les posts, cliquez pour désactiver.\nDouble-cliquez pour changer la couleur.";
-var titlecolornon = "Le navigateur ne colore pas les posts, cliquez pour activer.\nDouble-cliquez pour changer la couleur.";
+var titlecoloroui = "Le navigateur colore les posts.\n(cliquez pour changer, double-cliquez pour changer la couleur)";
+var titlecolornon = "Le navigateur ne colore pas les posts.\n(cliquez pour changer, double-cliquez pour changer la couleur)";
 
 // tooltips des kontinue
-var titlekontinueoui = "Le navigateur repart du dernier saut ou du dernier post cliqué, cliquez pour changer.";
-var titlekontinuenon = "Le navigateur repart du dernier saut, cliquez pour changer.";
+var titlekontinueoui = "Le navigateur repart du dernier saut ou du dernier post cliqué.\n(cliquez pour changer)";
+var titlekontinuenon = "Le navigateur repart du dernier saut.\n(cliquez pour changer)";
 
 // tooltips des pagealert
-var titlepagealertoui = "Le navigateur demande avant de passer à la page suivante, cliquez pour changer.";
-var titlepagealertnon = "Le navigateur passe à la page suivante sans demander, cliquez pour changer.";
-var titlepagealertblink = "Le navigateur blink au lieu de passer à la page suivante, cliquez pour changer.";
+var titlepagealertoui = "Le navigateur demande avant de passer à la page suivante.\n(cliquez pour changer)";
+var titlepagealertnon = "Le navigateur passe à la page suivante sans demander.\n(cliquez pour changer)";
+var titlepagealertblink = "Le navigateur blink au lieu de passer à la page suivante.\n(cliquez pour changer)";
 
 // tooltips des tooltip
-var titletooltipoui = "Les tooltips sont activés, cliquez pour les désactiver.";
+var titletooltipoui = "Les tooltips sont activés.\n(cliquez pour désactiver)";
 
 // tooltips des flèches
 var titleprevbt = "Naviguer vers l'occident.";
-var titleprevbtpage = "Naviguer vers l'occident, le prochain saut vous fera changer de page.";
-var titleprevbtblink = "Naviguer vers l'occident, le prochain saut fera un blink.";
+var titleprevbtpage = "Naviguer vers l'occident,\nle prochain saut vous fera changer de page.";
+var titleprevbtblink = "Naviguer vers l'occident,\nle prochain saut fera un blink.";
 var titlenextbt = "Naviguer vers l'orient.";
-var titlenextbtpage = "Naviguer vers l'orient, le prochain saut vous fera changer de page.";
-var titlenextbtblink = "Naviguer vers l'orient, le prochain saut fera un blink.";
+var titlenextbtpage = "Naviguer vers l'orient,\nle prochain saut vous fera changer de page.";
+var titlenextbtblink = "Naviguer vers l'orient,\nle prochain saut fera un blink.";
 
 // tooltips des pages
 var titlepageprev = "Simplement la page précédente.";
@@ -653,7 +657,7 @@ Promise.all([
   else navtable.style.display = "none";
   navtable.setAttribute("id", "navtablelaureka");
   navtable.style.borderCollapse = "collapse";
-  navtable.style.opacity = "0.875";
+  navtable.style.opacity = "0.9";
   navtable.style.position = "fixed";
   navtable.style.bottom = "0";
   navtable.setAttribute("class", "main");
@@ -993,10 +997,10 @@ Promise.all([
       while(target) {
         if((target.nodeName === "TD") &&
           target.hasAttribute("class") &&
-          ((target.getAttribute("class") === "messCase1") || (target.getAttribute("class") === "messCase2")) &&
+          (target.classList.contains("messCase1") || target.classList.contains("messCase2")) &&
           (target.parentElement.parentElement.parentElement.nodeName === "TABLE") &&
           target.parentElement.parentElement.parentElement.hasAttribute("class") &&
-          (target.parentElement.parentElement.parentElement.getAttribute("class") === "messagetable")) {
+          target.parentElement.parentElement.parentElement.classList.contains("messagetable")) {
           break;
         }
         target = target.parentElement;
