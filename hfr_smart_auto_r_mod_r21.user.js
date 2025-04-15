@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Smart Auto Rehost mod_r21
-// @version       6.1.3
+// @version       6.2.0
 // @namespace     roger21.free.fr
 // @description   Réhost automatiquement les images et les liens vers les images provenant d'une liste modifiable de noms de domaine.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -25,7 +25,7 @@
 
 /*
 
-Copyright © 2012-2022 roger21@free.fr
+Copyright © 2012-2022, 2025 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -40,9 +40,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3563 $
+// $Rev: 4226 $
 
 // historique :
+// 6.2.0 (15/04/2025) :
+// - possibilité de dé-réhoster / re-réhoster un post en double-cliquant sur le burger
+// - changement du texte pour signaler les erreurs de rehostage de UnRehost à NotRehost
+// - recodage des .className en .setAttribute("class", ) (parce que)
 // 6.1.3 (11/06/2022) :
 // - amélioration de la taille de la div pour l'image de test
 // - redécoupage de certaines lignes longues dans le code
@@ -279,6 +283,7 @@ const test_rehost_img_src = "http://roger21.free.fr/test/test-sar-";
 const test_rehost_img_src_ext = ".png";
 const textarea_width_default = "225px";
 const textarea_height_default = "145px";
+const click_burger_time = 300;
 
 /* ---------------------- */
 /* les options par défaut */
@@ -315,6 +320,8 @@ var real_white_list;
 var test_result;
 var input_timer;
 var rehost_close;
+var click_burger_last_call = 0;
+var click_burger_timer;
 
 /* ---------------------- */
 /* les fonctions globales */
@@ -379,14 +386,28 @@ function do_stealth_rehost() {
   }
 }
 
+// fonction de gestion d'un rehostage raté, on revient à la version non réhosté
+function rehost_error(p_event) {
+  let l_alt_title_error = "NotRehost: ";
+  let l_orig_src = this.dataset.gmhfrsarr21src;
+  if(this.getAttribute("src") === l_orig_src) {
+    //console.log("SAR NotRehost FAIL " + l_orig_src);
+    return;
+  }
+  //console.log("SAR NotRehost " + l_orig_src);
+  this.setAttribute("src", l_orig_src);
+  this.setAttribute("alt", l_alt_title_error + l_orig_src);
+  this.setAttribute("title", l_alt_title_error + l_orig_src);
+}
+
 // fonction de réhostage des images et des liens
-function do_rehost() {
+function do_rehost(p_para = null) {
   let l_alt_title = "Rehost: ";
-  let l_alt_title_error = "UnRehost: ";
-  let l_imgs =
-    document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable tbody " +
-      "tr.message td.messCase1 + td.messCase2 > div[id^=\"para\"] " +
-      "img[src]:not([src^=\"data:image\"])");
+  let l_root = p_para ? p_para : document;
+  let l_query = p_para ? ":scope " :
+    "div#mesdiscussions.mesdiscussions table.messagetable " +
+    "tbody tr.message td.messCase1 + td.messCase2 > div[id^=\"para\"] ";
+  let l_imgs = l_root.querySelectorAll(l_query + "img[src]:not([src^=\"data:image\"])");
   for(let l_img of l_imgs) {
     let l_src = l_img.getAttribute("src");
     if((!no_rehost_gif || !gif_re.test(l_src)) &&
@@ -399,18 +420,10 @@ function do_rehost() {
         if(rehost_type === "perso") {
           l_new_src = the_rehost + encodeURIComponent(l_src);
         }
-        l_img.dataset.host = l_host;
+        l_img.dataset.gmhfrsarr21host = l_host;
+        l_img.dataset.gmhfrsarr21src = l_src;
         // gestion du déréhostage en cas d'échec
-        l_img.addEventListener("error", function() {
-          if(this.getAttribute("src") === l_src) {
-            //console.log("SAR UnRehost FAIL " + l_src);
-            return;
-          }
-          //console.log("SAR UnRehost " + l_src);
-          l_img.setAttribute("src", l_src);
-          l_img.setAttribute("alt", l_alt_title_error + l_src);
-          l_img.setAttribute("title", l_alt_title_error + l_src);
-        }, false);
+        l_img.addEventListener("error", rehost_error, false);
         // réhostage
         l_img.setAttribute("src", l_new_src);
         l_img.setAttribute("alt", l_alt_title + l_new_src);
@@ -418,14 +431,10 @@ function do_rehost() {
       }
     }
   }
-  let l_links =
-    document.querySelectorAll(
-      "div#mesdiscussions.mesdiscussions table.messagetable tbody tr.message td.messCase1 + " +
-      "td.messCase2 div[id^='para'] > span:not(.signature) a.cLink[href], " +
-      "div#mesdiscussions.mesdiscussions table.messagetable tbody tr.message td.messCase1 + " +
-      "td.messCase2 div[id^='para'] > div:not(.edited) a.cLink[href], " +
-      "div#mesdiscussions.mesdiscussions table.messagetable tbody tr.message td.messCase1 + " +
-      "td.messCase2 div[id^='para'] > *:not(span):not(div) a.cLink[href]");
+  let l_links = l_root.querySelectorAll(
+    l_query + "> span:not(.signature) a.cLink[href], " +
+    l_query + "> div:not(.edited) a.cLink[href], " +
+    l_query + "> *:not(span):not(div) a.cLink[href]");
   for(let l_link of l_links) {
     let l_href = l_link.getAttribute("href");
     if((!no_rehost_gif || !gif_re.test(l_href)) &&
@@ -439,17 +448,48 @@ function do_rehost() {
         if(rehost_type === "perso") {
           l_new_href = the_rehost + encodeURIComponent(l_href);
         }
+        l_link.dataset.gmhfrsarr21href = l_href;
         l_link.setAttribute("href", l_new_href);
         l_link.setAttribute("title", l_alt_title + l_new_href);
         if(l_link.firstChild &&
           l_link.firstChild.nodeType === 3 && l_link.firstChild.nodeValue.trim() !== ""
           /*&& l_link.firstChild.nodeValue.indexOf(l_href.substr(0, 34)) === 0*/
         ) {
-          l_link.insertBefore(document.createTextNode(l_alt_title), l_link.firstChild);
+          let l_new_text_node = document.createElement("span");
+          l_new_text_node.appendChild(document.createTextNode(l_alt_title));
+          l_new_text_node.setAttribute("class", "gm_hfr_sar_r21_new_text_node");
+          l_link.insertBefore(l_new_text_node, l_link.firstChild);
         }
       }
     }
   }
+}
+
+// fonction de dé-réhostage des images et des liens
+function un_rehost(p_para) {
+  let l_found_some = false;
+  let l_imgs = p_para.querySelectorAll(":scope img[src][data-gmhfrsarr21src]");
+  for(let l_img of l_imgs) {
+    l_found_some = true;
+    let l_orig_src = l_img.dataset.gmhfrsarr21src;
+    l_img.removeEventListener("error", rehost_error, false);
+    l_img.setAttribute("src", l_orig_src);
+    l_img.setAttribute("alt", l_orig_src);
+    l_img.setAttribute("title", l_orig_src);
+  }
+  let l_links = p_para.querySelectorAll(":scope a.cLink[href][data-gmhfrsarr21href]");
+  for(let l_link of l_links) {
+    l_found_some = true;
+    let l_orig_href = l_link.dataset.gmhfrsarr21href;
+    l_link.setAttribute("href", l_orig_href);
+    l_link.removeAttribute("title");
+  }
+  let l_new_text_nodes = p_para.querySelectorAll(":scope span.gm_hfr_sar_r21_new_text_node");
+  for(let l_new_text_node of l_new_text_nodes) {
+    l_found_some = true;
+    l_new_text_node.parentNode.removeChild(l_new_text_node);
+  }
+  return l_found_some;
 }
 
 /* -------------- */
@@ -461,6 +501,10 @@ style.setAttribute("type", "text/css");
 style.textContent =
   // style pour les boutons (burger)
   "img.gm_hfr_sar_r21_button{cursor:pointer;width:16px;height:16px;}" +
+  "img.gm_hfr_sar_r21_button.gm_hfr_sar_r21_unrehosted{filter:saturate(0);}" +
+  "@keyframes gm_hfr_sar_r21_none_unrehosted_animation{0%{filter:opacity(0);}50%{filter:opacity(1);}100%{filter:opacity(0);}}" +
+  "img.gm_hfr_sar_r21_button.gm_hfr_sar_r21_none_unrehosted{animation:" +
+  "gm_hfr_sar_r21_none_unrehosted_animation 0.25s step-end 0s 4 normal none running;}" +
   // styles pour la fenêtre d'aide
   "#gm_hfr_sar_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
   "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
@@ -582,7 +626,7 @@ document.body.appendChild(config_window);
 
 // titre de la fenêtre de configuration
 var main_title = document.createElement("div");
-main_title.className = "gm_hfr_sar_r21_main_title";
+main_title.setAttribute("class", "gm_hfr_sar_r21_main_title");
 main_title.textContent = "Conf du script [HFR] Smart Auto Rehost";
 config_window.appendChild(main_title);
 
@@ -593,9 +637,9 @@ button_legend.textContent = "Icône du bouton";
 button_fieldset.appendChild(button_legend);
 config_window.appendChild(button_fieldset);
 var button_p = document.createElement("p");
-button_p.className = "gm_hfr_sar_r21_button_p_flex";
+button_p.setAttribute("class", "gm_hfr_sar_r21_button_p_flex");
 var button_test_img = document.createElement("img");
-button_test_img.className = "gm_hfr_sar_r21_test_img";
+button_test_img.setAttribute("class", "gm_hfr_sar_r21_test_img");
 button_p.appendChild(button_test_img);
 var button_input = document.createElement("input");
 button_input.setAttribute("id", "gm_hfr_sar_r21_button_input");
@@ -616,7 +660,7 @@ button_input.addEventListener("input", button_do_test_img, false);
 button_p.appendChild(button_input);
 var button_reset_img = document.createElement("img");
 button_reset_img.setAttribute("src", img_reset);
-button_reset_img.className = "gm_hfr_sar_r21_reset_img";
+button_reset_img.setAttribute("class", "gm_hfr_sar_r21_reset_img");
 button_reset_img.setAttribute("title", "remettre l'icône par défaut");
 
 function button_do_reset_img() {
@@ -634,7 +678,7 @@ rehost_choice_legend.textContent = "Choix du rehost";
 rehost_choice_fieldset.appendChild(rehost_choice_legend);
 config_window.appendChild(rehost_choice_fieldset);
 var rehost_choice_div = document.createElement("div");
-rehost_choice_div.className = "gm_hfr_sar_r21_rehost_choice_div_flex";
+rehost_choice_div.setAttribute("class", "gm_hfr_sar_r21_rehost_choice_div_flex");
 rehost_choice_fieldset.appendChild(rehost_choice_div);
 var rehost_choice_div_choice = document.createElement("div");
 rehost_choice_div.appendChild(rehost_choice_div_choice);
@@ -674,7 +718,7 @@ function update_rehost_choice() {
 
 // rehost_auto
 var rehost_auto_p = document.createElement("p");
-rehost_auto_p.className = "gm_hfr_sar_r21_no_margin";
+rehost_auto_p.setAttribute("class", "gm_hfr_sar_r21_no_margin");
 var rehost_auto_radio = document.createElement("input");
 rehost_auto_radio.setAttribute("type", "radio");
 rehost_auto_radio.setAttribute("id", "gm_hfr_sar_r21_rehost_auto_radio");
@@ -701,7 +745,7 @@ rehost_auto_p.appendChild(rehost_auto_select);
 rehost_choice_div_choice.appendChild(rehost_auto_p);
 // rehost_perso
 var rehost_perso_p = document.createElement("p");
-rehost_perso_p.className = "gm_hfr_sar_r21_no_margin";
+rehost_perso_p.setAttribute("class", "gm_hfr_sar_r21_no_margin");
 var rehost_perso_radio = document.createElement("input");
 rehost_perso_radio.setAttribute("type", "radio");
 rehost_perso_radio.setAttribute("id", "gm_hfr_sar_r21_rehost_perso_radio");
@@ -732,10 +776,10 @@ rehost_perso_p.appendChild(rehost_perso_input);
 rehost_choice_div_choice.appendChild(rehost_perso_p);
 // test_rehost
 var rehost_choice_div_img = document.createElement("div");
-rehost_choice_div_img.className = "gm_hfr_sar_r21_rehost_choice_div_img_flex";
+rehost_choice_div_img.setAttribute("class", "gm_hfr_sar_r21_rehost_choice_div_img_flex");
 rehost_choice_div_img.setAttribute("title", "image de test");
 var test_rehost_img = document.createElement("img");
-test_rehost_img.className = "gm_hfr_sar_r21_test_rehost_img";
+test_rehost_img.setAttribute("class", "gm_hfr_sar_r21_test_rehost_img");
 test_rehost_img.addEventListener("load", function() {
   test_result = true;
   test_rehost_img.style.display = "block";
@@ -748,13 +792,13 @@ test_rehost_img.addEventListener("error", function() {
 }, false);
 rehost_choice_div_img.appendChild(test_rehost_img);
 var test_rehost_img_alt = document.createElement("div");
-test_rehost_img_alt.className = "gm_hfr_sar_r21_test_rehost_img_alt";
+test_rehost_img_alt.setAttribute("class", "gm_hfr_sar_r21_test_rehost_img_alt");
 test_rehost_img_alt.textContent = "ÉCHEC";
 rehost_choice_div_img.appendChild(test_rehost_img_alt);
 rehost_choice_div.appendChild(rehost_choice_div_img);
 // stealth_rehost
 var stealth_rehost_p = document.createElement("p");
-stealth_rehost_p.className = "gm_hfr_sar_r21_stealth_rehost_p";
+stealth_rehost_p.setAttribute("class", "gm_hfr_sar_r21_stealth_rehost_p");
 var stealth_rehost_checkbox = document.createElement("input");
 stealth_rehost_checkbox.setAttribute("type", "checkbox");
 stealth_rehost_checkbox.setAttribute("id", "gm_hfr_sar_r21_stealth_rehost_checkbox");
@@ -777,7 +821,7 @@ no_rehost_legend.textContent = "Types de fichiers à ne pas réhoster";
 no_rehost_fieldset.appendChild(no_rehost_legend);
 config_window.appendChild(no_rehost_fieldset);
 var no_rehost_div = document.createElement("div");
-no_rehost_div.className = "gm_hfr_sar_r21_no_rehost_div_flex";
+no_rehost_div.setAttribute("class", "gm_hfr_sar_r21_no_rehost_div_flex");
 no_rehost_fieldset.appendChild(no_rehost_div);
 // no_rehost_gif
 var no_rehost_gif_div = document.createElement("div");
@@ -844,7 +888,7 @@ lists_legend.textContent = "Listes des noms de domaine";
 lists_fieldset.appendChild(lists_legend);
 config_window.appendChild(lists_fieldset);
 var lists_div = document.createElement("div");
-lists_div.className = "gm_hfr_sar_r21_lists_div_flex";
+lists_div.setAttribute("class", "gm_hfr_sar_r21_lists_div_flex");
 lists_fieldset.appendChild(lists_div);
 // host_list
 var host_list_div = document.createElement("div");
@@ -880,9 +924,9 @@ white_list_div.appendChild(white_list_textarea);
 
 // rechargement de la page et boutons de validation et de fermeture
 var save_close_div = document.createElement("div");
-save_close_div.className = "gm_hfr_sar_r21_save_close_div";
+save_close_div.setAttribute("class", "gm_hfr_sar_r21_save_close_div");
 var info_reload_div = document.createElement("div");
-info_reload_div.className = "gm_hfr_sar_r21_info_reload_div";
+info_reload_div.setAttribute("class", "gm_hfr_sar_r21_info_reload_div");
 var info_reload_checkbox = document.createElement("input");
 info_reload_checkbox.setAttribute("type", "checkbox");
 info_reload_checkbox.setAttribute("id", "gm_hfr_sar_r21_info_reload_checkbox");
@@ -1041,37 +1085,37 @@ document.body.appendChild(rehost_background);
 
 // titre de la fenêtre de rehost
 var rehost_title = document.createElement("div");
-rehost_title.className = "gm_hfr_sar_r21_rehost_main_title";
+rehost_title.setAttribute("class", "gm_hfr_sar_r21_rehost_main_title");
 rehost_window.appendChild(rehost_title);
 
 // sections de la fenêtre de rehost
 var new_hosts_title = document.createElement("div");
-new_hosts_title.className = "gm_hfr_sar_r21_rehost_title";
+new_hosts_title.setAttribute("class", "gm_hfr_sar_r21_rehost_title");
 new_hosts_title.textContent = "Nouveaux noms de domaine";
 rehost_window.appendChild(new_hosts_title);
 var new_hosts_section = document.createElement("div");
-new_hosts_section.className = "gm_hfr_sar_r21_rehost_section";
+new_hosts_section.setAttribute("class", "gm_hfr_sar_r21_rehost_section");
 rehost_window.appendChild(new_hosts_section);
 var white_list_title = document.createElement("div");
-white_list_title.className = "gm_hfr_sar_r21_rehost_title";
+white_list_title.setAttribute("class", "gm_hfr_sar_r21_rehost_title");
 white_list_title.textContent = "Noms de domaine à ne pas réhoster";
 rehost_window.appendChild(white_list_title);
 var white_list_section = document.createElement("div");
-white_list_section.className = "gm_hfr_sar_r21_rehost_section";
+white_list_section.setAttribute("class", "gm_hfr_sar_r21_rehost_section");
 rehost_window.appendChild(white_list_section);
 var host_list_title = document.createElement("div");
-host_list_title.className = "gm_hfr_sar_r21_rehost_title";
+host_list_title.setAttribute("class", "gm_hfr_sar_r21_rehost_title");
 host_list_title.textContent = "Noms de domaine déjà réhostés";
 rehost_window.appendChild(host_list_title);
 var host_list_section = document.createElement("div");
-host_list_section.className = "gm_hfr_sar_r21_rehost_section";
+host_list_section.setAttribute("class", "gm_hfr_sar_r21_rehost_section");
 rehost_window.appendChild(host_list_section);
 
 // info "sans rechargement" et boutons de validation et de fermeture
 var rehost_save_close_div = document.createElement("div");
-rehost_save_close_div.className = "gm_hfr_sar_r21_save_close_div";
+rehost_save_close_div.setAttribute("class", "gm_hfr_sar_r21_save_close_div");
 var rehost_info_reload_div = document.createElement("div");
-rehost_info_reload_div.className = "gm_hfr_sar_r21_info_reload_div";
+rehost_info_reload_div.setAttribute("class", "gm_hfr_sar_r21_info_reload_div");
 var rehost_info_reload_img = document.createElement("img");
 rehost_info_reload_img.setAttribute("src", img_info);
 rehost_info_reload_div.appendChild(rehost_info_reload_img);
@@ -1101,7 +1145,7 @@ function clean_rehost_window() {
   host_list_title.style.display = "none";
   host_list_section.style.display = "none";
   rehost_save_close_div.style.display = "none";
-  rehost_window.className = "gm_hfr_sar_r21_no_choice";
+  rehost_window.setAttribute("class", "gm_hfr_sar_r21_no_choice");
   rehost_close = true;
   let l_ps = document.querySelectorAll("#gm_hfr_sar_r21_rehost_window > " +
     "div.gm_hfr_sar_r21_rehost_section > p");
@@ -1113,7 +1157,7 @@ function clean_rehost_window() {
 // fonction d'ajout d'une ligne d'info à la fenêtre de rehost
 function add_rehost_info(p_host, p_number, p_section) {
   let l_info_p = document.createElement("p");
-  l_info_p.className = "gm_hfr_sar_r21_rehost_p";
+  l_info_p.setAttribute("class", "gm_hfr_sar_r21_rehost_p");
   l_info_p.textContent =
     "\u25cf " + p_host + " " + (p_number > 1 ? "(" + p_number + " images)" : "(une image)");
   p_section.appendChild(l_info_p);
@@ -1122,7 +1166,7 @@ function add_rehost_info(p_host, p_number, p_section) {
 // fonction d'ajout d'une ligne de choix à la fenêtre de rehost
 function add_rehost_choice(p_host, p_number, p_index, p_section) {
   let l_choice_p = document.createElement("p");
-  l_choice_p.className = "gm_hfr_sar_r21_rehost_p";
+  l_choice_p.setAttribute("class", "gm_hfr_sar_r21_rehost_p");
   let l_choice_checkbox = document.createElement("input");
   l_choice_checkbox.setAttribute("type", "checkbox");
   l_choice_checkbox.setAttribute("value", p_host);
@@ -1220,7 +1264,7 @@ function show_rehost_window(p_white_list, p_host_list, p_new_hosts) {
     rehost_title.appendChild(document.createElement("br"));
     rehost_title.appendChild(document.createTextNode("nouveaux noms de domaine ?"));
     rehost_save_close_div.style.display = "block";
-    rehost_window.className = "";
+    rehost_window.setAttribute("class", "");
     rehost_close = false;
   } else {
     rehost_title.textContent = "Rien de neuf à réhoster";
@@ -1265,18 +1309,39 @@ function show_rehost_window(p_white_list, p_host_list, p_new_hosts) {
 /* les fonctions de gestion des clics sur les burgers */
 /* -------------------------------------------------- */
 
+// fonction de gestion de la fin de l'annimation sur le
+// burger dans le cas où il n'y a rien à dé-réhoster
+function burger_end(p_event) {
+  this.classList.remove("gm_hfr_sar_r21_none_unrehosted");
+}
+
+// fonction de gestion de dé-rehostage / re-réhostage du post
+function burger_switch(p_target) {
+  p_target.classList.remove("gm_hfr_sar_r21_none_unrehosted");
+  if(p_target.classList.contains("gm_hfr_sar_r21_unrehosted")) {
+    do_rehost(p_target.parentElement.parentElement.nextElementSibling);
+    p_target.classList.remove("gm_hfr_sar_r21_unrehosted");
+  } else {
+    let l_found_some =
+      un_rehost(p_target.parentElement.parentElement.nextElementSibling);
+    if(!l_found_some) {
+      p_target.classList.add("gm_hfr_sar_r21_none_unrehosted");
+    } else {
+      p_target.classList.add("gm_hfr_sar_r21_unrehosted");
+    }
+  }
+}
+
 // fonction de gestion de l'ajout des nouveaux noms de domaine
-function burger_rehost(p_event) {
-  p_event.preventDefault();
+function burger_rehost(p_para) {
   let l_white_list = {};
   let l_host_list = {};
   let l_new_hosts = {};
-  let l_imgs = this.parentElement.parentElement.nextElementSibling
-    .querySelectorAll("img:not([src^=\"data:image\"])");
+  let l_imgs = p_para.querySelectorAll("img[src]:not([src^=\"data:image\"])");
   for(let l_img of l_imgs) {
     let l_host = get_hostname(l_img.src);
-    if(l_img.dataset.host) {
-      l_host = l_img.dataset.host;
+    if(l_img.dataset.gmhfrsarr21host) {
+      l_host = l_img.dataset.gmhfrsarr21host;
     }
     if(l_host) {
       if(real_white_list.includes(l_host)) {
@@ -1298,6 +1363,22 @@ function burger_rehost(p_event) {
     }
   }
   show_rehost_window(l_white_list, l_host_list, l_new_hosts);
+}
+
+// fonction de gestion du clic ou double-clic sur le burger
+function burger_click(p_event) {
+  p_event.preventDefault();
+  window.clearTimeout(click_burger_timer);
+  let l_click_burger_last_call = Date.now();
+  if((l_click_burger_last_call - click_burger_last_call) < click_burger_time) {
+    // double-clic
+    burger_switch(p_event.currentTarget)
+  } else {
+    // simple clic
+    click_burger_timer = window.setTimeout(burger_rehost, click_burger_time,
+      p_event.currentTarget.parentElement.parentElement.nextElementSibling);
+  }
+  click_burger_last_call = l_click_burger_last_call;
 }
 
 // fonction d'ouverture de le fenêtre de configuration
@@ -1353,9 +1434,8 @@ Promise.all([
   real_white_list = Array.from(white_list);
   real_white_list.push(get_hostname(the_rehost));
   // ajout des burgers
-  let toolbars =
-    document.querySelectorAll("div#mesdiscussions.mesdiscussions table.messagetable tbody " +
-      "tr.message td.messCase1 + td.messCase2 div.toolbar");
+  let toolbars = document.querySelectorAll("div#mesdiscussions.mesdiscussions " +
+    "table.messagetable tbody tr.message td.messCase1 + td.messCase2 div.toolbar");
   for(let toolbar of toolbars) {
     let burger_div = document.createElement("div");
     burger_div.setAttribute("class", "right");
@@ -1364,10 +1444,13 @@ Promise.all([
     burger_img.setAttribute("src", img_burger);
     burger_img.setAttribute("alt", "SAR");
     burger_img.setAttribute("title",
-      "Ajouter des noms de domaine à réhoster\n(clic droit pour configurer)");
+      "Ajouter des noms de domaine à réhoster\n" +
+      "(double-clic pour dé-réhoster / re-réhoster ce post)\n" +
+      "(clic droit pour configurer)");
     burger_img.addEventListener("contextmenu", prevent_default, false);
-    burger_img.addEventListener("click", burger_rehost, false);
+    burger_img.addEventListener("click", burger_click, false);
     burger_img.addEventListener("mouseup", burger_config, false);
+    burger_img.addEventListener("animationend", burger_end, false);
     burger_div.appendChild(burger_img);
     let spacer_div = toolbar.querySelector("div.spacer");
     toolbar.insertBefore(burger_div, spacer_div);
