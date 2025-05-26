@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Navigateur de laureka
-// @version       3.1.6
+// @version       3.1.7
 // @namespace     roger21.free.fr
 // @description   Ajoute une barre de navigation qui permet de naviguer directement d'un laureka à l'autre sur le topic culture générale (la barre a de nombreuses options, voir les tooltips pour les détails).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -38,9 +38,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4193 $
+// $Rev: 4247 $
 
 // historique :
+// 3.1.7 (26/05/2025) :
+// - amélioration de la gestion de la taille des boutons
 // 3.1.6 (06/04/2025) :
 // - correction d'un bug sur le mode kontinue (incompatibilité avec les autres scripts)
 // - remise en forme du texte des tooltips
@@ -125,6 +127,14 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - création
 
 
+/* ------------- */
+/* option en dur */
+/* ------------- */
+
+// mettre à true pour rendre la barre plus grosse, mettre à false pour désactiver
+var mal_voyant = false;
+
+
 /* ---------------------------- */
 /* gestion de compatibilité gm4 */
 /* ---------------------------- */
@@ -165,14 +175,6 @@ if(typeof GM_setValue !== "undefined" && typeof GM.setValue === "undefined") {
     });
   };
 }
-
-
-/* ------------- */
-/* option en dur */
-/* ------------- */
-
-// mettre à true pour rendre la barre plus grosse, mettre à false pour désactiver
-var mal_voyant = false;
 
 
 /* ---------- */
@@ -670,6 +672,7 @@ Promise.all([
   var displaytd = document.createElement("td");
   displaytd.style.padding = "2px";
   displaytd.style.width = "20%";
+  displaytd.style.whiteSpace = "nowrap";
   displaytd.style.verticalAlign = "middle";
   displaytd.style.textAlign = "left";
   var displayimg = document.createElement("img");
@@ -682,12 +685,13 @@ Promise.all([
   var pageprevtd = document.createElement("td");
   pageprevtd.style.padding = "2px";
   pageprevtd.style.borderLeft = "0";
-  pageprevtd.style.width = "20%";
+  pageprevtd.style.width = "0%";
+  pageprevtd.style.whiteSpace = "nowrap";
   pageprevtd.style.verticalAlign = "middle";
   pageprevtd.style.textAlign = "center";
   if(pageprev) {
     var pageprevbt = document.createElement("span");
-    pageprevbt.appendChild(document.createTextNode("Page Précédente"));
+    pageprevbt.textContent = "";
     pageprevbt.setAttribute("class", "cHeader");
     pageprevbt.style.cursor = "pointer";
     pageprevbt.addEventListener("click", gopageprev, false);
@@ -702,10 +706,11 @@ Promise.all([
   prevtd.style.padding = "2px";
   prevtd.style.borderLeft = "0";
   prevtd.style.width = "10%";
+  prevtd.style.whiteSpace = "nowrap";
   prevtd.style.verticalAlign = "middle";
   prevtd.style.textAlign = "right";
   var prevbt = document.createElement("span");
-  prevbt.appendChild(document.createTextNode("<<< "));
+  prevbt.textContent = "<<< ";
   prevbt.setAttribute("class", "cHeader");
   prevbt.style.cursor = "pointer";
   prevbt.addEventListener("click", goprev, false);
@@ -747,10 +752,11 @@ Promise.all([
   nexttd.style.padding = "2px";
   nexttd.style.borderLeft = "0";
   nexttd.style.width = "10%";
+  nexttd.style.whiteSpace = "nowrap";
   nexttd.style.verticalAlign = "middle";
   nexttd.style.textAlign = "left";
   var nextbt = document.createElement("span");
-  nextbt.appendChild(document.createTextNode(" >>>"));
+  nextbt.textContent = " >>>";
   nextbt.setAttribute("class", "cHeader");
   nextbt.style.cursor = "pointer";
   nextbt.addEventListener("click", gonext, false);
@@ -759,12 +765,13 @@ Promise.all([
   var pagenexttd = document.createElement("td");
   pagenexttd.style.padding = "2px";
   pagenexttd.style.borderLeft = "0";
-  pagenexttd.style.width = "20%";
+  pagenexttd.style.width = "0%";
+  pagenexttd.style.whiteSpace = "nowrap";
   pagenexttd.style.verticalAlign = "middle";
   pagenexttd.style.textAlign = "center";
   if(pagenext) {
     var pagenextbt = document.createElement("span");
-    pagenextbt.appendChild(document.createTextNode("Page Suivante"));
+    pagenextbt.textContent = "";
     pagenextbt.setAttribute("class", "cHeader");
     pagenextbt.style.cursor = "pointer";
     pagenextbt.addEventListener("click", gopagenext, false);
@@ -779,6 +786,7 @@ Promise.all([
   conftd.style.padding = "2px";
   conftd.style.borderLeft = "0";
   conftd.style.width = "20%";
+  conftd.style.whiteSpace = "nowrap";
   conftd.style.verticalAlign = "middle";
   conftd.style.textAlign = "right";
   var colorimg = document.createElement("img");
@@ -821,6 +829,42 @@ Promise.all([
   function display_navtable(e) {
     navtable.style.left = (tablemain.getBoundingClientRect().x) + "px";
     navtable.style.width = (tablemain.offsetWidth) + "px";
+    let takenspace = mal_voyant ? 515 : 364;
+    let pagespace = Math.floor((parseInt(tablemain.offsetWidth, 10) - takenspace) / 2);
+    switch(true) {
+      case pagespace < 25:
+        if(pageprev) pageprevbt.textContent = "";
+        if(pagenext) pagenextbt.textContent = "";
+        break;
+      case pagespace < 30:
+        if(pageprev) pageprevbt.textContent = "P";
+        if(pagenext) pagenextbt.textContent = "S";
+        break;
+      case pagespace < 50:
+        if(pageprev) pageprevbt.textContent = "P.";
+        if(pagenext) pagenextbt.textContent = "S.";
+        break;
+      case pagespace < 55:
+        if(pageprev) pageprevbt.textContent = "P. P.";
+        if(pagenext) pagenextbt.textContent = "P. S.";
+        break;
+      case pagespace < 75:
+        if(pageprev) pageprevbt.textContent = "Préc.";
+        if(pagenext) pagenextbt.textContent = "Suiv.";
+        break;
+      case pagespace < 100:
+        if(pageprev) pageprevbt.textContent = "Page P.";
+        if(pagenext) pagenextbt.textContent = "Page S.";
+        break;
+      case pagespace < 150:
+        if(pageprev) pageprevbt.textContent = "Page Préc.";
+        if(pagenext) pagenextbt.textContent = "Page Suiv.";
+        break;
+      default:
+        if(pageprev) pageprevbt.textContent = "Page Précédente";
+        if(pagenext) pagenextbt.textContent = "Page Suivante";
+        break;
+    }
   }
 
   // fonction d'initaialisation des boutons de navigation
