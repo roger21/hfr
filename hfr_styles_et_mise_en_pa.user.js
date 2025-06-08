@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.1.1
+// @version       1.2.0
 // @namespace     roger21.free.fr
 // @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4171 $
+// $Rev: 4253 $
 
 // historique :
+// 1.2.0 (08/06/2025) :
+// - ajout d'une option pour supprimer les espaces supplémentaires sous l'arborescence
+// - ajout d'une oprion pour supprimer le lien vers les règles de la catégorie
 // 1.1.1 (08/03/2025) :
 // - prise en compte des nouveaux liens pour les émojis de Copié/Collé
 // 1.1.0 (20/11/2023) :
@@ -124,6 +127,8 @@ var smp_taille_normale_defaut = false;
 var smp_hauteur_normale_defaut = 50;
 var smp_unite_normale_defaut = "vh";
 var smp_images_smileys_defaut = false;
+var smp_supprimer_espaces_defaut = false;
+var smp_supprimer_regles_defaut = false;
 var smp_supprimer_sujets_defaut = false;
 var smp_supprimer_version_defaut = false;
 var smp_supprimer_copyright_defaut = false;
@@ -145,6 +150,8 @@ var smp_taille_normale;
 var smp_hauteur_normale;
 var smp_unite_normale;
 var smp_images_smileys;
+var smp_supprimer_espaces;
+var smp_supprimer_regles;
 var smp_supprimer_sujets;
 var smp_supprimer_version;
 var smp_supprimer_copyright;
@@ -185,9 +192,9 @@ style.textContent =
   "max-height:16px;vertical-align:text-bottom;}" +
   "#gm_hfr_semep_config_window img.gm_hfr_semep_reset{cursor:pointer;margin:0 0 0 3px;}" +
   "#gm_hfr_semep_config_window div.gm_hfr_semep_mise_en_page_div{display:flex;" +
-  "justify-content:space-around;}" +
+  "justify-content:space-between;padding:0 20px;gap:20px;}" +
   "#gm_hfr_semep_config_window div.gm_hfr_semep_mise_en_page_div:not(:last-child)" +
-  "{margin-bottom:8px;}" +
+  "{margin-bottom:4px;}" +
   "#gm_hfr_semep_config_window input[type=\"checkbox\"]{margin:0 0 1px 1px;" +
   "vertical-align:text-bottom;}" +
   "#gm_hfr_semep_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
@@ -417,13 +424,42 @@ mise_em_page_legend.textContent = "Mise en page";
 mise_em_page_fieldset.appendChild(mise_em_page_legend);
 config_window.appendChild(mise_em_page_fieldset);
 
-// supprimer
-var supprimer_p = document.createElement("p");
-supprimer_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
-supprimer_p.textContent = "Supprimer les éléments de bas de page :";
-mise_em_page_fieldset.appendChild(supprimer_p);
-var supprimer_div = document.createElement("div");
-supprimer_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
+// supprimer haut
+var supprimer_haut_p = document.createElement("p");
+supprimer_haut_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
+supprimer_haut_p.textContent = "Supprimer les éléments du haut de la page :";
+mise_em_page_fieldset.appendChild(supprimer_haut_p);
+var supprimer_haut_div = document.createElement("div");
+supprimer_haut_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
+var espaces_div = document.createElement("div");
+var espaces_checkbox = document.createElement("input");
+espaces_checkbox.setAttribute("type", "checkbox");
+espaces_checkbox.setAttribute("id", "gm_hfr_semep_espaces_checkbox");
+espaces_div.appendChild(espaces_checkbox);
+var espaces_label = document.createElement("label");
+espaces_label.textContent = " espaces sous l'arborescence";
+espaces_label.setAttribute("for", "gm_hfr_semep_espaces_checkbox");
+espaces_div.appendChild(espaces_label);
+supprimer_haut_div.appendChild(espaces_div);
+var regles_div = document.createElement("div");
+var regles_checkbox = document.createElement("input");
+regles_checkbox.setAttribute("type", "checkbox");
+regles_checkbox.setAttribute("id", "gm_hfr_semep_regles_checkbox");
+regles_div.appendChild(regles_checkbox);
+var regles_label = document.createElement("label");
+regles_label.textContent = " lien des règles de la catégorie";
+regles_label.setAttribute("for", "gm_hfr_semep_regles_checkbox");
+regles_div.appendChild(regles_label);
+supprimer_haut_div.appendChild(regles_div);
+mise_em_page_fieldset.appendChild(supprimer_haut_div);
+
+// supprimer bas
+var supprimer_bas_p = document.createElement("p");
+supprimer_bas_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
+supprimer_bas_p.textContent = "Supprimer les éléments du bas de la page :";
+mise_em_page_fieldset.appendChild(supprimer_bas_p);
+var supprimer_bas_div = document.createElement("div");
+supprimer_bas_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
 var sujets_div = document.createElement("div");
 var sujets_checkbox = document.createElement("input");
 sujets_checkbox.setAttribute("type", "checkbox");
@@ -433,7 +469,7 @@ var sujets_label = document.createElement("label");
 sujets_label.textContent = " sujets relatifs";
 sujets_label.setAttribute("for", "gm_hfr_semep_sujets_checkbox");
 sujets_div.appendChild(sujets_label);
-supprimer_div.appendChild(sujets_div);
+supprimer_bas_div.appendChild(sujets_div);
 var version_div = document.createElement("div");
 var version_checkbox = document.createElement("input");
 version_checkbox.setAttribute("type", "checkbox");
@@ -443,7 +479,7 @@ var version_label = document.createElement("label");
 version_label.textContent = " bloc de version";
 version_label.setAttribute("for", "gm_hfr_semep_version_checkbox");
 version_div.appendChild(version_label);
-supprimer_div.appendChild(version_div);
+supprimer_bas_div.appendChild(version_div);
 var copyright_div = document.createElement("div");
 var copyright_checkbox = document.createElement("input");
 copyright_checkbox.setAttribute("type", "checkbox");
@@ -453,8 +489,8 @@ var copyright_label = document.createElement("label");
 copyright_label.textContent = " ligne de copyright";
 copyright_label.setAttribute("for", "gm_hfr_semep_copyright_checkbox");
 copyright_div.appendChild(copyright_label);
-supprimer_div.appendChild(copyright_div);
-mise_em_page_fieldset.appendChild(supprimer_div);
+supprimer_bas_div.appendChild(copyright_div);
+mise_em_page_fieldset.appendChild(supprimer_bas_div);
 
 // quotes
 var quotes_p = document.createElement("p");
@@ -553,6 +589,8 @@ function save_config_window() {
     smp_unite_normale = smp_unite_normale_defaut;
   }
   smp_images_smileys = images_smileys_checkbox.checked;
+  smp_supprimer_espaces = espaces_checkbox.checked;
+  smp_supprimer_regles = regles_checkbox.checked;
   smp_supprimer_sujets = sujets_checkbox.checked;
   smp_supprimer_version = version_checkbox.checked;
   smp_supprimer_copyright = copyright_checkbox.checked;
@@ -573,6 +611,8 @@ function save_config_window() {
     GM.setValue("smp_hauteur_normale", smp_hauteur_normale),
     GM.setValue("smp_unite_normale", smp_unite_normale),
     GM.setValue("smp_images_smileys", smp_images_smileys),
+    GM.setValue("smp_supprimer_espaces", smp_supprimer_espaces),
+    GM.setValue("smp_supprimer_regles", smp_supprimer_regles),
     GM.setValue("smp_supprimer_sujets", smp_supprimer_sujets),
     GM.setValue("smp_supprimer_version", smp_supprimer_version),
     GM.setValue("smp_supprimer_copyright", smp_supprimer_copyright),
@@ -624,6 +664,8 @@ function show_config_window() {
   taille_normale_checkbox.checked = smp_taille_normale;
   hauteur_normale_input.value = smp_hauteur_normale + (smp_unite_normale === "px" ? "px" : "%");
   images_smileys_checkbox.checked = smp_images_smileys;
+  espaces_checkbox.checked = smp_supprimer_espaces;
+  regles_checkbox.checked = smp_supprimer_regles;
   sujets_checkbox.checked = smp_supprimer_sujets;
   version_checkbox.checked = smp_supprimer_version;
   copyright_checkbox.checked = smp_supprimer_copyright;
@@ -685,6 +727,8 @@ Promise.all([
   GM.getValue("smp_hauteur_normale", smp_hauteur_normale_defaut),
   GM.getValue("smp_unite_normale", smp_unite_normale_defaut),
   GM.getValue("smp_images_smileys", smp_images_smileys_defaut),
+  GM.getValue("smp_supprimer_espaces", smp_supprimer_espaces_defaut),
+  GM.getValue("smp_supprimer_regles", smp_supprimer_regles_defaut),
   GM.getValue("smp_supprimer_sujets", smp_supprimer_sujets_defaut),
   GM.getValue("smp_supprimer_version", smp_supprimer_version_defaut),
   GM.getValue("smp_supprimer_copyright", smp_supprimer_copyright_defaut),
@@ -702,6 +746,8 @@ Promise.all([
   smp_hauteur_normale_value,
   smp_unite_normale_value,
   smp_images_smileys_value,
+  smp_supprimer_espaces_value,
+  smp_supprimer_regles_value,
   smp_supprimer_sujets_value,
   smp_supprimer_version_value,
   smp_supprimer_copyright_value,
@@ -720,6 +766,8 @@ Promise.all([
   smp_hauteur_normale = smp_hauteur_normale_value;
   smp_unite_normale = smp_unite_normale_value;
   smp_images_smileys = smp_images_smileys_value;
+  smp_supprimer_espaces = smp_supprimer_espaces_value;
+  smp_supprimer_regles = smp_supprimer_regles_value;
   smp_supprimer_sujets = smp_supprimer_sujets_value;
   smp_supprimer_version = smp_supprimer_version_value;
   smp_supprimer_copyright = smp_supprimer_copyright_value;
@@ -785,6 +833,31 @@ Promise.all([
       "padding:0 !important;vertical-align:bottom !important;}span.gm_hfr_tdi_r21_img_span" +
       "{vertical-align:bottom !important;}";
     document.getElementsByTagName("head")[0].appendChild(style_images_smileys);
+  }
+  // suppression des espaces supplémentaires sous l'arborescence
+  if(smp_supprimer_espaces) {
+    // suppression du <br> après la div sous l'arnorescence
+    let l_espaces_br = document.querySelector("div#mesdiscussions.mesdiscussions > div.arbo ~ br + div + br");
+    if(l_espaces_br) {
+      l_espaces_br.parentNode.removeChild(l_espaces_br);
+    }
+    // suppression des <br> dans le bloc des boutons de la catégorie
+    let l_images_brs = document.querySelectorAll("div#mesdiscussions.mesdiscussions > div.rightbutton > br");
+    for(let l_images_br of l_images_brs) {
+      l_images_br.parentNode.removeChild(l_images_br);
+    }
+    // compactage des boutons de la catégorie
+    let l_images_imgs = document.querySelectorAll("div#mesdiscussions.mesdiscussions > div.rightbutton > a > img");
+    for(let l_images_img of l_images_imgs) {
+      l_images_img.style.verticalAlign = "text-bottom";
+    }
+  }
+  // suppression du lien vers les règles de la catégorie
+  if(smp_supprimer_regles) {
+    let l_regles = document.querySelectorAll("table.none td > div.menu");
+    for(let l_regle of l_regles) {
+      l_regle.parentNode.removeChild(l_regle);
+    }
   }
   // suppression des sujets relatifs
   if(smp_supprimer_sujets) {
