@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Image Preview mod_r21
-// @version       3.0.4
+// @version       3.0.5
 // @namespace     roger21.free.fr
 // @description   Permet d'afficher l'aperçu d'une image en passant la souris sur son lien.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -43,9 +43,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4264 $
+// $Rev: 4267 $
 
 // historique :
+// 3.0.5 (16/06/2025) :
+// - ajout d'un z-index sur la preview (problème avec un autre script)
 // 3.0.4 (16/06/2025) :
 // - ajout du avif dans la detection des types image
 // 3.0.3 (25/04/2023) :
@@ -254,7 +256,7 @@ style.textContent =
   // style pour la preview
   "div#gm_hfr_imgprev_preview_id{position:fixed;top:10px;right:10px;background-color:#dedfdf;width:185px;" +
   "padding:7.5px;border:1px solid #000000;font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:16px;" +
-  "font-weight:bold;color:#000000;}" +
+  "font-weight:bold;color:#000000;z-index:500;}" +
   "div#gm_hfr_imgprev_preview_id > p{margin:20px 0 20px 50px;}" +
   "div#gm_hfr_imgprev_preview_id > img{display:block;}" +
   // styles pour la fenêtre d'aide
