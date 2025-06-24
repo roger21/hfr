@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Liens explicites
-// @version 0.0.3.3
+// @version 0.0.3.4
 // @namespace http://blabla.info
 // @description Insère un texte explicite dans les liens à la place de celui créé automatiquement par le forum
 // @include https://forum.hardware.fr/*
@@ -24,6 +24,8 @@
 
 
 // historique modifs r21 :
+// 0.0.3.4 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.0.3.3 (02/10/2019) :
 // - correction pour fonctionner sur les posts de modération (en rose)
 // 0.0.3.2 (09/02/2018) :
@@ -920,4 +922,4 @@ var toyoAjaxLib = (function() {
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Plugin epgr
-// @version 0.1.1.1
+// @version 0.1.1.2
 // @namespace http://toyonos.info
 // @description Plugin epgr pour HFR, afin d'obtenir la date de diffusion d'épisodes d'une série
 // @include https://forum.hardware.fr/message.php*
@@ -21,6 +21,8 @@
 
 
 // historique modifs r21 :
+// 0.1.1.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.1.1.1 (03/12/2017) :
 // - passage au https
 
@@ -152,4 +154,4 @@ document.getElementsByTagName("head")[0].appendChild(newScript);
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

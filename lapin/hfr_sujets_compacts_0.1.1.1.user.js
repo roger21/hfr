@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Sujets compacts
-// @version 0.1.1.1
+// @version 0.1.1.2
 // @namespace http://toyonos.info
 // @description Elimine les catégories sans nouveaux messages dans la page 'Vos sujets'
 // @include https://forum.hardware.fr/forum1f.php*
@@ -21,6 +21,8 @@
 
 
 // historique modifs r21 :
+// 0.1.1.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.1.1.1 (03/12/2017) :
 // - passage au https
 
@@ -161,4 +163,4 @@ cats.forEach(function(cat)
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

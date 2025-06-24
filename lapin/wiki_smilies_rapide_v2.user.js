@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Wiki smilies & raccourcis dans la reponse/edition rapide
-// @version 0.6.4b.4
+// @version 0.6.4b.5
 // @namespace http://toyonos.info
 // @description Rajoute le wiki smilies et des raccourcis clavier pour la mise en forme, dans la réponse rapide et dans l'édition rapide du forum hardware.fr
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.6.4b.5 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.6.4b.4 (12/04/2023) :
 // - correction du raccourcis seagal (mise à jour incomplète)
 // 0.6.4b.3 (12/04/2023) :
@@ -1594,4 +1596,4 @@ var toyoAjaxLib = (function()
     };
     checkMirror(0);
   },
-}).check4Update();
+})//.check4Update();

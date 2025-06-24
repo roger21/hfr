@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Spoiler Reductor
-// @version 1.0.0.1
+// @version 1.0.0.2
 // @namespace https://forum.hardware.fr
 // @description Contracte les balises spoiler du forum hardware.fr en une ligne
 // @include https://forum.hardware.fr/*
@@ -21,6 +21,8 @@
 
 
 // historique modifs r21 :
+// 1.0.0.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 1.0.0.1 (03/12/2017) :
 // - passage au https
 
@@ -176,4 +178,4 @@ for (var i=0; i < allSpoilersButtons.snapshotLength; i++) {
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Private Chat
-// @version 0.1.7.3
+// @version 0.1.7.4
 // @namespace http://toyonos.info
 // @description Permet de communiquer par chat avec tout membre du forum, en sa basant sur le système des mps
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.1.7.4 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.1.7.3 (10/12/2017) :
 // - commentage des alert XML
 // 0.1.7.2 (09/12/2017) :
@@ -874,4 +876,4 @@ hfrPrivateChat.launch();
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

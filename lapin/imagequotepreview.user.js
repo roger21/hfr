@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Image quote preview
-// @version 0.1.0.1
+// @version 0.1.0.2
 // @namespace http://untitled-document.info/
 // @description Adds a preview on image quoted in mes discussions
 // @include https://forum.hardware.fr/*
@@ -21,6 +21,8 @@
 
 
 // historique modifs r21 :
+// 0.1.0.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.1.0.1 (03/12/2017) :
 // - passage au https
 
@@ -229,4 +231,4 @@ links.filter(testLinkToImage).forEach(function(link) {
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

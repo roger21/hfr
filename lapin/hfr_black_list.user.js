@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Black List
-// @version 0.7.2.1
+// @version 0.7.2.2
 // @namespace http://nykal.fr
 // @description Mask messages from black listed users on forum.hardware.fr
 // @include https://forum.hardware.fr/*
@@ -24,6 +24,8 @@
 
 
 // historique modifs r21 :
+// 0.7.2.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.7.2.1 (03/12/2017) :
 // - passage au https
 
@@ -1057,4 +1059,4 @@ function injectCSS(cssdata){
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

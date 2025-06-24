@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Edition rapide du Wiki smilies
-// @version 0.1.4.3
+// @version 0.1.4.4
 // @namespace http://toyonos.info
 // @description Permet de faire rapidement des modifications dans le wiki smilies via un double clic sur un smiley perso donné
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.1.4.4 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.1.4.3 (02/10/2019) :
 // - correction pour fonctionner sur les posts de modération (en rose)
 // 0.1.4.2 (10/12/2017) :
@@ -394,4 +396,4 @@ var toyoAjaxLib = (function()
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

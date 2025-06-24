@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Ouverture de drapeaux en masse
-// @version 0.2.5.2
+// @version 0.2.5.3
 // @namespace http://toyonos.info
 // @description Permet d'ouvrir ses drapeaux dans de nouveaux onglets pour une catégorie donnée
 // @include https://forum.hardware.fr/forum1f.php*
@@ -21,6 +21,8 @@
 
 
 // historique modifs r21 :
+// 0.2.5.3 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.2.5.2 (10/12/2017) :
 // - commentage des alert XML
 // 0.2.5.1 (03/12/2017) :
@@ -394,4 +396,4 @@ var toyoAjaxLib = (function()
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Image Anti HS
-// @version 0.2.3.1
+// @version 0.2.3.2
 // @namespace http://mycrub.info
 // @description Ajoute une icône anti-hs en haut d'une page d'un topic pour filtrer les messages sans intérêt
 // @include https://forum.hardware.fr/forum2.php*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.2.3.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.2.3.1 (03/12/2017) :
 // - passage au https
 
@@ -894,4 +896,4 @@ processPage();
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

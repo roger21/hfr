@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Suppression rapide de mps
-// @version 0.2.3.2
+// @version 0.2.3.3
 // @namespace http://toyonos.info
 // @description Permet de supprimer un mp donné via un bouton dans la liste des mps et dans le mp lui-même
 // @include  https://forum.hardware.fr/forum*cat=prive*
@@ -21,6 +21,8 @@
 
 
 // historique modifs r21 :
+// 0.2.3.3 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.2.3.2 (10/12/2017) :
 // - commentage des alert XML
 // 0.2.3.1 (03/12/2017) :
@@ -331,4 +333,4 @@ var toyoAjaxLib = (function()
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

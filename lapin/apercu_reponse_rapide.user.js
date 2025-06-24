@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Apercu des posts dans la reponse/edition rapide
-// @version 0.2.5.1
+// @version 0.2.5.2
 // @namespace http://toyonos.info
 // @description Rajoute l'aperçu du message dans la réponse rapide et dans l'édition rapide du forum hardware.fr
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.2.5.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.2.5.1 (03/12/2017) :
 // - passage au https
 
@@ -543,4 +545,4 @@ getElementByXpath('.//table//tr[starts-with(@class, "message")]//div[@class="lef
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Informations rapides sur le profil
-// @version 0.2.5c.2
+// @version 0.2.5c.3
 // @namespace http://toyonos.info
 // @description Rajoute un accès rapide à certaines infos du profil d'un membre au passage de la souris sur le pseudo
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.2.5c.3 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.2.5c.2 (10/12/2017) :
 // - commentage des alert XML
 // 0.2.5c.1 (03/12/2017) :
@@ -401,4 +403,4 @@ var toyoAjaxLib = (function()
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

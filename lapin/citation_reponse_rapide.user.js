@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Citation dans la reponse rapide
-// @version 0.2.1.2
+// @version 0.2.1.3
 // @namespace http://toyonos.info
 // @description Rajoute le systeme de citation dans la zone de réponse rapide via un double clic sur les icônes correspondantes
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.2.1.3 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.2.1.2 (10/12/2017) :
 // - commentage des alert XML
 // 0.2.1.1 (03/12/2017) :
@@ -566,4 +568,4 @@ var html_entity_decode = function (texte)
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

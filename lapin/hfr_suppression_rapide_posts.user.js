@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Suppression rapide de posts
-// @version 0.2.4.3
+// @version 0.2.4.4
 // @namespace http://toyonos.info
 // @description Permet de supprimer un de ses posts via un bouton sans passer par la page de réponse
 // @include https://forum.hardware.fr/*
@@ -25,6 +25,8 @@
 
 
 // historique modifs r21 :
+// 0.2.4.4 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.2.4.3 (13/03/2022) :
 // - gestion des topics sans sous-cat en url vberbeuse (signalé par cacahuete)
 // - correction de la maj des couleurs des posts
@@ -270,4 +272,4 @@ var toyoAjaxLib = (function() {
     };
     checkMirror(0);
   },
-}).check4Update();
+})//.check4Update();

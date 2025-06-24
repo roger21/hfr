@@ -433,4 +433,4 @@ rssSignature.launch();
 		};
 		checkMirror(0);
 	},
-}) //.check4Update();
+})//.check4Update();

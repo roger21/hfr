@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Multi Switcher
-// @version 0.1.2.2
+// @version 0.1.2.3
 // @namespace http://toyonos.info
 // @description Permet de poster rapidement avec un multi sans avoir besoin de se déconnecter du forum
 // @include https://forum.hardware.fr/*
@@ -23,6 +23,8 @@
 
 
 // historique modifs r21 :
+// 0.1.2.3 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.1.2.2 (10/12/2017) :
 // - commentage des alert XML
 // 0.1.2.1 (03/12/2017) :
@@ -1164,4 +1166,4 @@ cmScript.createConfigMenu();
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Réparateur d'ancres
-// @version 0.1.0.1
+// @version 0.1.0.2
 // @namespace https://forum.hardware.fr
 // @description Répare les ancres en cas de suppression du dernier mesage d'un sujet
 // @include https://forum.hardware.fr/hfr/*#t*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 0.1.0.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 0.1.0.1 (03/12/2017) :
 // - passage au https
 
@@ -178,4 +180,4 @@ location.hash = finalAnchor;
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

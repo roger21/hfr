@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Vos smileys favoris
-// @version 1.4.0.1
+// @version 1.4.0.2
 // @namespace https://forum.hardware.fr
 // @description Permet d'afficher une liste illimitée de smileys favoris personnels, ainsi que des statistiques sur leur utilisation (historique et les plus utilisés)
 // @include https://forum.hardware.fr/*
@@ -22,6 +22,8 @@
 
 
 // historique modifs r21 :
+// 1.4.0.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 1.4.0.1 (03/12/2017) :
 // - passage au https
 
@@ -3215,4 +3217,4 @@ Main(); // Exécution du script GreaseMonkey
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();

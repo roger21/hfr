@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name [HFR] Nombre de pages en retard
-// @version 1.3.0.1
+// @version 1.3.0.2
 // @namespace https://forum.hardware.fr
 // @description Affiche le nombre de pages en retard dans la liste des sujets
 // @include https://forum.hardware.fr/forum1f.php*
@@ -24,6 +24,8 @@
 
 
 // historique modifs r21 :
+// 1.3.0.2 (24/06/2025) :
+// - désactivation du module d'auto-update (service mort)
 // 1.3.0.1 (03/12/2017) :
 // - passage au https
 
@@ -301,4 +303,4 @@ for each(var item in res) {
 		};
 		checkMirror(0);
 	},
-}).check4Update();
+})//.check4Update();
