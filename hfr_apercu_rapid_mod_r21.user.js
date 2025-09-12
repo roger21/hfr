@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Aperçu rapide mod_r21
-// @version       2.2.4
+// @version       2.2.5
 // @namespace     roger21.free.fr
 // @description   Rajoute l'aperçu du message en cours d'édition dans la réponse rapide et dans l'édition rapide.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -22,7 +22,7 @@
 
 /*
 
-Copyright © 2012, 2014-2020 roger21@free.fr
+Copyright © 2012, 2014-2020, 2025 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 4309 $
 
 // historique :
+// 2.2.5 (12/09/2025) :
+// - limitation de la taille maximale de l'aperçu à 40% au lieu de 300px
 // 2.2.4 (13/02/2020) :
 // - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
 // 2.2.3 (02/10/2019) :
@@ -427,7 +429,7 @@ var generatePreview = function(textAreaId) {
     container.style.backgroundColor = "#F7F7F7";
     container.style.overflow = "auto";
     container.style.padding = "5px";
-    container.style.maxHeight = "300px";
+    container.style.maxHeight = "40vh";
     container.style.border = "1px solid black";
     container.style.fontSize = "13px";
     container.style.top = "20px";
