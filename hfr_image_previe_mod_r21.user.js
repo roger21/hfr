@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Image Preview mod_r21
-// @version       3.0.6
+// @version       3.0.7
 // @namespace     roger21.free.fr
 // @description   Permet d'afficher l'aperçu d'une image en passant la souris sur son lien.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -28,7 +28,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2021, 2023, 2025 roger21@free.fr
+Copyright © 2011-2012, 2014-2021, 2023, 2025, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -43,9 +43,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4356 $
+// $Rev: 4508 $
 
 // historique :
+// 3.0.7 (10/01/2026) :
+// - mise à jour de la gestion des svg sans taille définie pour firefox
 // 3.0.6 (04/11/2025) :
 // - ajout de la gestion du mime type et de l'extension apng pour les hébergeurs zélés
 // 3.0.5 (16/06/2025) :
@@ -786,8 +788,12 @@ function image_preview(p_link) {
                     if(this.dataset.lastcall !== last_call) {
                       return;
                     }
+
+                    //console.log(p_link.href + " [" + script_name + " DEBUG ] load",
+                    //  l_svg, this.naturalWidth, this.naturalHeight);
+
                     // gestion des images svg sans taille
-                    if(l_svg && (this.naturalWidth === 0 || /* firefox */
+                    if(l_svg && (this.naturalWidth === 0 || this.naturalWidth === 300 || /* firefox */
                         this.naturalHeight === 150 || this.naturalHeight === 300 /* chrome */ )) {
 
                       //console.log(p_link.href + " [" + script_name + " DEBUG ] SVG NO WIDTH " +
