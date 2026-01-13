@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Permalien
-// @version       2.1.6
+// @version       2.1.7
 // @namespace     roger21.free.fr
 // @description   Ajoute un lien permanent pour les messages (dans la barre du message à droite).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -17,7 +17,7 @@
 
 /*
 
-Copyright © 2017-2021 roger21@free.fr
+Copyright © 2017-2021, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -32,9 +32,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2847 $
+// $Rev: 4519 $
 
 // historique :
+// 2.1.7 (13/01/2026) :
+// - réorganisation de la liste des cats
 // 2.1.6 (04/03/2021) :
 // - ajout du support pour les résultats des recherches intra-topic
 // 2.1.5 (13/02/2020) :
@@ -74,7 +76,6 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - création
 
 var id2cat = {
-  31: "service-client-shophfr",
   1: "Hardware",
   16: "HardwarePeripheriques",
   15: "OrdinateursPortables",
@@ -93,8 +94,9 @@ var id2cat = {
   12: "Graphisme",
   6: "AchatsVentes",
   8: "EmploiEtudes",
+  13: "Discussions",
+  31: "service-client-shophfr",
   9: "Setietprojetsdistribues",
-  13: "Discussions"
 };
 
 function indexObj(obj, str) {

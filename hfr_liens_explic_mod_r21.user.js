@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Liens explicites mod_r21
-// @version       2.6.6
+// @version       2.6.7
 // @namespace     roger21.free.fr
 // @description   Remplace le texte des liens internes du forum dans les posts par une description précise du lien.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -21,7 +21,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2022 roger21@free.fr
+Copyright © 2011-2012, 2014-2022, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -36,9 +36,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3395 $
+// $Rev: 4518 $
 
 // historique :
+// 2.6.7 (13/01/2026) :
+// - réorganisation de la liste des cats et des sous-cats
 // 2.6.6 (03/01/2022) :
 // - mise à jour des cats / sous-cats (ajout de la sous-cat windows 11)
 // 2.6.5 (13/02/2020) :
@@ -148,7 +150,6 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 /* ====================== Listes de cats et souscats ======================== */
 
 var id2cat = {
-  31: "service-client-shophfr",
   1: "Hardware",
   16: "HardwarePeripheriques",
   15: "OrdinateursPortables",
@@ -167,12 +168,12 @@ var id2cat = {
   12: "Graphisme",
   6: "AchatsVentes",
   8: "EmploiEtudes",
-  9: "Setietprojetsdistribues",
   13: "Discussions",
+  31: "service-client-shophfr",
+  9: "Setietprojetsdistribues",
 };
 
 var id2nomcat = {
-  31: "Service client shop.hardware.fr",
   1: "Hardware",
   16: "Hardware - Périphériques",
   15: "Ordinateurs portables",
@@ -191,8 +192,9 @@ var id2nomcat = {
   12: "Graphisme",
   6: "Achats & Ventes",
   8: "Emploi & Etudes",
-  9: "Seti et projets distribués",
   13: "Discussions",
+  31: "Service client shop.hardware.fr",
+  9: "Seti et projets distribués",
 };
 
 var id2subcat = {
@@ -386,11 +388,6 @@ var id2subcat = {
   234: "Annonces-emplois",
   464: "Feedback-entreprises",
   465: "Aide-devoirs",
-  // Seti et projets distribués
-  477: "BOINC",
-  184: "SETI",
-  185: "projets-distribues",
-  401: "Divers-3",
   // Discussions
   422: "Actualite",
   482: "politique",
@@ -407,6 +404,11 @@ var id2subcat = {
   434: "Loisirs",
   557: "voyages",
   432: "Viepratique",
+  // Seti et projets distribués
+  477: "BOINC",
+  184: "SETI",
+  185: "projets-distribues",
+  401: "Divers-3",
 };
 
 var id2nomsubcat = {
@@ -600,11 +602,6 @@ var id2nomsubcat = {
   234: "Annonces d'emplois",
   464: "Feedback sur les entreprises",
   465: "Aide aux devoirs",
-  // Seti et projets distribués
-  477: "BOINC",
-  184: "SETI",
-  185: "Autres projets distribués",
-  401: "Divers",
   // Discussions
   422: "Actualité",
   482: "Politique",
@@ -621,6 +618,11 @@ var id2nomsubcat = {
   434: "Loisirs",
   557: "Voyages",
   432: "Vie pratique",
+  // Seti et projets distribués
+  477: "BOINC",
+  184: "SETI",
+  185: "Autres projets distribués",
+  401: "Divers",
 };
 
 /* ================================= Main ================================== */

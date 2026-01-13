@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Recherche Google et DuckDuckGo
-// @version       2.1.1
+// @version       2.1.2
 // @namespace     roger21.free.fr
 // @description   Remplace le bouton de recherche du forum (en haut à droite) par un champ de recherche par Google, DuckDuckGo ou les deux.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -24,7 +24,7 @@
 
 /*
 
-Copyright © 2012-2022 roger21@free.fr
+Copyright © 2012-2022, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -39,9 +39,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3673 $
+// $Rev: 4517 $
 
 // historique :
+// 2.1.2 (13/01/2026) :
+// - réorganisation de la liste des cats et des sous-cats
 // 2.1.1 (04/12/2022) :
 // - détection du topic sur la page de réponse / édition normale
 // 2.1.0 (01/09/2022) :
@@ -207,7 +209,9 @@ let do_debug = false;
 let cats = {
   cat0: {
     key: "service-client-shophfr",
-    name: "Service client shop.hardware.fr"
+    name: "Service client shop.hardware.fr",
+    subcats: {
+    },
   },
   cat1: {
     key: "Hardware",
@@ -215,65 +219,65 @@ let cats = {
     subcats: {
       subcat0: {
         key: "carte-mere",
-        name: "Carte mère"
+        name: "Carte mère",
       },
       subcat1: {
         key: "Memoire",
-        name: "Mémoire"
+        name: "Mémoire",
       },
       subcat2: {
         key: "Processeur",
-        name: "Processeur"
+        name: "Processeur",
       },
       subcat3: {
         key: "2D-3D",
-        name: "Carte graphique"
+        name: "Carte graphique",
       },
       subcat4: {
         key: "Boitier",
-        name: "Boitier"
+        name: "Boitier",
       },
       subcat5: {
         key: "Alimentation",
-        name: "Alimentation"
+        name: "Alimentation",
       },
       subcat6: {
         key: "HDD",
-        name: "Disque dur"
+        name: "Disque dur",
       },
       subcat7: {
         key: "SSD",
-        name: "Disque SSD"
+        name: "Disque SSD",
       },
       subcat8: {
         key: "lecteur-graveur",
-        name: "CD/DVD/BD"
+        name: "CD/DVD/BD",
       },
       subcat9: {
         key: "minipc",
-        name: "Mini PC"
+        name: "Mini PC",
       },
       subcat10: {
         key: "Benchs",
-        name: "Bench"
+        name: "Bench",
       },
       subcat11: {
         key: "Materiels-problemes-divers",
-        name: "Matériels & problèmes divers"
+        name: "Matériels & problèmes divers",
       },
       subcat12: {
         key: "conseilsachats",
-        name: "Conseil d'achat"
+        name: "Conseil d'achat",
       },
       subcat13: {
         key: "hfr",
-        name: "HFR"
+        name: "HFR",
       },
       subcat14: {
         key: "actualites",
-        name: "Actus"
-      }
-    }
+        name: "Actus",
+      },
+    },
   },
   cat2: {
     key: "HardwarePeripheriques",
@@ -281,37 +285,37 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Ecran",
-        name: "Ecran"
+        name: "Ecran",
       },
       subcat1: {
         key: "Imprimante",
-        name: "Imprimante"
+        name: "Imprimante",
       },
       subcat2: {
         key: "Scanner",
-        name: "Scanner"
+        name: "Scanner",
       },
       subcat3: {
         key: "webcam-camera-ip",
-        name: "Webcam / Caméra IP"
+        name: "Webcam / Caméra IP",
       },
       subcat4: {
         key: "Clavier-Souris",
-        name: "Clavier / Souris"
+        name: "Clavier / Souris",
       },
       subcat5: {
         key: "Joys",
-        name: "Joys"
+        name: "Joys",
       },
       subcat6: {
         key: "Onduleur",
-        name: "Onduleur"
+        name: "Onduleur",
       },
       subcat7: {
         key: "Divers",
-        name: "Divers"
-      }
-    }
+        name: "Divers",
+      },
+    },
   },
   cat3: {
     key: "OrdinateursPortables",
@@ -319,37 +323,37 @@ let cats = {
     subcats: {
       subcat0: {
         key: "portable",
-        name: "Portable"
+        name: "Portable",
       },
       subcat1: {
         key: "Ultraportable",
-        name: "Ultraportable"
+        name: "Ultraportable",
       },
       subcat2: {
         key: "Transportable",
-        name: "Transportable"
+        name: "Transportable",
       },
       subcat3: {
         key: "Netbook",
-        name: "Netbook"
+        name: "Netbook",
       },
       subcat4: {
         key: "Composant",
-        name: "Composant"
+        name: "Composant",
       },
       subcat5: {
         key: "Accessoire",
-        name: "Accessoire"
+        name: "Accessoire",
       },
       subcat6: {
         key: "Conseils-d-achat",
-        name: "Conseils d'achat"
+        name: "Conseils d'achat",
       },
       subcat7: {
         key: "SAV",
-        name: "SAV"
-      }
-    }
+        name: "SAV",
+      },
+    },
   },
   cat4: {
     key: "OverclockingCoolingModding",
@@ -357,33 +361,33 @@ let cats = {
     subcats: {
       subcat0: {
         key: "CPU",
-        name: "CPU"
+        name: "CPU",
       },
       subcat1: {
         key: "GPU",
-        name: "GPU"
+        name: "GPU",
       },
       subcat2: {
         key: "Air-Cooling",
-        name: "Air Cooling"
+        name: "Air Cooling",
       },
       subcat3: {
         key: "Water-Xtreme-Cooling",
-        name: "Water & Xtreme Cooling"
+        name: "Water & Xtreme Cooling",
       },
       subcat4: {
         key: "Silence",
-        name: "Silence"
+        name: "Silence",
       },
       subcat5: {
         key: "Modding",
-        name: "Modding"
+        name: "Modding",
       },
       subcat6: {
         key: "Divers-8",
-        name: "Divers"
-      }
-    }
+        name: "Divers",
+      },
+    },
   },
   cat5: {
     key: "electroniquedomotiquediy",
@@ -391,33 +395,33 @@ let cats = {
     subcats: {
       subcat0: {
         key: "conception_depannage_mods",
-        name: "Conception, dépannage, mods"
+        name: "Conception, dépannage, mods",
       },
       subcat1: {
         key: "nano-ordinateur_microcontroleurs_fpga",
-        name: "Nano-ordinateur, microcontrôleurs, FPGA"
+        name: "Nano-ordinateur, microcontrôleurs, FPGA",
       },
       subcat2: {
         key: "domotique_maisonconnectee",
-        name: "Domotique et maison connectée"
+        name: "Domotique et maison connectée",
       },
       subcat3: {
         key: "mecanique_prototypage",
-        name: "Mécanique, prototypage"
+        name: "Mécanique, prototypage",
       },
       subcat4: {
         key: "imprimantes3D",
-        name: "Imprimantes 3D"
+        name: "Imprimantes 3D",
       },
       subcat5: {
         key: "robotique_modelisme",
-        name: "Robotique et modélisme"
+        name: "Robotique et modélisme",
       },
       subcat6: {
         key: "divers",
-        name: "Divers"
-      }
-    }
+        name: "Divers",
+      },
+    },
   },
   cat6: {
     key: "gsmgpspda",
@@ -425,45 +429,45 @@ let cats = {
     subcats: {
       subcat0: {
         key: "autres-os-mobiles",
-        name: "Autres OS Mobiles"
+        name: "Autres OS Mobiles",
       },
       subcat1: {
         key: "operateur",
-        name: "Opérateur"
+        name: "Opérateur",
       },
       subcat2: {
         key: "telephone-android",
-        name: "Téléphone Android"
+        name: "Téléphone Android",
       },
       subcat3: {
         key: "telephone-windows-phone",
-        name: "Téléphone Windows Phone"
+        name: "Téléphone Windows Phone",
       },
       subcat4: {
         key: "telephone",
-        name: "Téléphone"
+        name: "Téléphone",
       },
       subcat5: {
         key: "tablette",
-        name: "Tablette"
+        name: "Tablette",
       },
       subcat6: {
         key: "android",
-        name: "Android"
+        name: "Android",
       },
       subcat7: {
         key: "windows-phone",
-        name: "Windows Phone"
+        name: "Windows Phone",
       },
       subcat8: {
         key: "GPS-PDA",
-        name: "GPS / PDA"
+        name: "GPS / PDA",
       },
       subcat9: {
         key: "accessoires",
-        name: "Accessoires"
-      }
-    }
+        name: "Accessoires",
+      },
+    },
   },
   cat7: {
     key: "apple",
@@ -471,33 +475,33 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Mac-OS-X",
-        name: "Mac OS X"
+        name: "Mac OS X",
       },
       subcat1: {
         key: "Applications",
-        name: "Applications"
+        name: "Applications",
       },
       subcat2: {
         key: "Mac",
-        name: "Mac"
+        name: "Mac",
       },
       subcat3: {
         key: "Macbook",
-        name: "Macbook"
+        name: "Macbook",
       },
       subcat4: {
         key: "Iphone-amp-Ipod",
-        name: "Iphone & Ipod"
+        name: "Iphone & Ipod",
       },
       subcat5: {
         key: "Ipad",
-        name: "Ipad"
+        name: "Ipad",
       },
       subcat6: {
         key: "Peripheriques",
-        name: "Périphériques"
-      }
-    }
+        name: "Périphériques",
+      },
+    },
   },
   cat8: {
     key: "VideoSon",
@@ -505,21 +509,21 @@ let cats = {
     subcats: {
       subcat0: {
         key: "HiFi-HomeCinema",
-        name: "HiFi & Home Cinema"
+        name: "HiFi & Home Cinema",
       },
       subcat1: {
         key: "Materiel",
-        name: "Matériel"
+        name: "Matériel",
       },
       subcat2: {
         key: "Traitement-Audio",
-        name: "Traitement Audio"
+        name: "Traitement Audio",
       },
       subcat3: {
         key: "Traitement-Video",
-        name: "Traitement Vidéo"
-      }
-    }
+        name: "Traitement Vidéo",
+      },
+    },
   },
   cat9: {
     key: "Photonumerique",
@@ -527,45 +531,45 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Appareil",
-        name: "Appareil"
+        name: "Appareil",
       },
       subcat1: {
         key: "Objectif",
-        name: "Objectif"
+        name: "Objectif",
       },
       subcat2: {
         key: "Accessoire",
-        name: "Accessoire"
+        name: "Accessoire",
       },
       subcat3: {
         key: "Photos",
-        name: "Photos"
+        name: "Photos",
       },
       subcat4: {
         key: "Technique",
-        name: "Technique"
+        name: "Technique",
       },
       subcat5: {
         key: "Logiciels-Retouche",
-        name: "Logiciels & Retouche"
+        name: "Logiciels & Retouche",
       },
       subcat6: {
         key: "Argentique",
-        name: "Argentique"
+        name: "Argentique",
       },
       subcat7: {
         key: "Concours",
-        name: "Concours"
+        name: "Concours",
       },
       subcat8: {
         key: "Galerie-Perso",
-        name: "Galerie Perso"
+        name: "Galerie Perso",
       },
       subcat9: {
         key: "Divers-7",
-        name: "Divers"
-      }
-    }
+        name: "Divers",
+      },
+    },
   },
   cat10: {
     key: "JeuxVideo",
@@ -573,33 +577,33 @@ let cats = {
     subcats: {
       subcat0: {
         key: "PC",
-        name: "PC"
+        name: "PC",
       },
       subcat1: {
         key: "Consoles",
-        name: "Consoles"
+        name: "Consoles",
       },
       subcat2: {
         key: "Achat-Ventes",
-        name: "Achat & Ventes"
+        name: "Achat & Ventes",
       },
       subcat3: {
         key: "Teams-LAN",
-        name: "Teams & LAN"
+        name: "Teams & LAN",
       },
       subcat4: {
         key: "Tips-Depannage",
-        name: "Tips & Dépannage"
+        name: "Tips & Dépannage",
       },
       subcat5: {
         key: "VR-Realite-Virtuelle",
-        name: "Réalité virtuelle"
+        name: "Réalité virtuelle",
       },
       subcat6: {
         key: "mobiles",
-        name: "Mobiles"
-      }
-    }
+        name: "Mobiles",
+      },
+    },
   },
   cat11: {
     key: "WindowsSoftware",
@@ -607,53 +611,53 @@ let cats = {
     subcats: {
       subcat0: {
         key: "windows-11",
-        name: "Win 11"
+        name: "Win 11",
       },
       subcat1: {
         key: "windows-10",
-        name: "Win 10"
+        name: "Win 10",
       },
       subcat2: {
         key: "windows-8",
-        name: "Win 8"
+        name: "Win 8",
       },
       subcat3: {
         key: "Windows-7-seven",
-        name: "Win 7"
+        name: "Win 7",
       },
       subcat4: {
         key: "Windows-vista",
-        name: "Win Vista"
+        name: "Win Vista",
       },
       subcat5: {
         key: "Windows-nt-2k-xp",
-        name: "Win NT/2K/XP"
+        name: "Win NT/2K/XP",
       },
       subcat6: {
         key: "Win-9x-me",
-        name: "Win 9x/Me"
+        name: "Win 9x/Me",
       },
       subcat7: {
         key: "Securite",
-        name: "Sécurité"
+        name: "Sécurité",
       },
       subcat8: {
         key: "Virus-Spywares",
-        name: "Virus/Spywares"
+        name: "Virus/Spywares",
       },
       subcat9: {
         key: "Stockage-Sauvegarde",
-        name: "Stockage/Sauvegarde"
+        name: "Stockage/Sauvegarde",
       },
       subcat10: {
         key: "Logiciels",
-        name: "Logiciels"
+        name: "Logiciels",
       },
       subcat11: {
         key: "Tutoriels",
-        name: "Tutoriels"
-      }
-    }
+        name: "Tutoriels",
+      },
+    },
   },
   cat12: {
     key: "reseauxpersosoho",
@@ -661,37 +665,37 @@ let cats = {
     subcats: {
       subcat0: {
         key: "FAI",
-        name: "FAI"
+        name: "FAI",
       },
       subcat1: {
         key: "Reseaux",
-        name: "Réseaux"
+        name: "Réseaux",
       },
       subcat2: {
         key: "Routage-et-securite",
-        name: "Sécurité"
+        name: "Sécurité",
       },
       subcat3: {
         key: "WiFi-et-CPL",
-        name: "WiFi et CPL"
+        name: "WiFi et CPL",
       },
       subcat4: {
         key: "Hebergement",
-        name: "Hébergement"
+        name: "Hébergement",
       },
       subcat5: {
         key: "Tel-TV-sur-IP",
-        name: "Tel / TV sur IP"
+        name: "Tel / TV sur IP",
       },
       subcat6: {
         key: "Chat-visio-et-voix",
-        name: "Chat, visio et voix"
+        name: "Chat, visio et voix",
       },
       subcat7: {
         key: "Tutoriels",
-        name: "Tutoriels"
-      }
-    }
+        name: "Tutoriels",
+      },
+    },
   },
   cat13: {
     key: "systemereseauxpro",
@@ -699,37 +703,37 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Reseaux",
-        name: "Réseaux"
+        name: "Réseaux",
       },
       subcat1: {
         key: "Securite",
-        name: "Sécurité"
+        name: "Sécurité",
       },
       subcat2: {
         key: "Telecom",
-        name: "Télécom"
+        name: "Télécom",
       },
       subcat3: {
         key: "Infrastructures-serveurs",
-        name: "Infrastructures serveurs"
+        name: "Infrastructures serveurs",
       },
       subcat4: {
         key: "Stockage",
-        name: "Stockage"
+        name: "Stockage",
       },
       subcat5: {
         key: "Logiciels-entreprise",
-        name: "Logiciels d'entreprise"
+        name: "Logiciels d'entreprise",
       },
       subcat6: {
         key: "Management-SI",
-        name: "Management du SI"
+        name: "Management du SI",
       },
       subcat7: {
         key: "poste-de-travail",
-        name: "Poste de travail"
-      }
-    }
+        name: "Poste de travail",
+      },
+    },
   },
   cat14: {
     key: "OSAlternatifs",
@@ -737,37 +741,37 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Codes-scripts",
-        name: "Codes et scripts"
+        name: "Codes et scripts",
       },
       subcat1: {
         key: "Debats",
-        name: "Débats"
+        name: "Débats",
       },
       subcat2: {
         key: "Divers-2",
-        name: "Divers"
+        name: "Divers",
       },
       subcat3: {
         key: "Hardware-2",
-        name: "Hardware"
+        name: "Hardware",
       },
       subcat4: {
         key: "Installation",
-        name: "Installation"
+        name: "Installation",
       },
       subcat5: {
         key: "Logiciels-2",
-        name: "Logiciels"
+        name: "Logiciels",
       },
       subcat6: {
         key: "Multimedia",
-        name: "Multimédia"
+        name: "Multimédia",
       },
       subcat7: {
         key: "reseaux-securite",
-        name: "réseaux et sécurité"
-      }
-    }
+        name: "réseaux et sécurité",
+      },
+    },
   },
   cat15: {
     key: "Programmation",
@@ -775,113 +779,113 @@ let cats = {
     subcats: {
       subcat0: {
         key: "ADA",
-        name: "Ada"
+        name: "Ada",
       },
       subcat1: {
         key: "Algo",
-        name: "Algo"
+        name: "Algo",
       },
       subcat2: {
         key: "Android",
-        name: "Android"
+        name: "Android",
       },
       subcat3: {
         key: "API-Win32",
-        name: "API Win32"
+        name: "API Win32",
       },
       subcat4: {
         key: "ASM",
-        name: "ASM"
+        name: "ASM",
       },
       subcat5: {
         key: "ASP",
-        name: "ASP"
+        name: "ASP",
       },
       subcat6: {
         key: "Big-Data",
-        name: "BI/Big Data"
+        name: "BI/Big Data",
       },
       subcat7: {
         key: "C",
-        name: "C"
+        name: "C",
       },
       subcat8: {
         key: "CNET-managed",
-        name: "C#/.NET managed"
+        name: "C#/.NET managed",
       },
       subcat9: {
         key: "C-2",
-        name: "C++"
+        name: "C++",
       },
       subcat10: {
         key: "Delphi-Pascal",
-        name: "Delphi/Pascal"
+        name: "Delphi/Pascal",
       },
       subcat11: {
         key: "Flash-ActionScript",
-        name: "Flash/ActionScript"
+        name: "Flash/ActionScript",
       },
       subcat12: {
         key: "HTML-CSS-Javascript",
-        name: "HTML/CSS"
+        name: "HTML/CSS",
       },
       subcat13: {
         key: "iOS",
-        name: "iOS"
+        name: "iOS",
       },
       subcat14: {
         key: "Java",
-        name: "Java"
+        name: "Java",
       },
       subcat15: {
         key: "Javascript-Node-js",
-        name: "Javascript/Node.js"
+        name: "Javascript/Node.js",
       },
       subcat16: {
         key: "Langages-fonctionnels",
-        name: "Langages fonctionnels"
+        name: "Langages fonctionnels",
       },
       subcat17: {
         key: "Perl",
-        name: "Perl"
+        name: "Perl",
       },
       subcat18: {
         key: "PHP",
-        name: "PHP"
+        name: "PHP",
       },
       subcat19: {
         key: "Python",
-        name: "Python"
+        name: "Python",
       },
       subcat20: {
         key: "Ruby",
-        name: "Ruby/Rails"
+        name: "Ruby/Rails",
       },
       subcat21: {
         key: "Shell-Batch",
-        name: "Shell/Batch"
+        name: "Shell/Batch",
       },
       subcat22: {
         key: "SGBD-SQL",
-        name: "SQL/NoSQL"
+        name: "SQL/NoSQL",
       },
       subcat23: {
         key: "VB-VBA-VBS",
-        name: "VB/VBA/VBS"
+        name: "VB/VBA/VBS",
       },
       subcat24: {
         key: "Windows-Phone",
-        name: "Windows Phone"
+        name: "Windows Phone",
       },
       subcat25: {
         key: "XML-XSL",
-        name: "XML/XSL"
+        name: "XML/XSL",
       },
       subcat26: {
         key: "Divers-6",
-        name: "Divers"
-      }
-    }
+        name: "Divers",
+      },
+    },
   },
   cat16: {
     key: "Graphisme",
@@ -889,45 +893,45 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Cours",
-        name: "Cours"
+        name: "Cours",
       },
       subcat1: {
         key: "Galerie",
-        name: "Galerie"
+        name: "Galerie",
       },
       subcat2: {
         key: "Infographie-2D",
-        name: "Infographie 2D"
+        name: "Infographie 2D",
       },
       subcat3: {
         key: "PAO-Desktop-Publishing",
-        name: "PAO / Desktop Publishing"
+        name: "PAO / Desktop Publishing",
       },
       subcat4: {
         key: "Infographie-3D",
-        name: "Infographie 3D"
+        name: "Infographie 3D",
       },
       subcat5: {
         key: "Webdesign",
-        name: "Web design"
+        name: "Web design",
       },
       subcat6: {
         key: "Arts-traditionnels",
-        name: "Arts traditionnels"
+        name: "Arts traditionnels",
       },
       subcat7: {
         key: "Concours-2",
-        name: "Concours"
+        name: "Concours",
       },
       subcat8: {
         key: "Ressources",
-        name: "Ressources"
+        name: "Ressources",
       },
       subcat9: {
         key: "Divers-5",
-        name: "Divers"
-      }
-    }
+        name: "Divers",
+      },
+    },
   },
   cat17: {
     key: "AchatsVentes",
@@ -935,49 +939,49 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Hardware",
-        name: "Hardware"
+        name: "Hardware",
       },
       subcat1: {
         key: "pc-portables",
-        name: "PC Portables"
+        name: "PC Portables",
       },
       subcat2: {
         key: "tablettes",
-        name: "Tablettes"
+        name: "Tablettes",
       },
       subcat3: {
         key: "Photo-Audio-Video",
-        name: "Photo"
+        name: "Photo",
       },
       subcat4: {
         key: "audio-video",
-        name: "Audio, Vidéo"
+        name: "Audio, Vidéo",
       },
       subcat5: {
         key: "Telephonie",
-        name: "Téléphonie"
+        name: "Téléphonie",
       },
       subcat6: {
         key: "Softs-livres",
-        name: "Softs, livres"
+        name: "Softs, livres",
       },
       subcat7: {
         key: "Divers-4",
-        name: "Divers"
+        name: "Divers",
       },
       subcat8: {
         key: "Avis-estimations",
-        name: "Avis, estimations"
+        name: "Avis, estimations",
       },
       subcat9: {
         key: "Feedback",
-        name: "Feed-back"
+        name: "Feed-back",
       },
       subcat10: {
         key: "Regles-coutumes",
-        name: "Règles et coutumes"
-      }
-    }
+        name: "Règles et coutumes",
+      },
+    },
   },
   cat18: {
     key: "EmploiEtudes",
@@ -985,114 +989,114 @@ let cats = {
     subcats: {
       subcat0: {
         key: "Marche-emploi",
-        name: "Marché de l'emploi"
+        name: "Marché de l'emploi",
       },
       subcat1: {
         key: "Etudes-Orientation",
-        name: "Etudes / Orientation"
+        name: "Etudes / Orientation",
       },
       subcat2: {
         key: "Annonces-emplois",
-        name: "Annonces d'emplois"
+        name: "Annonces d'emplois",
       },
       subcat3: {
         key: "Feedback-entreprises",
-        name: "Feedback sur les entreprises"
+        name: "Feedback sur les entreprises",
       },
       subcat4: {
         key: "Aide-devoirs",
-        name: "Aide aux devoirs"
-      }
-    }
+        name: "Aide aux devoirs",
+      },
+    },
   },
   cat19: {
-    key: "Setietprojetsdistribues",
-    name: "Seti et projets distribués",
-    subcats: {
-      subcat0: {
-        key: "BOINC",
-        name: "BOINC"
-      },
-      subcat1: {
-        key: "SETI",
-        name: "SETI"
-      },
-      subcat2: {
-        key: "projets-distribues",
-        name: "Autres projets distribués"
-      },
-      subcat3: {
-        key: "Divers-3",
-        name: "Divers"
-      }
-    }
-  },
-  cat20: {
     key: "Discussions",
     name: "Discussions",
     subcats: {
       subcat0: {
         key: "Actualite",
-        name: "Actualité"
+        name: "Actualité",
       },
       subcat1: {
         key: "politique",
-        name: "Politique"
+        name: "Politique",
       },
       subcat2: {
         key: "Societe",
-        name: "Société"
+        name: "Société",
       },
       subcat3: {
         key: "Cinema",
-        name: "Cinéma"
+        name: "Cinéma",
       },
       subcat4: {
         key: "Musique",
-        name: "Musique"
+        name: "Musique",
       },
       subcat5: {
         key: "Arts-Lecture",
-        name: "Arts & Lecture"
+        name: "Arts & Lecture",
       },
       subcat6: {
         key: "TV-Radio",
-        name: "TV, Radio"
+        name: "TV, Radio",
       },
       subcat7: {
         key: "Sciences",
-        name: "Sciences"
+        name: "Sciences",
       },
       subcat8: {
         key: "Sante",
-        name: "Santé"
+        name: "Santé",
       },
       subcat9: {
         key: "Sports",
-        name: "Sports"
+        name: "Sports",
       },
       subcat10: {
         key: "Auto-Moto",
-        name: "Auto / Moto"
+        name: "Auto / Moto",
       },
       subcat11: {
         key: "Cuisine",
-        name: "Cuisine"
+        name: "Cuisine",
       },
       subcat12: {
         key: "Loisirs",
-        name: "Loisirs"
+        name: "Loisirs",
       },
       subcat13: {
         key: "voyages",
-        name: "Voyages"
+        name: "Voyages",
       },
       subcat14: {
         key: "Viepratique",
-        name: "Vie pratique"
-      }
-    }
-  }
+        name: "Vie pratique",
+      },
+    },
+  },
+  cat20: {
+    key: "Setietprojetsdistribues",
+    name: "Seti et projets distribués",
+    subcats: {
+      subcat0: {
+        key: "BOINC",
+        name: "BOINC",
+      },
+      subcat1: {
+        key: "SETI",
+        name: "SETI",
+      },
+      subcat2: {
+        key: "projets-distribues",
+        name: "Autres projets distribués",
+      },
+      subcat3: {
+        key: "Divers-3",
+        name: "Divers",
+      },
+    },
+  },
 };
 
 /* -------------- */
