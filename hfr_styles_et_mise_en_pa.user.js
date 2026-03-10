@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.2.0
+// @version       1.2.1
 // @namespace     roger21.free.fr
 // @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -22,7 +22,7 @@
 
 /*
 
-Copyright © 2019-2023, 2025 roger21@free.fr
+Copyright © 2019-2023, 2025, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -37,14 +37,17 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4253 $
+// $Rev: 4605 $
 
 // historique :
+// 1.2.1 (10/03/2026) :
+// - ajout de la gestion des icônes de [HFR] Copié/Collé pour la reconversion en image ->
+// dans les quotes
 // 1.2.0 (08/06/2025) :
 // - ajout d'une option pour supprimer les espaces supplémentaires sous l'arborescence
 // - ajout d'une oprion pour supprimer le lien vers les règles de la catégorie
 // 1.1.1 (08/03/2025) :
-// - prise en compte des nouveaux liens pour les émojis de Copié/Collé
+// - prise en compte des nouveaux liens pour les émojis de [HFR] Copié/Collé
 // 1.1.0 (20/11/2023) :
 // - prise en compte des nouveaux liens pour les smileys générés de toyonos
 // 1.0.9 (02/07/2022) :
@@ -505,7 +508,7 @@ toyonos_checkbox.setAttribute("type", "checkbox");
 toyonos_checkbox.setAttribute("id", "gm_hfr_semep_toyonos_checkbox");
 toyonos_div.appendChild(toyonos_checkbox);
 var toyonos_label = document.createElement("label");
-toyonos_label.textContent = " smileys générés de Toyonos";
+toyonos_label.textContent = " smileys générés de ToYonos";
 toyonos_label.setAttribute("for", "gm_hfr_semep_toyonos_checkbox");
 toyonos_div.appendChild(toyonos_label);
 quotes_div.appendChild(toyonos_div);
@@ -515,7 +518,7 @@ emojis_checkbox.setAttribute("type", "checkbox");
 emojis_checkbox.setAttribute("id", "gm_hfr_semep_emojis_checkbox");
 emojis_div.appendChild(emojis_checkbox);
 var emojis_label = document.createElement("label");
-emojis_label.textContent = " émojis de [HFR] Copié/Collé";
+emojis_label.textContent = " icônes et émojis de [HFR] Copié/Collé";
 emojis_label.setAttribute("for", "gm_hfr_semep_emojis_checkbox");
 emojis_div.appendChild(emojis_label);
 quotes_div.appendChild(emojis_div);
@@ -693,15 +696,18 @@ gmMenu("\u200b[HFR] Styles et mise en page -> Configuration", show_config_window
 /* ----------------------------------------------------------------------------- */
 
 // fonction de conversion des liens en images dans les quotes
-function a2img(p_href) {
+function a2img(p_href, p_length_ok = false) {
   let l_links = document.querySelectorAll(
     "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
     "div[id^=\"para\"] table.citation a.cLink[href*=\"" + p_href + "\"], " +
     "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
-    "div[id^=\"para\"] table.oldcitation a.cLink[href*=\"" + p_href + "\"]");
+    "div[id^=\"para\"] table.oldcitation a.cLink[href*=\"" + p_href + "\"], " +
+    "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
+    "div[id^=\"para\"] table.quote a.cLink[href*=\"" + p_href + "\"]");
   for(let l_link of l_links) {
     let l_href = l_link.getAttribute("href");
-    if(l_link.firstChild && l_href.length > p_href.length) {
+    if(l_link.firstChild && (l_href.length > p_href.length ||
+        (p_length_ok && l_href.length >= p_href.length))) {
       if(l_href.startsWith("https://images.weserv.nl/")) {
         l_href = l_href.replace(p_href, p_href.replace(/^http:\/\//, ""));
       }
@@ -905,6 +911,16 @@ Promise.all([
     a2img("https://generateurs.super-h.fr/");
     a2img("https://toyogen.000webhostapp.com/");
     a2img("https://toyogens.000webhostapp.com/");
+  }
+  // reconversion des icônes de [HFR] Copié/Collé en images dans les quotes
+  if(smp_emojis_quotes) {
+    a2img("https://i.imgur.com/wk7vohW.png", true);
+    a2img("https://i.imgur.com/bhHTaFv.png", true);
+    a2img("https://i.imgur.com/pd0aoXr.png", true);
+    a2img("https://i.imgur.com/AYsrHeC.png", true);
+    a2img("https://i.imgur.com/6C4thzC.png", true);
+    a2img("https://rehost.diberie.com/Picture/Get/f/327943", true);
+    a2img("https://rehost.diberie.com/Picture/Get/f/110911", true);
   }
   // reconversion des émojis de [HFR] Copié/Collé en images dans les quotes
   if(smp_emojis_quotes) {
