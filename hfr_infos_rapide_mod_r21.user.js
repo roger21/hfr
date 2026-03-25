@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Infos rapides mod_r21
-// @version       4.1.5
+// @version       4.1.6
 // @namespace     roger21.free.fr
 // @description   Rajoute une popup d'informations sur le profil au passage de la souris sur le pseudal.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -22,7 +22,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2022, 2025 roger21@free.fr
+Copyright © 2011-2012, 2014-2022, 2025-2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4175 $
+// $Rev: 4643 $
 
 // historique :
+// 4.1.6 (25/03/2026) :
+// - gestion de l'insertion des smileys qui nécessitent un bidouillage
 // 4.1.5 (11/03/2025) :
 // - correction d'un bug sur le positionnement de la popup des mots-clés
 // 4.1.4 (21/09/2022) :
@@ -599,12 +601,17 @@ function insert_or_edit_keywords(p_event) {
 }
 
 // fonction d'ajout du smiley dans la première édition rapide ou dans la réponse rapide
-function insert_smiley(p_alt) {
+function insert_smiley(p_smiley) {
   let l_edit_rap = document.querySelector("textarea[id^=\"rep_editin_\"]");
   let l_rep_rap = document.querySelector("textarea#content_form");
   let l_area = l_edit_rap ? l_edit_rap : l_rep_rap;
   if(l_area) {
-    let l_text = char_around_smiley_at_insert + p_alt + char_around_smiley_at_insert;
+    p_smiley = p_smiley.replace("  ", " %20");
+    if(p_smiley.substring(0, 1) === "[") {
+      p_smiley = "[" + p_smiley.substring(1, p_smiley.length - 1)
+        .replaceAll("[", "%5B").replaceAll("]", "%5D") + "]";
+    }
+    let l_text = char_around_smiley_at_insert + p_smiley + char_around_smiley_at_insert;
     let l_start_pos = l_area.selectionStart;
     let l_end_pos = l_area.selectionEnd;
     l_area.value = l_area.value.substring(0, l_start_pos) + l_text +

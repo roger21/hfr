@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Édition du wiki partout mod_r21
-// @version       3.3.1
+// @version       3.3.2
 // @namespace     roger21.free.fr
 // @description   Permet de consulter et de modifier facilement les mots-clés des smileys persos.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -25,7 +25,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2020, 2022, 2025 roger21@free.fr
+Copyright © 2011-2012, 2014-2020, 2022, 2025-2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -40,9 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4175 $
+// $Rev: 4644 $
 
 // historique :
+// 3.3.2 (25/03/2026) :
+// - gestion des smileys encodés manuellement (smileys inaffichable sans bidouillage)
+// - gestion de l'insertion des smileys qui nécessitent un bidouillage
 // 3.3.1 (11/03/2025) :
 // - correction d'un bug sur le positionnement de la popup des mots-clés
 // 3.3.0 (21/09/2022) :
@@ -316,7 +319,8 @@ function show_tooltip(p_event) {
         keywords_tooltip.classList.add("gm_hfr_edwi_r21_locked");
       }
       // ajout du texte (smiley et mots-clés)
-      keywords_tooltip.textContent = p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}";
+      keywords_tooltip.textContent = decodeURIComponent(p_smiley_img.getAttribute("alt")) +
+        " {\u00a0" + p_keywords + "\u00a0}";
       // affichage de la tooltip
       keywords_tooltip.style.display = "block";
       // positionnement de la tooltip
@@ -459,7 +463,7 @@ function show_popup(p_event) {
   if(hash_check !== "") {
     // récupération du smiley
     let l_smiley_img = p_event.currentTarget;
-    let l_code = l_smiley_img.getAttribute("alt");
+    let l_code = decodeURIComponent(l_smiley_img.getAttribute("alt"));
     // initialisation de la popup
     keywords_popup.dataset.smiley = l_code;
     keywords_popup.classList.remove("gm_hfr_edwi_r21_keywords_no_edit");
@@ -554,8 +558,14 @@ function insert_or_edit_keywords(p_event) {
   if((l_click_smiley_last_call - click_smiley_last_call) < click_smiley_time) {
     show_popup(p_event);
   } else {
+    let l_smiley = this.getAttribute("alt");
+    l_smiley = l_smiley.replace("  ", " %20");
+    if(l_smiley.substring(0, 1) === "[") {
+      l_smiley = "[" + l_smiley.substring(1, l_smiley.length - 1)
+        .replaceAll("[", "%5B").replaceAll("]", "%5D") + "]";
+    }
     click_smiley_timer = window.setTimeout(unsafeWindow.putSmiley, click_smiley_time,
-      this.getAttribute("alt"), this.getAttribute("src"));
+      l_smiley, this.getAttribute("src"));
   }
   click_smiley_last_call = l_click_smiley_last_call;
 }
@@ -563,7 +573,8 @@ function insert_or_edit_keywords(p_event) {
 // fonction de gestion du mouseover sur les smileys (affichage des mots-clés dans le title)
 function update_title(p_event) {
   access_keywords(get_keywords, function(p_smiley_img, p_keywords, p_locked) {
-    p_smiley_img.setAttribute("title", p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}");
+    p_smiley_img.setAttribute("title", decodeURIComponent(p_smiley_img.getAttribute("alt")) +
+      " {\u00a0" + p_keywords + "\u00a0}");
   }, this);
 }
 
@@ -611,7 +622,7 @@ function set_keywords(p_callback, p_smiley_code, p_keywords) {
 
 // fonction générique de récupération des mots-clés des smileys
 function get_keywords(p_callback, p_smiley_img) {
-  fetch(get_keywords_url + encodeURIComponent(p_smiley_img.getAttribute("alt")), {
+  fetch(get_keywords_url + encodeURIComponent(decodeURIComponent(p_smiley_img.getAttribute("alt"))), {
     method: "GET",
     mode: "same-origin",
     credentials: "omit",

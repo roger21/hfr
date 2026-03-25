@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Vos smileys favoris mod_r21
-// @version       3.1.2
+// @version       3.1.3
 // @namespace     roger21.free.fr
 // @description   Permet de gérer une liste illimitée de smileys favoris.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -27,7 +27,7 @@
 
 /*
 
-Copyright © 2020-2022, 2025 roger21@free.fr
+Copyright © 2020-2022, 2025-2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -42,9 +42,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4175 $
+// $Rev: 4644 $
 
 // historique :
+// 3.1.3 (25/03/2026) :
+// - gestion des smileys encodés manuellement (smileys inaffichable sans bidouillage)
+// - gestion de l'insertion des smileys qui nécessitent un bidouillage
 // 3.1.2 (11/03/2025) :
 // - correction d'un bug sur le positionnement de la popup des mots-clés
 // 3.1.1 (21/09/2022) :
@@ -1362,7 +1365,7 @@ function show_config_window(p_event) {
   config_window.style.left =
     parseInt((document.documentElement.clientWidth - config_window.offsetWidth) / 2, 10) + "px";
   config_window.style.top =
-    parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) + "px";
+    (parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) - 50) + "px";
   config_background.style.width = document.documentElement.scrollWidth + "px";
   config_background.style.height = document.documentElement.scrollHeight + "px";
   config_window.style.opacity = "1";
@@ -1524,7 +1527,7 @@ function add_fav(p_event) {
     "img[alt][src^=\"" + base_smileys_url + "\"]:not([src*=\"/message/\"]):not([onload]), " +
     "img[alt][src^=\"" + smileys_persos_url + "\"]:not([src*=\"/tempo/\"]):not([onload])");
   for(let l_img of l_imgs) {
-    let l_alt = l_img.getAttribute("alt").toLowerCase().replace(/^:d$/, ":D");
+    let l_alt = decodeURIComponent(l_img.getAttribute("alt")).toLowerCase().replace(/^:d$/, ":D");
     if(!l_list.includes(l_alt) && (l_alt.startsWith("[:") || l_alt.startsWith(":") || l_alt === ";)")) {
       l_list.push(l_alt);
     }
@@ -1560,7 +1563,8 @@ function show_tooltip(p_event) {
         keywords_tooltip.classList.add("gm_hfr_vsf_r21_locked");
       }
       // ajout du texte (smiley et mots-clés)
-      keywords_tooltip.textContent = p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}";
+      keywords_tooltip.textContent = decodeURIComponent(p_smiley_img.getAttribute("alt")) +
+        " {\u00a0" + p_keywords + "\u00a0}";
       // affichage de la tooltip
       keywords_tooltip.style.display = "block";
       // positionnement de la tooltip
@@ -1703,7 +1707,7 @@ function show_popup(p_event) {
   if(hash_check !== "") {
     // récupération du smiley
     let l_smiley_img = p_event.currentTarget;
-    let l_code = l_smiley_img.getAttribute("alt");
+    let l_code = decodeURIComponent(l_smiley_img.getAttribute("alt"));
     // initialisation de la popup
     keywords_popup.dataset.smiley = l_code;
     keywords_popup.classList.remove("gm_hfr_vsf_r21_keywords_no_edit");
@@ -1810,6 +1814,11 @@ function insert_smiley(p_smiley_img) {
     let l_area = document.querySelector("textarea[id^=\"rep_editin_\"], textarea#content_form");
     if(l_area) {
       let l_smiley = p_smiley_img.getAttribute("alt");
+      l_smiley = l_smiley.replace("  ", " %20");
+      if(l_smiley.substring(0, 1) === "[") {
+        l_smiley = "[" + l_smiley.substring(1, l_smiley.length - 1)
+          .replaceAll("[", "%5B").replaceAll("]", "%5D") + "]";
+      }
       if(!vsf_no_space) {
         l_smiley = " " + l_smiley + " ";
       }
@@ -1840,7 +1849,8 @@ function click_smiley(p_event) {
 // fonction de gestion du mouseover sur les smileys (affichage des mots-clés dans le title)
 function update_title(p_event) {
   access_keywords(get_keywords, function(p_smiley_img, p_keywords, p_locked) {
-    p_smiley_img.setAttribute("title", p_smiley_img.getAttribute("alt") + " {\u00a0" + p_keywords + "\u00a0}");
+    p_smiley_img.setAttribute("title", decodeURIComponent(p_smiley_img.getAttribute("alt")) +
+      " {\u00a0" + p_keywords + "\u00a0}");
   }, this);
 }
 
@@ -1888,7 +1898,7 @@ function set_keywords(p_callback, p_smiley_code, p_keywords) {
 
 // fonction générique de récupération des mots-clés des smileys
 function get_keywords(p_callback, p_smiley_img) {
-  fetch(get_keywords_url + encodeURIComponent(p_smiley_img.getAttribute("alt")), {
+  fetch(get_keywords_url + encodeURIComponent(decodeURIComponent(p_smiley_img.getAttribute("alt"))), {
     method: "GET",
     mode: "same-origin",
     credentials: "omit",
