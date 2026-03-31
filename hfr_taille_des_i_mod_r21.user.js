@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name          [HFR] Taille des images mod_r21
-// @version       3.1.0
+// @version       3.2.0
 // @namespace     roger21.free.fr
 // @description   Permet de limiter la taille des images dans les posts et de leur rendre leur taille originale en cliquant sur un bouton intégré à l'image.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
 // @authororig    toyonos
-// @modifications Basé sur la version b - Désactivation de la fonctionnalité de redimensionnement du forum pour permettre au script de continuer à fonctionner, gestion de la compatibilité gm4 et ajout d'une fenêtre de configuration.
+// @modifications Basé sur la version b - Désactivation de la fonctionnalité de redimensionnement automatique du forum pour permettre au script de continuer à fonctionner, gestion de la compatibilité gm4, gestion du dimensionnement par bbcode et ajout d'une fenêtre de configuration.
 // @modtype       réécriture et évolutions
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_taille_des_i_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_taille_des_i_mod_r21.user.js
@@ -26,7 +26,7 @@
 
 /*
 
-Copyright © 2012, 2014-2017, 2019-2022 roger21@free.fr
+Copyright © 2012, 2014-2017, 2019-2022, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -41,9 +41,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3561 $
+// $Rev: 4665 $
 
 // historique :
+// 3.2.0 (31/03/2026) :
+// - ajout d'une gestion des images dimensionnées par bbcode
+// - nouvelles images par défaut (plus petites)
 // 3.1.0 (11/06/2022) :
 // - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
 // éviter des débordements de ligne sur certaines configurations
@@ -172,12 +175,27 @@ var gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 
 unsafeWindow.md_verif_size = function() {};
 
+/* ----------------------- */
+/* la liste des exclusions */
+/* ----------------------- */
+
+// tableau d'objets : { type: "starts" | "includes", url: "url" }
+var exclusion_list = [{
+  type: "starts",
+  url: "https://raw.githubusercontent.com/googlefonts/noto-emoji/refs/heads/main/svg/emoji_u"
+}, {
+  type: "starts",
+  url: "https://cdn.jsdelivr.net/gh/googlefonts/noto-emoji/svg/emoji_u"
+}, ];
+
 /* ---------- */
 /* les images */
 /* ---------- */
 
-var img_expand_default = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEQAAAAbCAAAAADgoHZMAAAAAnRSTlMAAHaTzTgAAAGFSURBVHja7dTJS8NAFAbw%2FtdfqtQtdQFTlVK3uoFSaZUoKooFFxRKXU96KCKo1CJa0t2Ytsbnm7Gth6Z40FPxO0yS92Z%2BTAYSl6vtgl%2BljtAv8o%2F8gLyqMltnapjoVp2xRaFf237nnq5u8vim%2BiyibbVY5I53dP%2B9GSnBG%2BGc234kqpryIAvLXuwRmZ3w8HITYEtHocCd0CBWnZDg1%2F5S7qEoNmqFNAJEMUzgRCJK6gvhTkVTDAfEd87JE%2B0Cg1YNucEU0VhXxu0XyAgCH3WEorhwQGRuiPIKDmTBMzYMXFKSN76AR0YiOuINJIZjB2Q8zakQRYC%2Bkij0zs6vJIjWED5ahC4Qs69nsY4cildsdSYJaLsIfRfK3XKLHosRuuS7GjKHpAOixTlX1gDuqj5cN5AL7JimuYFTgVBQIlo8FsY0tTqTgI51ontFfa0jk3jm8Ql%2Bibx0CITjXio1I7Yhk88aVX7KGWXbKMhZmay8ZDO2IZYVDFtMzVX%2Bv%2BKfkb%2F4x7ZRPgEZvEEtbQUTgQAAAABJRU5ErkJggg%3D%3D";
-var img_reduce_default = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEUAAAAbCAAAAAAPYh1yAAAAAnRSTlMAAHaTzTgAAAFsSURBVHja7ZTRS8JQFIf9r4%2BSD9IshWYZJmTlg5TaqIcwCgzMCMxIg6AiyAWRRVFN1E20NT2dXeeVnNiDPYm%2Fh8sH%2B92P3XPZHI5JDIyXngXHydTCordHWRoCxReRuyAI%2B6jS6l3KGARbVEgIKuKZH1zRz35n0KKBV5JiTneDgSQVsE4Q98EOwRoVNqCOWQgcxmCuxTt2i1lNQqkLFLZZF50KtzTdvi%2FE3eUn3rFbVjXtRYR3DQIFSs16hTQUueUOUt2dvGO3mJk5tgDuLUsOTrnlAjI9i9WxWxaLYTgxIfxB0S1LFs5VBuugXsEBQdPod4bNpeWHS%2Fw9F4xC%2BRsCBEHQKxDsIO555BFzoQcP4FE1EPOUa7KI%2Bdw2RBBDkLpNQ8gcfuLmyDnb5J3hd5SCpHXmFbJQXJsa4tsC0XyZbixuwiPyzqClrdRpNZRKW2GpoQlVdnTsvJaeDUZVuWwg8s70m%2F7b8i%2F%2F3cnKD1rzVBgEeLGGAAAAAElFTkSuQmCC";
+var img_expand_default = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAAVCAQAAAC5veV9AAABh0lEQVRIx+3VvWvTURQG4KdJq9ghDSWNFQKigh9UaIqigw4KaR2qi0Oszq4ODs42/gcFBxG6iwqCEqOgo+IWaWOcxKKC0iIUwa+YNg7eFH8BTYemIPZdzj3n3Pu+554L57KBNUbXLzPZ6LzUZBd0N93LHZYrBBtb75auu2B31F00FVajetyXt8+MO85Km0JMWs4u8NAzR+TCqbgL+ty0bCKwbLbVIUN/F4RxB8GyiqKUkmG7LWLcsFtuuGSTuudiyo6LgyWPnY6wZFXc1rB/tS2NOeWr6+LGVmI9dqj7jLe+OemLdyGz06y5lrtkpTxp/4ZFBQWvkTKk7oDeldx3ryQlUJWRNeBlyByWUVJr4UqbX31L+aCi11MjkqGUB7Y7J+6HGTVX8EkuVH7CtHl7IlwLtrUXbGLJXYPyrimZaCllTs1FCR9d9UY/yBhRjpwvW5BvL1hUxCjeOy9pzD0vZCJ7qvok0G+LqqMheszsbyyPDDpj7x/GTqPTaA7P/2jSFDZ+zn8VPwGYGb4JlYkHVAAAAABJRU5ErkJggg==";
+var img_reduce_default = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADgAAAAVCAQAAAC5veV9AAABU0lEQVRIx+3VsUubURTG4eer0VqpEaFaS0ERQcUsIiJtxDEUDG5CByGT/Ts0u4uTzt0KXSMoiojt5tjBoSAiCOKgpVUk1aZDvgQTIybQCEVfuFzOObznXH7DuTzqHyvIX/O5+o+aDyBSCOfqPC4d3k/uG+m9D4yUJ04tItDqrTdhBAlDFvHUS2NijiybFnNmQULcqS3f0Sfp7JorftdASBqxZtVgGI2GTyFp2Def5XSUOLI+ivqg0Re/S1xVIv0jq0lzRSTDXvhalt13YkLUMwkttSGFjAxmNbsoRintxXqn3TLHD7RW6JHSWx3S5z459PoG0ryOvdKAXHgiovips6RHTUgH9Fl1UqFyZcexcW1a7Ll0gC492mz75cKm89qREnhnyYrJIpyEIWSs6/LeIGZsWBA1pRspm5YE+jXJXnPFb1k7uXqrsDwf0KZJP/6c/6v+ArYsrkXQigvFAAAAAElFTkSuQmCC";
+var img_bboff_default = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAAVCAMAAADciiYzAAAApVBMVEUAAACAgICBgYGNjY2RkZGZmZmbm5usbW6sbm+tra2vc3Swd3eye3y4iIm4iYm4ioq6jI7AmJnAmZnFo6PFpKXGoqPGpKTGpaXHpqbHx8fJycnLy8vMzMzWwcHXw8PYxMTY2NjZxsfax8fax8je3t7i4uLo3d3o3t7q4ODv6Ojv6Onv7+/28vL38/P49PT49fX59/f5+Pj6+Pj6+vr9/Pz+/v7///+ZBEVSAAAAAXRSTlMAQObYZgAAAK5JREFUOE/NkccOgkAUAHm2tfcK9t5ARZn//zQvLMS4B4gxYS5zmrx9by0r20gadENy/tHc5522pjN/fDcXkVxhqQVwbahqXUU0XUPjPEt5LYChWr841KJoZGyKFS3AUz2ATTzpZnibyCQIBZzUDOAYN2fDnGAq21CApwafc8qGOU5gyy4UQF+tXsE+3mds2Eckb2sBuM2Pu7W+72bAX3Sj/+kufJI0Jn5q0mBlmzdpBVXTwFDc6wAAAABJRU5ErkJggg==";
+var img_bbon_default = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAAVCAMAAADciiYzAAAAnFBMVEUAAABbmlxcm11jnWRnn2hooGltom58qX19qX9+qn+AgICBgYGCq4ONjY2Qs5CQtJGRkZGZmZmaupqbm5ubupucu52evJ6tra290L2/0b/A0sDC08LD1MTE1MTHx8fJycnLy8vMzMzY2Njb5dzc5dze3t7e597i4uLn7efv7+/y9fLy9vLz9vP09/T2+ff3+ff6+vr8/fz+/v7////M0cwSAAAAAXRSTlMAQObYZgAAAKpJREFUOMvNkskOgkAQBR1XbPddcMFdRBGl/v/fvDAQ4pigicZ3qVPlTU93ofDfkXeiHfLnG87Vbjd12nb47JxEGt2NBoBfU0mqJWX5Bmd1G7Q0AEaJUdlxn6mx0elNNIBL2rIAGKrA8DaRZRQD8FLnADBVnqEnWss+RrZnDtAvBibHlWOM7DzlbfRiHpGWqwHgW5l/q5/z7Cd0Osl+Oo5hP7+4nQ/u+l/zAPy+VSMPTxnWAAAAAElFTkSuQmCC";
 var img_save = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
 var img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg%3D%3D";
 var img_reset = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs%2B9AAABhklEQVQY0wXBT0iTcRjA8e%2Fz%2FN537%2FvamjVa7lSUhUbsEiQRQf%2BoQ3gL6hSskA5Bt%2FQSXTz0%2F2xBl7okZR6EqEgiAvFgCAW1SPLPlGluilubZsv29PmQe37SAUw2u75Swv%2F%2BeXt7R2ve3I27K8GTzoObf8RTF78kU8e4NtTrAGa9qL9GaFVhfrDzdOvibt23rMGrCtiMyABX3g7JARt3b1KZPX%2FAKoLVnI6VHTMVxJZ8ffb4fHYb514Umi58uxMArBOzNYdVBVsiqFd8yY2dOpra%2Fy6nPBg%2F67%2B%2FetkBTGzhUx3sl9Cogk3HwiMA2Q8PHY8u%2FfQApoOwpwYbNaGxBraAtwrQvbwjlh0eUd04cV8Wo3TX1r%2F12%2F8UJyAIjYiwafYmLQPJUYt3jChTiebjZbAavq2KFuckdq%2BM%2FK56NArivmLmBruGPQoufLkuWMkxlffjhwAWktGZkmq96HS072l3lJlfUT6md%2B3Ma9A%2Fp24vQC6f8TFzk4lN6ddtbS2HbUKvF2%2Fpf4cUlw8oMuVkAAAAAElFTkSuQmCC";
@@ -192,10 +210,11 @@ var width_default = 900;
 var height_type_default = 2; // 0 = fixed, 1 = auto, 2 = off
 var height_default = 500;
 var opacity_default = "0.4";
-var width, height, img_expand, img_reduce, opacity;
+var width, height, img_expand, img_reduce, img_bbon, img_bboff, opacity;
 var opacity_value_format = new Intl.NumberFormat("en-US", {
   minimumFractionDigits: 2
 });
+var smileys = [":'(", ":(", ":)", ":/", ":??:", ":D", ":o", ":p", ";)", ":24:", ":ange:", ":benetton:", ":bic:", ":bounce:", ":bug:", ":calimero:", ":crazy:", ":cry:", ":dtc:", ":eek:", ":eek2:", ":evil:", ":fou:", ":foudtag:", ":fouyaya:", ":fuck:", ":gratgrat:", ":hap:", ":gun:", ":hebe:", ":heink:", ":hello:", ":hot:", ":int:", ":jap:", ":kaola:", ":lol:", ":love:", ":mad:", ":miam:", ":mmmfff:", ":mouais:", ":na:", ":non:", ":ouch:", ":ouimaitre:", ":pfff:", ":pouah:", ":pt1cable:", ":sarcastic:", ":sleep:", ":sol:", ":spamafote:", ":spookie:", ":sum:", ":sweat:", ":vomi:", ":wahoo:", ":whistle:", ];
 
 /* -------------- */
 /* les styles css */
@@ -205,10 +224,17 @@ var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
   // styles pour l'affichage des images et des boutons
-  "span.gm_hfr_tdi_r21_img_span{display:inline-block;position:relative;}" +
-  "#mesdiscussions img.gm_hfr_tdi_r21_resize_button{position:absolute;top:0;left:0;z-index:100;" +
-  "cursor:pointer;margin:5px;}" +
-  "#mesdiscussions img.gm_hfr_tdi_r21_resize_button:hover{opacity:1 !important;}" +
+  "#mesdiscussions span.gm_hfr_tdi_r21_img_span{display:inline-block;position:relative;}" +
+  "#mesdiscussions span.gm_hfr_tdi_r21_buttons_span{display:flex;justify-content:flex-start;" +
+  "align-items:center;position:absolute;top:0;left:0;z-index:100;}" +
+  "#mesdiscussions span.gm_hfr_tdi_r21_buttons_span > img{display:block;cursor:pointer;" +
+  "margin:5px 0 0 0;}" +
+  "#mesdiscussions span.gm_hfr_tdi_r21_buttons_span > img:first-of-type{margin:5px 0 0 5px;}" +
+  "#mesdiscussions span.gm_hfr_tdi_r21_buttons_span > img:hover{opacity:1 !important;}" +
+  "#mesdiscussions span.gm_hfr_tdi_r21_buttons_span.gm_hfr_tdi_r21_img_bbcodeon " +
+  "img.gm_hfr_tdi_r21_resize_button{display:none !important;}" +
+  "#mesdiscussions span.gm_hfr_tdi_r21_buttons_span.gm_hfr_tdi_r21_img_bbcodeoff " +
+  "img.gm_hfr_tdi_r21_resizebb_button{display:none !important;}" +
   // styles pour la fenêtre de configuration
   "#gm_hfr_tdi_r21_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
   "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
@@ -425,7 +451,7 @@ size_div.appendChild(height_div);
 // section boutons
 var buttons_fieldset = document.createElement("fieldset");
 var buttons_legend = document.createElement("legend");
-buttons_legend.textContent = "Images des boutons de redimensionnement";
+buttons_legend.textContent = "Images des boutons";
 buttons_fieldset.appendChild(buttons_legend);
 config_window.appendChild(buttons_fieldset);
 
@@ -515,6 +541,92 @@ img_reduce_reset_img.addEventListener("click", img_reduce_do_reset_img, false);
 img_reduce_div.appendChild(img_reduce_reset_img);
 buttons_fieldset.appendChild(img_reduce_div);
 
+// bbcode off
+var img_bbon_p = document.createElement("p");
+img_bbon_p.className = "gm_hfr_tdi_r21_no_margin";
+var img_bbon_label = document.createElement("label");
+img_bbon_label.textContent = "bouton de suppression du dimensionnement par BBCode : ";
+img_bbon_label.setAttribute("for", "gm_hfr_tdi_r21_img_bbon_input");
+img_bbon_p.appendChild(img_bbon_label);
+buttons_fieldset.appendChild(img_bbon_p);
+var img_bbon_div = document.createElement("div");
+img_bbon_div.className = "gm_hfr_tdi_r21_div_img";
+var img_bbon_test_img = document.createElement("img");
+img_bbon_test_img.className = "gm_hfr_tdi_r21_test_img";
+img_bbon_div.appendChild(img_bbon_test_img);
+var img_bbon_input = document.createElement("input");
+img_bbon_input.setAttribute("id", "gm_hfr_tdi_r21_img_bbon_input");
+img_bbon_input.setAttribute("type", "text");
+img_bbon_input.setAttribute("spellcheck", "false");
+img_bbon_input.setAttribute("size", "30");
+img_bbon_input.setAttribute("title", "url de l'image (http ou data)");
+img_bbon_input.addEventListener("focus", function() {
+  img_bbon_input.select();
+}, false);
+
+function img_bbon_do_test_img() {
+  img_bbon_test_img.setAttribute("src", img_bbon_input.value.trim());
+  img_bbon_input.setSelectionRange(0, 0);
+  img_bbon_input.blur();
+}
+img_bbon_input.addEventListener("input", img_bbon_do_test_img, false);
+img_bbon_div.appendChild(img_bbon_input);
+var img_bbon_reset_img = document.createElement("img");
+img_bbon_reset_img.setAttribute("src", img_reset);
+img_bbon_reset_img.className = "gm_hfr_tdi_r21_reset_img";
+img_bbon_reset_img.setAttribute("title", "remettre l'image par défaut");
+
+function img_bbon_do_reset_img() {
+  img_bbon_input.value = img_bbon_default;
+  img_bbon_do_test_img();
+}
+img_bbon_reset_img.addEventListener("click", img_bbon_do_reset_img, false);
+img_bbon_div.appendChild(img_bbon_reset_img);
+buttons_fieldset.appendChild(img_bbon_div);
+
+// bbcode on
+var img_bboff_p = document.createElement("p");
+img_bboff_p.className = "gm_hfr_tdi_r21_no_margin";
+var img_bboff_label = document.createElement("label");
+img_bboff_label.textContent = "bouton de rétablissement du dimensionnement par BBCode : ";
+img_bboff_label.setAttribute("for", "gm_hfr_tdi_r21_img_bboff_input");
+img_bboff_p.appendChild(img_bboff_label);
+buttons_fieldset.appendChild(img_bboff_p);
+var img_bboff_div = document.createElement("div");
+img_bboff_div.className = "gm_hfr_tdi_r21_div_img";
+var img_bboff_test_img = document.createElement("img");
+img_bboff_test_img.className = "gm_hfr_tdi_r21_test_img";
+img_bboff_div.appendChild(img_bboff_test_img);
+var img_bboff_input = document.createElement("input");
+img_bboff_input.setAttribute("id", "gm_hfr_tdi_r21_img_bboff_input");
+img_bboff_input.setAttribute("type", "text");
+img_bboff_input.setAttribute("spellcheck", "false");
+img_bboff_input.setAttribute("size", "30");
+img_bboff_input.setAttribute("title", "url de l'image (http ou data)");
+img_bboff_input.addEventListener("focus", function() {
+  img_bboff_input.select();
+}, false);
+
+function img_bboff_do_test_img() {
+  img_bboff_test_img.setAttribute("src", img_bboff_input.value.trim());
+  img_bboff_input.setSelectionRange(0, 0);
+  img_bboff_input.blur();
+}
+img_bboff_input.addEventListener("input", img_bboff_do_test_img, false);
+img_bboff_div.appendChild(img_bboff_input);
+var img_bboff_reset_img = document.createElement("img");
+img_bboff_reset_img.setAttribute("src", img_reset);
+img_bboff_reset_img.className = "gm_hfr_tdi_r21_reset_img";
+img_bboff_reset_img.setAttribute("title", "remettre l'image par défaut");
+
+function img_bboff_do_reset_img() {
+  img_bboff_input.value = img_bboff_default;
+  img_bboff_do_test_img();
+}
+img_bboff_reset_img.addEventListener("click", img_bboff_do_reset_img, false);
+img_bboff_div.appendChild(img_bboff_reset_img);
+buttons_fieldset.appendChild(img_bboff_div);
+
 // opacité
 var opacity_p = document.createElement("p");
 var opacity_label = document.createElement("label");
@@ -547,6 +659,8 @@ function opacity_do_value() {
   opacity_label_value.textContent = " " + opacity_value_format.format(opacity_range.value);
   img_expand_test_img.style.opacity = opacity_range.value;
   img_reduce_test_img.style.opacity = opacity_range.value;
+  img_bbon_test_img.style.opacity = opacity_range.value;
+  img_bboff_test_img.style.opacity = opacity_range.value;
 }
 opacity_range.addEventListener("input", opacity_do_value, false);
 buttons_fieldset.appendChild(opacity_p);
@@ -609,6 +723,14 @@ function save_config_window() {
   if(img_reduce === "") {
     img_reduce = img_reduce_default;
   }
+  img_bbon = img_bbon_input.value.trim();
+  if(img_bbon === "") {
+    img_bbon = img_bbon_default;
+  }
+  img_bboff = img_bboff_input.value.trim();
+  if(img_bboff === "") {
+    img_bboff = img_bboff_default;
+  }
   let opacity = opacity_range.value;
   // enregistrement des paramètres
   Promise.all([
@@ -618,6 +740,8 @@ function save_config_window() {
     GM.setValue("height", height),
     GM.setValue("img_expand", img_expand),
     GM.setValue("img_reduce", img_reduce),
+    GM.setValue("img_bbon", img_bbon),
+    GM.setValue("img_bboff", img_bboff),
     GM.setValue("opacity", opacity),
   ]).then(function() {
     if(info_reload_checkbox.checked) {
@@ -662,6 +786,8 @@ function show_config_window() {
     GM.getValue("height", height_default),
     GM.getValue("img_expand", img_expand_default),
     GM.getValue("img_reduce", img_reduce_default),
+    GM.getValue("img_bbon", img_bbon_default),
+    GM.getValue("img_bboff", img_bboff_default),
     GM.getValue("opacity", opacity_default),
   ]).then(function([
     width_type_value,
@@ -670,6 +796,8 @@ function show_config_window() {
     height_value,
     img_expand_value,
     img_reduce_value,
+    img_bbon_value,
+    img_bboff_value,
     opacity_value,
   ]) {
     // initialisation des paramètres
@@ -684,6 +812,10 @@ function show_config_window() {
     img_expand_do_test_img();
     img_reduce_input.value = img_reduce_value;
     img_reduce_do_test_img();
+    img_bbon_input.value = img_bbon_value;
+    img_bbon_do_test_img();
+    img_bboff_input.value = img_bboff_value;
+    img_bboff_do_test_img();
     opacity_range.value = opacity_value;
     opacity_do_value();
     info_reload_checkbox.checked = false;
@@ -708,45 +840,213 @@ gmMenu("[HFR] Taille des images -> Configuration", show_config_window);
 /* fonctions de redimensionnement des images */
 /* ----------------------------------------- */
 
-function add_button(img) {
+function add_buttons(img) {
+  img.dataset.gmhfrtdir21button = "button";
   let img_span = document.createElement("span");
   img_span.className = "gm_hfr_tdi_r21_img_span";
-  let resize_button = document.createElement("img");
-  resize_button.className = "gm_hfr_tdi_r21_resize_button";
-  resize_button.style.opacity = opacity;
-  resize_button.setAttribute("src", img_expand);
-  resize_button.setAttribute("alt", "Agrandir");
-  resize_button.setAttribute("title", "Agrandir l'image\n(clic droit pour configurer)");
-  resize_button.dataset.state = "expand";
-  resize_button.addEventListener("click", function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    img.style.maxWidth = (img.style.maxWidth === "none") ? (width + "px") : "none";
-    if(height !== null) {
-      img.style.maxHeight = (img.style.maxHeight === "none") ? (height + "px") : "none";
-    }
-    if(this.dataset.state === "expand") {
-      this.setAttribute("src", img_reduce);
-      this.setAttribute("alt", "Rétrécir");
-      this.setAttribute("title", "Rétrécir l'image\n(clic droit pour configurer)");
-      this.dataset.state = "reduce";
-    } else {
-      this.setAttribute("src", img_expand);
-      this.setAttribute("alt", "Agrandir");
-      this.setAttribute("title", "Agrandir l'image\n(clic droit pour configurer)");
-      this.dataset.state = "expand";
-    }
-  }, false);
-  resize_button.addEventListener("mouseup", function(e) {
-    e.preventDefault();
-    if(e.button === 2) {
-      show_config_window();
-    }
-  }, false);
-  resize_button.addEventListener("contextmenu", function(e) {
-    e.preventDefault();
-  }, false);
-  img_span.appendChild(resize_button);
+  let buttons_span = document.createElement("span");
+  buttons_span.className = "gm_hfr_tdi_r21_buttons_span";
+  img_span.appendChild(buttons_span);
+  // bouton de désactivation / résactivation du bbcode
+  if(img.dataset.gmhfrtdir21bbcode !== undefined && img.dataset.gmhfrtdir21bbcode === "bbcode") {
+    buttons_span.classList.add("gm_hfr_tdi_r21_img_bbcodeon");
+    let bbcode_button = document.createElement("img");
+    bbcode_button.className = "gm_hfr_tdi_r21_bbcode_button";
+    bbcode_button.style.opacity = opacity;
+    bbcode_button.setAttribute("src", img_bbon);
+    bbcode_button.setAttribute("alt", "BBCode On");
+    bbcode_button.setAttribute("title", "Désactiver le BBCode\n(clic droit pour configurer)");
+    bbcode_button.dataset.state = "bbcodeon";
+    bbcode_button.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      // désactivation du bbcode
+      if(this.dataset.state === "bbcodeon") {
+        // rétablissement ou désactivation des contraintes du script en fonction de l'état du bouton resize
+        let button_resize = this.parentElement.querySelector("img.gm_hfr_tdi_r21_resize_button");
+        // pas de bouton resize ou alors en mode réduit
+        if(!button_resize || button_resize.dataset.state === "reduced") {
+          // réactivation des contraintes du script
+          img.style.maxWidth = width + "px";
+          if(height !== null) {
+            img.style.maxHeight = height + "px";
+          }
+        }
+        // bouton resize en mode agrandi
+        else {
+          // désactivation des contraintes du script
+          img.style.maxWidth = "none";
+          if(height !== null) {
+            img.style.maxHeight = "none";
+          }
+        }
+        // désactivation des dimensions du bbcode
+        img.style.width = "auto";
+        img.style.height = "auto";
+        // détection et gestion des svg sans taille
+        if(img.offsetWidth === 0 && img.offsetHeight === 0) {
+          img.style.width = width + "px";
+        }
+        // mise à jour du bouton
+        this.setAttribute("src", img_bboff);
+        this.setAttribute("alt", "BBCode Off");
+        this.setAttribute("title", "Activer le BBCode\n(clic droit pour configurer)");
+        this.dataset.state = "bbcodeoff";
+        // mise à jour des boutons
+        this.parentElement.classList.toggle("gm_hfr_tdi_r21_img_bbcodeon", false);
+        this.parentElement.classList.toggle("gm_hfr_tdi_r21_img_bbcodeoff", true);
+      }
+      // réactivation du bbcode
+      else {
+        // rétablissement des dimensions bbcode de l'image en fonction de l'état du bouton resizebb
+        let button_resizebb = this.parentElement.querySelector("img.gm_hfr_tdi_r21_resizebb_button");
+        // pas de bouton resizebb ou alors en mode réduit
+        if(!button_resizebb || button_resizebb.dataset.state === "reducedbb") {
+          // rétablissement des dimensions du bbcode avec les contraintes du script
+          img.style.width = img.dataset.gmhfrtdir21width;
+          img.style.height = img.dataset.gmhfrtdir21height;
+          // réactivation des contraintes du script
+          img.style.maxWidth = width + "px";
+          if(height !== null) {
+            img.style.maxHeight = height + "px";
+          }
+        }
+        // bouton resizebb en mode agrandi
+        else {
+          // désactivation des contraintes du scripts
+          img.style.maxWidth = "none";
+          if(height !== null) {
+            img.style.maxHeight = "none";
+          }
+          // rétablissement des dimenssions du bbcode
+          img.style.width = img.dataset.gmhfrtdir21widthbb;
+          img.style.height = img.dataset.gmhfrtdir21heightbb;
+        }
+        // mise à jour du bouton
+        this.setAttribute("src", img_bbon);
+        this.setAttribute("alt", "BBCode On");
+        this.setAttribute("title", "Désactiver le BBCode\n(clic droit pour configurer)");
+        this.dataset.state = "bbcodeon";
+        // mise à jour des boutons
+        this.parentElement.classList.toggle("gm_hfr_tdi_r21_img_bbcodeon", true);
+        this.parentElement.classList.toggle("gm_hfr_tdi_r21_img_bbcodeoff", false);
+      }
+    }, false);
+    bbcode_button.addEventListener("mouseup", function(e) {
+      e.preventDefault();
+      if(e.button === 2) {
+        show_config_window();
+      }
+    }, false);
+    bbcode_button.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+    }, false);
+    buttons_span.appendChild(bbcode_button);
+  }
+  // bouton d'agrandissement / réduction de l'image sans bbcode ou avec le bbcode désactivé
+  if(img.dataset.gmhfrtdir21resize !== undefined && img.dataset.gmhfrtdir21resize === "resize") {
+    let resize_button = document.createElement("img");
+    resize_button.className = "gm_hfr_tdi_r21_resize_button";
+    resize_button.style.opacity = opacity;
+    resize_button.setAttribute("src", img_expand);
+    resize_button.setAttribute("alt", "Agrandir");
+    resize_button.setAttribute("title", "Agrandir l'image\n(clic droit pour configurer)");
+    resize_button.dataset.state = "reduced";
+    resize_button.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      // agrandissement aux dimensions natives de l'images
+      if(this.dataset.state === "reduced") {
+        img.style.maxWidth = "none";
+        if(height !== null) {
+          img.style.maxHeight = "none";
+        }
+        // mise à jour du bouton
+        this.setAttribute("src", img_reduce);
+        this.setAttribute("alt", "Rétrécir");
+        this.setAttribute("title", "Rétrécir l'image\n(clic droit pour configurer)");
+        this.dataset.state = "expanded";
+      }
+      // réduction aux contraintes du scripts
+      else {
+        img.style.maxWidth = width + "px";
+        if(height !== null) {
+          img.style.maxHeight = height + "px";
+        }
+        // mise à jour du bouton
+        this.setAttribute("src", img_expand);
+        this.setAttribute("alt", "Agrandir");
+        this.setAttribute("title", "Agrandir l'image\n(clic droit pour configurer)");
+        this.dataset.state = "reduced";
+      }
+    }, false);
+    resize_button.addEventListener("mouseup", function(e) {
+      e.preventDefault();
+      if(e.button === 2) {
+        show_config_window();
+      }
+    }, false);
+    resize_button.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+    }, false);
+    buttons_span.appendChild(resize_button);
+  }
+  // bouton d'agrandissement / récduction de l'image avec le ratio du bbcode et les contraintes du script
+  if(img.dataset.gmhfrtdir21resizebb !== undefined && img.dataset.gmhfrtdir21resizebb === "resizebb") {
+    let resizebb_button = document.createElement("img");
+    resizebb_button.className = "gm_hfr_tdi_r21_resizebb_button";
+    resizebb_button.style.opacity = opacity;
+    resizebb_button.setAttribute("src", img_expand);
+    resizebb_button.setAttribute("alt", "Agrandir BB");
+    resizebb_button.setAttribute("title", "Agrandir avec le BBCode\n(clic droit pour configurer)");
+    resizebb_button.dataset.state = "reducedbb";
+    resizebb_button.addEventListener("click", function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      // agrandissement de l'image aux dimenssions du bbcode sans les contraintes du script
+      if(this.dataset.state === "reducedbb") {
+        // désactivation des contraintes du scripts
+        img.style.maxWidth = "none";
+        if(height !== null) {
+          img.style.maxHeight = "none";
+        }
+        // rétablissement des dimenssions du bbcode
+        img.style.width = img.dataset.gmhfrtdir21widthbb;
+        img.style.height = img.dataset.gmhfrtdir21heightbb;
+        // mise à jour du bouton
+        this.setAttribute("src", img_reduce);
+        this.setAttribute("alt", "Rétrécir BB");
+        this.setAttribute("title", "Rétrécir avec le BBCode\n(clic droit pour configurer)");
+        this.dataset.state = "expandedbb";
+      }
+      // réduction de l'image avec le ratio du bbcode et les contraintes du script
+      else {
+        // rétablissement des dimensions du bbcode avec les contraintes du script
+        img.style.width = img.dataset.gmhfrtdir21width;
+        img.style.height = img.dataset.gmhfrtdir21height;
+        // réactivation des contraintes du script
+        img.style.maxWidth = width + "px";
+        if(height !== null) {
+          img.style.maxHeight = height + "px";
+        }
+        // mise à jour du bouton
+        this.setAttribute("src", img_expand);
+        this.setAttribute("alt", "Agrandir BB");
+        this.setAttribute("title", "Agrandir avec le BBCode\n(clic droit pour configurer)");
+        this.dataset.state = "reducedbb";
+      }
+    }, false);
+    resizebb_button.addEventListener("mouseup", function(e) {
+      e.preventDefault();
+      if(e.button === 2) {
+        show_config_window();
+      }
+    }, false);
+    resizebb_button.addEventListener("contextmenu", function(e) {
+      e.preventDefault();
+    }, false);
+    buttons_span.appendChild(resizebb_button);
+  }
   img = img.parentNode.replaceChild(img_span, img);
   img_span.appendChild(img);
 }
@@ -756,29 +1056,72 @@ function resize_image(img) {
   if(img instanceof Event) {
     img = this;
   }
-  // nettoyage de l'image de tout le bordel et des contraintes de taille ajoutées par le forum
+  // exclusion des smileys
+  if(img.alt.startsWith("[:") || smileys.includes(img.alt)) {
+    return;
+  }
+  // liste des exclusions
+  for(const exclusion of exclusion_list) {
+    if((exclusion.type === "starts" && img.src.startsWith(exclusion.url)) ||
+      (exclusion.type === "includes" && img.src.includes(exclusion.url))) {
+      return;
+    }
+  }
+  // nettoyage du bordel ajouté par le forum
   img.removeAttribute("width");
   img.removeAttribute("onload");
   img.removeAttribute("onclick");
   img.removeAttribute("onmouseover");
   img.removeAttribute("onmouseout");
-  img.style.width = "auto";
-  // nouvelles contraintes des tailles de l'image en fonction des paramètres du script
-  img.style.maxWidth = width + "px";
-  if(height !== null) {
-    img.style.maxHeight = height + "px";
-  }
-  // nettaoyage du title de l'image, le forum y met un truc du genre "cliquer pour agrandir"
+  // nettoyage du title de l'image ajouté par le forum
   if(!img.title.startsWith("Rehost: ") &&
     !img.title.startsWith("UnRehost: ") &&
     !img.title.startsWith("Stealth rehost: ")) {
     img.alt = img.title = img.src;
   }
-  // ajout du bouton si l'image en a besoin et qu'il n'a pas déjà été ajouté
-  if(img.naturalWidth > width || (height !== null && img.naturalHeight > height)) {
-    if(!img.parentElement || img.parentElement.className !== "gm_hfr_tdi_r21_img_span") {
-      add_button(img);
+  // détection de la présence d'un dimensionnement par bbcode
+  if(img.style.height !== "") {
+    img.dataset.gmhfrtdir21bbcode = "bbcode";
+    // sauvegarde des dimensions du bbcode
+    img.dataset.gmhfrtdir21widthbb = img.style.width;
+    img.dataset.gmhfrtdir21heightbb = img.style.height;
+    // correction du ratio en cas de contrainte
+    let img_width = parseInt(img.style.width, 10);
+    let img_height = parseInt(img.style.height, 10);
+    let ratio = img_width / img_height;
+    if(img_width > width) {
+      img_width = width;
+      img_height = Math.round(width / ratio * 1000) / 1000;
+      img.dataset.gmhfrtdir21resizebb = "resizebb";
     }
+    if(height !== null && img_height > height) {
+      img_width = Math.round(height * ratio * 1000) / 1000;
+      img_height = height;
+      img.dataset.gmhfrtdir21resizebb = "resizebb";
+    }
+    img.style.width = img_width + "px";
+    img.style.height = img_height + "px";
+    // sauvegarde des dimensions du bbcode contraintes par le script
+    img.dataset.gmhfrtdir21width = img.style.width;
+    img.dataset.gmhfrtdir21height = img.style.height;
+  } else {
+    // nettoyage de la contrainte de largeur du forum si l'image n'est pas redimensionné par bbcode
+    img.style.width = "auto";
+  }
+  // nouvelles contraintes des tailles de l'image en fonction des paramètres du script
+  img.style.maxWidth = width + "px";
+  if(height !== null) {
+    img.style.maxHeight = height + "px";
+  }
+  // détection de le necessité des boutons de redimensionnement
+  if(img.naturalWidth > width || (height !== null && img.naturalHeight > height)) {
+    img.dataset.gmhfrtdir21resize = "resize";
+  }
+  // ajout des boutons si l'image en a besoin et qu'il n'ont pas déjà été ajoutés
+  if(((img.dataset.gmhfrtdir21resize !== undefined && img.dataset.gmhfrtdir21resize === "resize") ||
+      (img.dataset.gmhfrtdir21bbcode !== undefined && img.dataset.gmhfrtdir21bbcode === "bbcode")) &&
+    (img.dataset.gmhfrtdir21button === undefined || img.dataset.gmhfrtdir21button !== "button")) {
+    add_buttons(img);
   }
 }
 
@@ -793,6 +1136,8 @@ Promise.all([
   GM.getValue("height", height_default),
   GM.getValue("img_expand", img_expand_default),
   GM.getValue("img_reduce", img_reduce_default),
+  GM.getValue("img_bbon", img_bbon_default),
+  GM.getValue("img_bboff", img_bboff_default),
   GM.getValue("opacity", opacity_default),
 ]).then(function([
   width_type_value,
@@ -801,6 +1146,8 @@ Promise.all([
   height_value,
   img_expand_value,
   img_reduce_value,
+  img_bbon_value,
+  img_bboff_value,
   opacity_value,
 ]) {
   width = width_value;
@@ -816,10 +1163,10 @@ Promise.all([
   }
   img_expand = img_expand_value;
   img_reduce = img_reduce_value;
+  img_bbon = img_bbon_value;
+  img_bboff = img_bboff_value;
   opacity = opacity_value;
   let images = document.querySelectorAll("td.messCase2 > div[id^='para'] img" +
-    ":not([src^=\"http://forum-images.hardware.fr\"])" +
-    ":not([src^=\"https://forum-images.hardware.fr\"])" +
     ":not([src^=\"data:image\"])");
   for(let img of images) {
     if(img.complete) {
