@@ -1,0 +1,26 @@
+/* ==UserStyle==
+@name          [HFR] Unhighlight Text Fragments
+@version       1.0.0
+@namespace     roger21.free.fr
+@description   Permet de désactiver le surlignage des cibles des liens en « fragments de texte » dans les posts.
+==/UserStyle== */
+
+/*
+
+$Rev: 4921 $
+
+historique :
+1.0.0 (07/09/2026) :
+- creation
+
+*/
+
+@-moz-document domain("forum.hardware.fr") {
+
+  div[id^=\"para\"] ::target-text{
+    background-color: transparent !important;
+    color: inherit !important;
+    text-decoration: inherit !important;
+  }
+
+}
