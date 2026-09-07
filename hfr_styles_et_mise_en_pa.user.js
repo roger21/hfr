@@ -1,15 +1,15 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.2.2
+// @version       1.3.0
 // @namespace     roger21.free.fr
-// @description   Permet de supprimer les pieds de page, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes et homogénéiser l'affichage des images et des smileys (le tout étant configurable).
+// @description   Permet de supprimer les pieds de page et certains éléments en haut des pages, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes, supprimer les target blank, homogénéiser l'affichage des images et des smileys et désactiver le surlignage des cibles des liens en fragments de texte (le tout étant configurable).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_styles_et_mise_en_pa.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_styles_et_mise_en_pa.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_styles_et_mise_en_pa.user.js
-// @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
+// @supportURL    https://forum.hardware.fr/hfr/Programmation/Divers-6/sujet_148758_1.htm
 // @homepageURL   http://roger21.free.fr/hfr/
 // @noframes
 // @grant         GM.getValue
@@ -37,9 +37,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4618 $
+// $Rev: 4923 $
 
 // historique :
+// 1.3.0 (07/09/2026) :
+// - ajout d'une option pour supprimer « les target="_blank" » dans les liens
+// - ajout d'une option pour désactiver le surlignage des cibles des liens en « fragments de texte »
 // 1.2.2 (10/03/2026) :
 // - mise à jour de la gestion des icônes de [HFR] Copié/Collé pour la reconversion en ->
 // image dans les quotes
@@ -133,6 +136,7 @@ var smp_taille_normale_defaut = false;
 var smp_hauteur_normale_defaut = 50;
 var smp_unite_normale_defaut = "vh";
 var smp_images_smileys_defaut = false;
+var smp_text_fragments_defaut = false;
 var smp_supprimer_espaces_defaut = false;
 var smp_supprimer_regles_defaut = false;
 var smp_supprimer_sujets_defaut = false;
@@ -140,6 +144,7 @@ var smp_supprimer_version_defaut = false;
 var smp_supprimer_copyright_defaut = false;
 var smp_toyonos_quotes_defaut = false;
 var smp_emojis_quotes_defaut = false;
+var smp_target_blank_defaut = "aucun";
 
 /* ---------------------- */
 /* les variables globales */
@@ -156,6 +161,7 @@ var smp_taille_normale;
 var smp_hauteur_normale;
 var smp_unite_normale;
 var smp_images_smileys;
+var smp_text_fragments;
 var smp_supprimer_espaces;
 var smp_supprimer_regles;
 var smp_supprimer_sujets;
@@ -163,6 +169,7 @@ var smp_supprimer_version;
 var smp_supprimer_copyright;
 var smp_toyonos_quotes;
 var smp_emojis_quotes;
+var smp_target_blank;
 
 /* -------------- */
 /* les styles css */
@@ -202,6 +209,8 @@ style.textContent =
   "#gm_hfr_semep_config_window div.gm_hfr_semep_mise_en_page_div:not(:last-child)" +
   "{margin-bottom:4px;}" +
   "#gm_hfr_semep_config_window input[type=\"checkbox\"]{margin:0 0 1px 1px;" +
+  "vertical-align:text-bottom;}" +
+  "#gm_hfr_semep_config_window input[type=\"radio\"]{margin:0 0 1px 1px;" +
   "vertical-align:text-bottom;}" +
   "#gm_hfr_semep_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
   "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;height:14px;}" +
@@ -423,6 +432,18 @@ images_smileys_p.appendChild(create_help_button(165,
   "en bas du texte."));
 styles_fieldset.appendChild(images_smileys_p);
 
+// text_fragments
+var text_fragments_p = document.createElement("p");
+var text_fragments_checkbox = document.createElement("input");
+text_fragments_checkbox.setAttribute("type", "checkbox");
+text_fragments_checkbox.setAttribute("id", "gm_hfr_semep_text_fragments_checkbox");
+text_fragments_p.appendChild(text_fragments_checkbox);
+var text_fragments_label = document.createElement("label");
+text_fragments_label.textContent = " désactiver le surlignage des cibles des liens en « fragments de texte » ";
+text_fragments_label.setAttribute("for", "gm_hfr_semep_text_fragments_checkbox");
+text_fragments_p.appendChild(text_fragments_label);
+styles_fieldset.appendChild(text_fragments_p);
+
 // section mise_em_page
 var mise_em_page_fieldset = document.createElement("fieldset");
 var mise_em_page_legend = document.createElement("legend");
@@ -527,6 +548,59 @@ emojis_div.appendChild(emojis_label);
 quotes_div.appendChild(emojis_div);
 mise_em_page_fieldset.appendChild(quotes_div);
 
+// target blank
+var target_p = document.createElement("p");
+target_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
+target_p.textContent = "Supprimer les « target=\"_blank\" » dans les liens :";
+mise_em_page_fieldset.appendChild(target_p);
+var target_div = document.createElement("div");
+target_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
+var target_aucun_div = document.createElement("div");
+var target_aucun_radio = document.createElement("input");
+target_aucun_radio.setAttribute("type", "radio");
+target_aucun_radio.setAttribute("id", "gm_hfr_semep_target_aucun_radio");
+target_aucun_radio.setAttribute("name", "gm_hfr_semep_target_radios");
+target_aucun_div.appendChild(target_aucun_radio);
+var target_aucun_label = document.createElement("label");
+target_aucun_label.textContent = " aucun";
+target_aucun_label.setAttribute("for", "gm_hfr_semep_target_aucun_radio");
+target_aucun_div.appendChild(target_aucun_label);
+target_div.appendChild(target_aucun_div);
+var target_page_div = document.createElement("div");
+var target_page_radio = document.createElement("input");
+target_page_radio.setAttribute("type", "radio");
+target_page_radio.setAttribute("id", "gm_hfr_semep_target_page_radio");
+target_page_radio.setAttribute("name", "gm_hfr_semep_target_radios");
+target_page_div.appendChild(target_page_radio);
+var target_page_label = document.createElement("label");
+target_page_label.textContent = " vers la page";
+target_page_label.setAttribute("for", "gm_hfr_semep_target_page_radio");
+target_page_div.appendChild(target_page_label);
+target_div.appendChild(target_page_div);
+var target_forum_div = document.createElement("div");
+var target_forum_radio = document.createElement("input");
+target_forum_radio.setAttribute("type", "radio");
+target_forum_radio.setAttribute("id", "gm_hfr_semep_target_forum_radio");
+target_forum_radio.setAttribute("name", "gm_hfr_semep_target_radios");
+target_forum_div.appendChild(target_forum_radio);
+var target_forum_label = document.createElement("label");
+target_forum_label.textContent = " vers le forum";
+target_forum_label.setAttribute("for", "gm_hfr_semep_target_forum_radio");
+target_forum_div.appendChild(target_forum_label);
+target_div.appendChild(target_forum_div);
+var target_tous_div = document.createElement("div");
+var target_tous_radio = document.createElement("input");
+target_tous_radio.setAttribute("type", "radio");
+target_tous_radio.setAttribute("id", "gm_hfr_semep_target_tous_radio");
+target_tous_radio.setAttribute("name", "gm_hfr_semep_target_radios");
+target_tous_div.appendChild(target_tous_radio);
+var target_tous_label = document.createElement("label");
+target_tous_label.textContent = " tous";
+target_tous_label.setAttribute("for", "gm_hfr_semep_target_tous_radio");
+target_tous_div.appendChild(target_tous_label);
+target_div.appendChild(target_tous_div);
+mise_em_page_fieldset.appendChild(target_div);
+
 // rechargement de la page et boutons de validation et de fermeture
 var save_close_div = document.createElement("div");
 save_close_div.setAttribute("class", "gm_hfr_semep_save_close_div");
@@ -595,6 +669,7 @@ function save_config_window() {
     smp_unite_normale = smp_unite_normale_defaut;
   }
   smp_images_smileys = images_smileys_checkbox.checked;
+  smp_text_fragments = text_fragments_checkbox.checked;
   smp_supprimer_espaces = espaces_checkbox.checked;
   smp_supprimer_regles = regles_checkbox.checked;
   smp_supprimer_sujets = sujets_checkbox.checked;
@@ -602,6 +677,9 @@ function save_config_window() {
   smp_supprimer_copyright = copyright_checkbox.checked;
   smp_toyonos_quotes = toyonos_checkbox.checked;
   smp_emojis_quotes = emojis_checkbox.checked;
+  smp_target_blank = target_page_radio.checked ? "page" :
+    (target_forum_radio.checked ? "forum" :
+      (target_tous_radio.checked ? "tous" : "aucun"));
   // fermeture de la fenêtre
   hide_config_window();
   // enregistrement des paramètres
@@ -617,6 +695,7 @@ function save_config_window() {
     GM.setValue("smp_hauteur_normale", smp_hauteur_normale),
     GM.setValue("smp_unite_normale", smp_unite_normale),
     GM.setValue("smp_images_smileys", smp_images_smileys),
+    GM.setValue("smp_text_fragments", smp_text_fragments),
     GM.setValue("smp_supprimer_espaces", smp_supprimer_espaces),
     GM.setValue("smp_supprimer_regles", smp_supprimer_regles),
     GM.setValue("smp_supprimer_sujets", smp_supprimer_sujets),
@@ -624,6 +703,7 @@ function save_config_window() {
     GM.setValue("smp_supprimer_copyright", smp_supprimer_copyright),
     GM.setValue("smp_toyonos_quotes", smp_toyonos_quotes),
     GM.setValue("smp_emojis_quotes", smp_emojis_quotes),
+    GM.setValue("smp_target_blank", smp_target_blank),
   ]).then(function() {
     if(info_reload_checkbox.checked) {
       window.location.reload(true);
@@ -670,6 +750,7 @@ function show_config_window() {
   taille_normale_checkbox.checked = smp_taille_normale;
   hauteur_normale_input.value = smp_hauteur_normale + (smp_unite_normale === "px" ? "px" : "%");
   images_smileys_checkbox.checked = smp_images_smileys;
+  text_fragments_checkbox.checked = smp_text_fragments;
   espaces_checkbox.checked = smp_supprimer_espaces;
   regles_checkbox.checked = smp_supprimer_regles;
   sujets_checkbox.checked = smp_supprimer_sujets;
@@ -677,6 +758,10 @@ function show_config_window() {
   copyright_checkbox.checked = smp_supprimer_copyright;
   toyonos_checkbox.checked = smp_toyonos_quotes;
   emojis_checkbox.checked = smp_emojis_quotes;
+  target_aucun_radio.checked = smp_target_blank === "aucun";
+  target_page_radio.checked = smp_target_blank === "page";
+  target_forum_radio.checked = smp_target_blank === "forum";
+  target_tous_radio.checked = smp_target_blank === "tous";
   info_reload_checkbox.checked = false;
   // affichage de la fenêtre
   config_window.style.visibility = "visible";
@@ -736,6 +821,7 @@ Promise.all([
   GM.getValue("smp_hauteur_normale", smp_hauteur_normale_defaut),
   GM.getValue("smp_unite_normale", smp_unite_normale_defaut),
   GM.getValue("smp_images_smileys", smp_images_smileys_defaut),
+  GM.getValue("smp_text_fragments", smp_text_fragments_defaut),
   GM.getValue("smp_supprimer_espaces", smp_supprimer_espaces_defaut),
   GM.getValue("smp_supprimer_regles", smp_supprimer_regles_defaut),
   GM.getValue("smp_supprimer_sujets", smp_supprimer_sujets_defaut),
@@ -743,6 +829,7 @@ Promise.all([
   GM.getValue("smp_supprimer_copyright", smp_supprimer_copyright_defaut),
   GM.getValue("smp_toyonos_quotes", smp_toyonos_quotes_defaut),
   GM.getValue("smp_emojis_quotes", smp_emojis_quotes_defaut),
+  GM.getValue("smp_target_blank", smp_target_blank_defaut),
 ]).then(function([
   smp_afficher_icone_value,
   smp_image_icone_value,
@@ -755,6 +842,7 @@ Promise.all([
   smp_hauteur_normale_value,
   smp_unite_normale_value,
   smp_images_smileys_value,
+  smp_text_fragments_value,
   smp_supprimer_espaces_value,
   smp_supprimer_regles_value,
   smp_supprimer_sujets_value,
@@ -762,6 +850,7 @@ Promise.all([
   smp_supprimer_copyright_value,
   smp_toyonos_quotes_value,
   smp_emojis_quotes_value,
+  smp_target_blank_value,
 ]) {
   // initialisation des variables globales
   smp_afficher_icone = smp_afficher_icone_value;
@@ -775,6 +864,7 @@ Promise.all([
   smp_hauteur_normale = smp_hauteur_normale_value;
   smp_unite_normale = smp_unite_normale_value;
   smp_images_smileys = smp_images_smileys_value;
+  smp_text_fragments = smp_text_fragments_value;
   smp_supprimer_espaces = smp_supprimer_espaces_value;
   smp_supprimer_regles = smp_supprimer_regles_value;
   smp_supprimer_sujets = smp_supprimer_sujets_value;
@@ -782,6 +872,7 @@ Promise.all([
   smp_supprimer_copyright = smp_supprimer_copyright_value;
   smp_toyonos_quotes = smp_toyonos_quotes_value;
   smp_emojis_quotes = smp_emojis_quotes_value;
+  smp_target_blank = smp_target_blank_value;
   // affichage du bouton
   if(smp_afficher_icone) {
     let l_onglets = document.querySelector("table.none tr td div.cadreonglet");
@@ -842,6 +933,15 @@ Promise.all([
       "padding:0 !important;vertical-align:bottom !important;}span.gm_hfr_tdi_r21_img_span" +
       "{vertical-align:bottom !important;}";
     document.getElementsByTagName("head")[0].appendChild(style_images_smileys);
+  }
+  // désactiver le surlignage des cibles des liens en fragments de texte
+  if(smp_text_fragments) {
+    let style_text_fragments = document.createElement("style");
+    style_text_fragments.setAttribute("type", "text/css");
+    style_text_fragments.textContent =
+      "div[id^=\"para\"] ::target-text{background-color: transparent !important;" +
+      "color: inherit !important;text-decoration: inherit !important;}";
+    document.getElementsByTagName("head")[0].appendChild(style_text_fragments);
   }
   // suppression des espaces supplémentaires sous l'arborescence
   if(smp_supprimer_espaces) {
@@ -930,5 +1030,28 @@ Promise.all([
   if(smp_emojis_quotes) {
     a2img("https://gitlab.com/BZHDeveloper/HFR/raw/master/emojis-micro/");
     a2img("https://github.com/BZHDeveloper1986/hfr/blob/main/emojis-micro/");
+  }
+  // suppression des target="_blank" dans les liens
+  if(smp_target_blank !== "aucun") {
+    let links = document.getElementById("mesdiscussions").querySelectorAll(
+      "table.messagetable td.messCase2 div[id^='para'] a.cLink[target=\"_blank\"]");
+    let starts_with = "";
+    if(smp_target_blank === "page") {
+      let page = window.location.href;
+      let hash_index = page.indexOf("#")
+      if(hash_index !== -1) {
+        starts_with = page.substring(0, hash_index);
+      } else {
+        starts_with = page;
+      }
+    }
+    if(smp_target_blank === "forum") {
+      starts_with = "https://forum.hardware.fr/"
+    }
+    for(let link of links) {
+      if(link.href.startsWith(starts_with)) {
+        link.removeAttribute("target");
+      }
+    }
   }
 });
