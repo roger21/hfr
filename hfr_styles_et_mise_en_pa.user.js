@@ -37,11 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4923 $
+// $Rev: 4938 $
 
 // historique :
 // 1.3.0 (07/09/2026) :
-// - ajout d'une option pour supprimer « les target="_blank" » dans les liens
+// - ajout d'une option pour supprimer les « target="_blank" » dans les liens
 // - ajout d'une option pour désactiver le surlignage des cibles des liens en « fragments de texte »
 // 1.2.2 (10/03/2026) :
 // - mise à jour de la gestion des icônes de [HFR] Copié/Collé pour la reconversion en ->
