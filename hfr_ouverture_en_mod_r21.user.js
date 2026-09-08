@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Ouverture en masse mod_r21
-// @version       4.2.6
+// @version       4.2.7
 // @namespace     roger21.free.fr
 // @description   Permet d'ouvrir ses drapeaux dans de nouveaux onglets avec un seul clic.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -27,7 +27,7 @@
 
 /*
 
-Copyright © 2011-2012, 2014-2022 roger21@free.fr
+Copyright © 2011-2012, 2014-2022, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -42,9 +42,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3561 $
+// $Rev: 4945 $
 
 // historique :
+// 4.2.7 (08/09/2026) :
+// - mise à jour des cats (nouvelle cat ia)
 // 4.2.6 (11/06/2022) :
 // - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
 // éviter des débordements de ligne sur certaines configurations
@@ -269,28 +271,29 @@ var refresh_every_time = refresh_every_time_default;
 var compact_cats = compact_cats_default;
 var keep_cat_name = keep_cat_name_default;
 var excluded_topics = Array.from(excluded_topics_default);
-var cat_cat = {
+const cat2id = {
+  "Hardware": "1",
+  "HardwarePeripheriques": "16",
+  "OrdinateursPortables": "15",
+  "OverclockingCoolingModding": "2",
+  "electroniquedomotiquediy": "30",
+  "gsmgpspda": "23",
+  "apple": "25",
+  "VideoSon": "3",
+  "Photonumerique": "14",
+  "JeuxVideo": "5",
+  "WindowsSoftware": "4",
+  "reseauxpersosoho": "22",
+  "systemereseauxpro": "21",
+  "OSAlternatifs": "11",
+  "Programmation": "10",
+  "ia": "32",
+  "Graphisme": "12",
+  "AchatsVentes": "6",
+  "EmploiEtudes": "8",
+  "Discussions": "13",
   "service-client-shophfr": "31",
-  Hardware: "1",
-  HardwarePeripheriques: "16",
-  OrdinateursPortables: "15",
-  OverclockingCoolingModding: "2",
-  electroniquedomotiquediy: "30",
-  gsmgpspda: "23",
-  apple: "25",
-  VideoSon: "3",
-  Photonumerique: "14",
-  JeuxVideo: "5",
-  WindowsSoftware: "4",
-  reseauxpersosoho: "22",
-  systemereseauxpro: "21",
-  OSAlternatifs: "11",
-  Programmation: "10",
-  Graphisme: "12",
-  AchatsVentes: "6",
-  EmploiEtudes: "8",
-  Setietprojetsdistribues: "9",
-  Discussions: "13",
+  "Setietprojetsdistribues": "9",
 };
 var pm_page = "https://forum.hardware.fr/forum1.php?config=hfr.inc&cat=prive&page=1";
 var refresh_after_timer = null;
@@ -326,7 +329,7 @@ function get_cat(p_href) {
   if(p_href.includes(".htm")) {
     let l_cat = /\/hfr\/([^\/]+)\//.exec(p_href);
     if(l_cat !== null) {
-      return cat_cat[l_cat[1]];
+      return cat2id[l_cat[1]];
     }
   }
   // url à paramètres

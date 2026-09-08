@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Recherche Google et DuckDuckGo
-// @version       2.1.3
+// @version       2.1.4
 // @namespace     roger21.free.fr
 // @description   Remplace le bouton de recherche du forum (en haut à droite) par un champ de recherche par Google, DuckDuckGo ou les deux.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -39,9 +39,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4831 $
+// $Rev: 4947 $
 
 // historique :
+// 2.1.4 (08/09/2026) :
+// - mise à jour des cats et des sous-cats (nouvelle cat ia)
+// - correction du code des cats et des sous-cats
 // 2.1.3 (15/08/2026) :
 // - amélioration de la récupération de l'url déconnectée (verbeuse) du topic
 // 2.1.2 (13/01/2026) :
@@ -208,14 +211,8 @@ let do_debug = false;
 /* les correspondances cats / sous-cats <=> url */
 /* -------------------------------------------- */
 
-let cats = {
+const cats = {
   cat0: {
-    key: "service-client-shophfr",
-    name: "Service client shop.hardware.fr",
-    subcats: {
-    },
-  },
-  cat1: {
     key: "Hardware",
     name: "Hardware",
     subcats: {
@@ -281,7 +278,7 @@ let cats = {
       },
     },
   },
-  cat2: {
+  cat1: {
     key: "HardwarePeripheriques",
     name: "Hardware - Périphériques",
     subcats: {
@@ -319,7 +316,7 @@ let cats = {
       },
     },
   },
-  cat3: {
+  cat2: {
     key: "OrdinateursPortables",
     name: "Ordinateurs portables",
     subcats: {
@@ -357,7 +354,7 @@ let cats = {
       },
     },
   },
-  cat4: {
+  cat3: {
     key: "OverclockingCoolingModding",
     name: "Overclocking, Cooling & Modding",
     subcats: {
@@ -391,7 +388,7 @@ let cats = {
       },
     },
   },
-  cat5: {
+  cat4: {
     key: "electroniquedomotiquediy",
     name: "Electronique, domotique, DIY",
     subcats: {
@@ -425,7 +422,7 @@ let cats = {
       },
     },
   },
-  cat6: {
+  cat5: {
     key: "gsmgpspda",
     name: "Technologies Mobiles",
     subcats: {
@@ -471,7 +468,7 @@ let cats = {
       },
     },
   },
-  cat7: {
+  cat6: {
     key: "apple",
     name: "Apple",
     subcats: {
@@ -505,7 +502,7 @@ let cats = {
       },
     },
   },
-  cat8: {
+  cat7: {
     key: "VideoSon",
     name: "Video & Son",
     subcats: {
@@ -527,7 +524,7 @@ let cats = {
       },
     },
   },
-  cat9: {
+  cat8: {
     key: "Photonumerique",
     name: "Photo numérique",
     subcats: {
@@ -573,7 +570,7 @@ let cats = {
       },
     },
   },
-  cat10: {
+  cat9: {
     key: "JeuxVideo",
     name: "Jeux Video",
     subcats: {
@@ -607,7 +604,7 @@ let cats = {
       },
     },
   },
-  cat11: {
+  cat10: {
     key: "WindowsSoftware",
     name: "Windows & Software",
     subcats: {
@@ -661,7 +658,7 @@ let cats = {
       },
     },
   },
-  cat12: {
+  cat11: {
     key: "reseauxpersosoho",
     name: "Réseaux grand public / SoHo",
     subcats: {
@@ -699,7 +696,7 @@ let cats = {
       },
     },
   },
-  cat13: {
+  cat12: {
     key: "systemereseauxpro",
     name: "Systèmes & Réseaux Pro",
     subcats: {
@@ -737,7 +734,7 @@ let cats = {
       },
     },
   },
-  cat14: {
+  cat13: {
     key: "OSAlternatifs",
     name: "Linux et OS Alternatifs",
     subcats: {
@@ -775,7 +772,7 @@ let cats = {
       },
     },
   },
-  cat15: {
+  cat14: {
     key: "Programmation",
     name: "Programmation",
     subcats: {
@@ -887,6 +884,12 @@ let cats = {
         key: "Divers-6",
         name: "Divers",
       },
+    },
+  },
+  cat15: {
+    key: "ia",
+    name: "Intelligence Artificielle",
+    subcats: {
     },
   },
   cat16: {
@@ -1078,6 +1081,12 @@ let cats = {
     },
   },
   cat20: {
+    key: "service-client-shophfr",
+    name: "Service client shop.hardware.fr",
+    subcats: {
+    },
+  },
+  cat21: {
     key: "Setietprojetsdistribues",
     name: "Seti et projets distribués",
     subcats: {

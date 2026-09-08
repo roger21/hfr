@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Permalien
-// @version       2.1.7
+// @version       2.1.8
 // @namespace     roger21.free.fr
 // @description   Ajoute un lien permanent pour les messages (dans la barre du message à droite).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -32,9 +32,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4519 $
+// $Rev: 4944 $
 
 // historique :
+// 2.1.8 (08/09/2026) :
+// - mise à jour des cats (nouvelle cat ia)
+// - simplification du code de gestion des cats
 // 2.1.7 (13/01/2026) :
 // - réorganisation de la liste des cats
 // 2.1.6 (04/03/2021) :
@@ -75,38 +78,30 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 0.9.0 (15/01/2017) :
 // - création
 
-var id2cat = {
-  1: "Hardware",
-  16: "HardwarePeripheriques",
-  15: "OrdinateursPortables",
-  2: "OverclockingCoolingModding",
-  30: "electroniquedomotiquediy",
-  23: "gsmgpspda",
-  25: "apple",
-  3: "VideoSon",
-  14: "Photonumerique",
-  5: "JeuxVideo",
-  4: "WindowsSoftware",
-  22: "reseauxpersosoho",
-  21: "systemereseauxpro",
-  11: "OSAlternatifs",
-  10: "Programmation",
-  12: "Graphisme",
-  6: "AchatsVentes",
-  8: "EmploiEtudes",
-  13: "Discussions",
-  31: "service-client-shophfr",
-  9: "Setietprojetsdistribues",
+const cat2id = {
+  "Hardware": "1",
+  "HardwarePeripheriques": "16",
+  "OrdinateursPortables": "15",
+  "OverclockingCoolingModding": "2",
+  "electroniquedomotiquediy": "30",
+  "gsmgpspda": "23",
+  "apple": "25",
+  "VideoSon": "3",
+  "Photonumerique": "14",
+  "JeuxVideo": "5",
+  "WindowsSoftware": "4",
+  "reseauxpersosoho": "22",
+  "systemereseauxpro": "21",
+  "OSAlternatifs": "11",
+  "Programmation": "10",
+  "ia": "32",
+  "Graphisme": "12",
+  "AchatsVentes": "6",
+  "EmploiEtudes": "8",
+  "Discussions": "13",
+  "service-client-shophfr": "31",
+  "Setietprojetsdistribues": "9",
 };
-
-function indexObj(obj, str) {
-  for(let prop in obj) {
-    if(obj[prop] === str) {
-      return prop;
-    }
-  }
-  return null;
-}
 
 var img = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABV0lEQVR42r2Su0oDQRSG15DCJtiqiakSgnkPIWAtbjSFlqI%2Bgq1PYJFGgnGzc9lZC0F7kajgBW18DbVSBNFvkhECrsnGwoGfnWHPd86cf47npVydWGSCWEx4f1kiUgUVqQaqi0gWxoJlJKtK6zut9Qf6VFrdSC2rKWFVBnpAT4DLnH32byS8IElpKAwwidoOrg0kXbA3QdujEuTQI9VOgHZEJCq9BEY2XIKNYZUtPIWaLtj2voYfK%2B58Fho5neC2LBN40K%2BsmlTedcA7LxC7fTc0YSHJ7Xl%2B3qNnrn06UBlQ7bG%2FQvtBIqxVnp%2FX6IVEi7bnPkxl4MAEOW4w2zpuZ39e24gMQav2nfnWndMV9utA2lZmkPK%2Fum3HE6BnDoA%2F8FxLro1W6%2BgwO2JUxRwVbwl%2BpYUa8h18idvFdFOneyPb%2FTYPneN2cby5N7IEuEWizY4JZ7z%2FWF87%2Bx0mY0rJLAAAAABJRU5ErkJggg%3D%3D";
 
@@ -154,7 +149,7 @@ if(resultp !== null) { // url à paramètres
   } else {
     var resultv = /^https:\/\/forum.hardware.fr\/hfr\/([^\/]+)\/.*sujet_([0-9]+)_[0-9]+\.htm.*$/.exec(window.location.href);
     if(resultv !== null) { // url verbeuse
-      cat = indexObj(id2cat, resultv[1]);
+      cat = cat2id[resultv[1]];
       topic = resultv[2];
     }
   }
