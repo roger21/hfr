@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Aperçu rapide mod_r21
-// @version       2.2.6
+// @version       2.2.7
 // @namespace     roger21.free.fr
 // @description   Rajoute l'aperçu du message en cours d'édition dans la réponse rapide et dans l'édition rapide.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -9,7 +9,7 @@
 // @exclude       https://forum.hardware.fr/message.php*
 // @author        roger21
 // @authororig    toyonos
-// @modifications Désactivation de la disparition de l'aperçu quand la souris est dessus, affichage du contenu des spoilers par défaut dans l'aperçu, disparition immédiate de l'aperçu lorsque l'on clique en dehors, apparition immédiate de l'aperçu l'orsque l'on clique dans la zone d'édition.
+// @modifications Désactivation de la disparition de l'aperçu quand la souris est dessus, affichage du contenu des spoilers par défaut dans l'aperçu, disparition immédiate de l'aperçu lorsque l'on clique en dehors, apparition immédiate de l'aperçu lorsque l'on clique dans la zone d'édition.
 // @modtype       modifications et évolutions
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_apercu_rapid_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_apercu_rapid_mod_r21.user.js
@@ -37,9 +37,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4666 $
+// $Rev: 4978 $
 
 // historique :
+// 2.2.7 (16/09/2026) :
+// - ajout d'une bidouille pour que la protection des caractères spéciaux ->
+// ne fasse pas apparaître des faux ;) dans l'aperçu
 // 2.2.6 (31/03/2026) :
 // - prise en charge des images dimenssionnées avec le bbcode
 // 2.2.5 (12/09/2025) :
@@ -272,7 +275,8 @@ var BBParser = {
       frown: /([^\[]|^):\(/gi,
       redface: /([^\[]|^):o/gi,
       biggrin: /([^\[]|^):D/gi,
-      wink: /([^\[]|^);\)/gi,
+      //wink: /([^\[]|^);\)/gi,
+      wink: /([^\[]|^):winkhfrenhance:/gi,
       tongue: /([^\[]|^):p/gi,
       ohill: /([^\[]|^):\'\(/gi,
       ohwell: /([^\[]|^)(:\/)(?!\/)/gi // this one need a particular regex to avoid mixing up with urls
@@ -362,6 +366,7 @@ var BBParser = {
   },
 
   htmlSpecialChars: function(str) {
+    str = str.replace(/;\)/gi, ":winkhfrenhance:");
     str = str.replace(/&/gi, "&amp;");
     str = str.replace(/\u0022/gi, "&quot;");
     str = str.replace(/\u0027/gi, "&#039;");
