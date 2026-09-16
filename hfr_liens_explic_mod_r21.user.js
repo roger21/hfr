@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name          [HFR] Liens explicites mod_r21
-// @version       2.6.8
+// @version       3.0.0
 // @namespace     roger21.free.fr
-// @description   Remplace le texte des liens internes du forum dans les posts par une description précise du lien.
+// @description   Remplace le texte des liens vers les topics ou les catégories par le nom du topic ou de la catégorie avec la page.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @exclude       https://forum.hardware.fr/message.php*
 // @author        roger21
 // @authororig    turlogh
-// @modifications Recodage en fetch pour ne pas niquer les drapoils, uniformisation et simplification des liens et du fonctionnement, mise à jour des cats et sous-cats, amélioration des fonctionnalités et amélioration du code.
+// @modifications Recodage en fetch pour ne pas niquer ses drapoils, uniformisation et simplification des liens et du fonctionnement, mise à jour des cats et des sous-cats, amélioration des fonctionnalités et amélioration du code.
 // @modtype       réécriture et évolutions
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_liens_explic_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_liens_explic_mod_r21.user.js
@@ -36,9 +36,20 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4944 $
+// $Rev: 4974 $
 
 // historique :
+// 3.0.0 (16/09/2026) :
+// - meilleure gestion des urls verbeuses et corrections diverses
+// - meilleure gestion des liens vers les catégories et gestion de la page
+// - meilleure gestion des permaliens
+// - utilisation de guillemets françaises (...but why?)
+// - utilisation de URL.parse() au lieu de parseUri 1.2.1 (c) Steven Levithan
+// - correction de l'identification des topics ("cat + post" au lieu de "post")
+// - correction de la détection des liens déjà transformés
+// - suppression du support pour le http
+// - clarification et simplification (...you sure?) du code
+// - nouvelle description
 // 2.6.8 (08/09/2026) :
 // - mise à jour des cats et des sous-cats (nouvelle cat ia)
 // - correction et simplification du code de gestion des cats et des sous-cats
@@ -150,7 +161,9 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - ajout d'un .1 sur le numero de version
 // - suppression des lignes vides en bas
 
-/* ====================== Listes de cats et souscats ======================== */
+/* ------------------------------- */
+/* liste des cats et des sous-cats */
+/* ------------------------------- */
 
 const cat2id = {
   "Hardware": "1",
@@ -177,7 +190,7 @@ const cat2id = {
   "Setietprojetsdistribues": "9",
 };
 
-const id2nomcat = {
+const id2cat = {
   "1": "Hardware",
   "16": "Hardware - Périphériques",
   "15": "Ordinateurs portables",
@@ -202,7 +215,7 @@ const id2nomcat = {
   "9": "Seti et projets distribués",
 };
 
-const subcat2id = {
+const scat2id = {
   // Hardware
   "1": {
     "carte-mere": "108",
@@ -456,7 +469,7 @@ const subcat2id = {
   },
 };
 
-const id2nomsubcat = {
+const id2scat = {
   // Hardware
   "1": {
     "108": "Carte mère",
@@ -710,202 +723,152 @@ const id2nomsubcat = {
   },
 };
 
-/* ================================= Main ================================== */
+/* ----------------------------- */
+/* fonctions d'analyse des liens */
+/* ----------------------------- */
 
-var re_title = "(.*?)(?: - Page : [0-9]+)?(?: - (?:Nano-|Feed-)?[^-]+)?(?: - (?:Hardware - )?[^-]+) - FORUM HardWare.fr";
-var liens = document.getElementById("mesdiscussions").querySelectorAll(
-  "table.messagetable td.messCase2 div[id^='para'] > span:not(.signature) a.cLink, " +
-  "table.messagetable td.messCase2 div[id^='para'] > div:not(.edited) a.cLink, " +
-  "table.messagetable td.messCase2 div[id^='para'] > *:not(span):not(div) a.cLink");
-var currentURL = parseHFR(document.URL);
-var timeID;
-
-boucleliens: for(let lien of liens) {
-  if(lien.hostname !== "forum.hardware.fr") {
-    continue;
-  }
-  if(!testText(lien)) {
-    continue;
-  }
-  let linkURL = parseHFR(lien.href);
-  if(linkURL.type === "!topic") {
-    continue;
-  }
-  lien.setAttribute("title", "[HFR] liens explicites");
-  // Gestion des liens intratopics
-  if(linkURL.topic === currentURL.topic) {
-    let doctitle = document.querySelector("html head title").firstChild.nodeValue.match(re_title).pop();
-    if(linkURL.type === "search") {
-      lien.textContent = "Recherche topic \"" + doctitle + "\" sur le mot \"" + linkURL.mot + "\"";
-    } else if(linkURL.type === "psearch") {
-      lien.textContent = "Recherche topic \"" + doctitle + "\" sur le pseudo \"" + linkURL.pseudo + "\"";
-    } else if(linkURL.type === "ppsearch") {
-      lien.textContent = "Recherche topic \"" + doctitle + "\" sur le mot \"" + linkURL.mot +
-        "\" et le pseudo \"" + linkURL.pseudo + "\"";
-    } else if(linkURL.type === "native" || linkURL.type === "rewrite") {
-      if(linkURL.page === currentURL.page) {
-        lien.textContent = "Topic \"" + doctitle + "\", cette page";
-      } else {
-        lien.textContent = "Topic \"" + doctitle + "\", page " + linkURL.page;
+function parse_hfr(url) {
+  let parsed_url = URL.parse(url);
+  let params_url = parsed_url.searchParams;
+  let parsed_hfr = {};
+  let last_slash = parsed_url.pathname.lastIndexOf("/");
+  parsed_hfr.directory = parsed_url.pathname.substring(0, last_slash + 1);
+  parsed_hfr.file = parsed_url.pathname.substring(last_slash + 1);
+  if(parsed_url.origin === "https://forum.hardware.fr") {
+    // params
+    if(parsed_hfr.file === "forum2.php") {
+      parsed_hfr.cat = params_url.get("cat");
+      if(parsed_hfr.cat && params_url.get("post")) {
+        parsed_hfr.scat = params_url.get("subcat");
+        parsed_hfr.topic = parsed_hfr.cat + "_" + params_url.get("post");
+        parsed_hfr.page = params_url.get("page") ?
+          " page " + params_url.get("page") :
+          (params_url.has("numreponse") ? " permalien" : " page 1");
+        parsed_hfr.mot = params_url.get("word");
+        parsed_hfr.pseudo = params_url.get("spseudo") ?
+          params_url.get("spseudo").replace(/\+/g, " ") : null;
+        parsed_hfr.ok = true;
       }
     }
-  }
-  // Gestion des liens extratopics
-  else {
-    switch(linkURL.type) {
-      case "rewrite":
-        lien.textContent = "Topic \"" + linkURL.nomtopic + "\", page " + linkURL.page;
-        lien.setAttribute("hlexp_page", linkURL.page);
-        break;
-      case "native":
-        lien.textContent = "Topic de la cat " + id2nomcat[linkURL.cat] +
-          (linkURL.souscat ? " / " + id2nomsubcat[linkURL.cat][linkURL.souscat] : "") +
-          ", page " + linkURL.page;
-        lien.setAttribute("hlexp_page", linkURL.page);
-        break;
-      case "search":
-        lien.textContent = "Recherche topic de la cat " + id2nomcat[linkURL.cat] +
-          (linkURL.souscat ? " / " + id2nomsubcat[linkURL.cat][linkURL.souscat] : "") +
-          " sur le mot \"" + linkURL.mot + "\"";
-        lien.setAttribute("hlexp_recherche", " sur le mot \"" + linkURL.mot + "\"");
-        break;
-      case "psearch":
-        lien.textContent = "Recherche topic de la cat " + id2nomcat[linkURL.cat] +
-          (linkURL.souscat ? " / " + id2nomsubcat[linkURL.cat][linkURL.souscat] : "") +
-          " sur le pseudo \"" + linkURL.pseudo + "\"";
-        lien.setAttribute("hlexp_recherche", " sur le pseudo \"" + linkURL.pseudo + "\"");
-        break;
-      case "ppsearch":
-        lien.textContent = "Recherche topic de la cat " + id2nomcat[linkURL.cat] +
-          (linkURL.souscat ? " / " + id2nomsubcat[linkURL.cat][linkURL.souscat] : "") +
-          " sur le mot \"" + linkURL.mot + "\" et le pseudo \"" + linkURL.pseudo + "\"";
-        lien.setAttribute("hlexp_recherche", " sur le mot \"" + linkURL.mot +
-          "\" et le pseudo \"" + linkURL.pseudo + "\"");
-        break;
-      case "liste":
-        lien.textContent = "Liste de sujets de la cat " + id2nomcat[linkURL.cat] +
-          (linkURL.souscat ? " / " + id2nomsubcat[linkURL.cat][linkURL.souscat] : "");
-        continue boucleliens;
-    }
-    if(linkURL.protocol === currentURL.protocol) {
-      fetch(lien.getAttribute("href"), {
-        method: "GET",
-        mode: "same-origin",
-        credentials: "omit",
-        referrer: "",
-        referrerPolicy: "no-referrer"
-      }).then(function(r) {
-        return r.text();
-      }).then(function(r) {
-        lien.setAttribute("title", "[HFR] liens explicites");
-        let p = new DOMParser();
-        let d = p.parseFromString(r, "text/html");
-        let doctitle = d.documentElement.querySelector("html head title").firstChild.nodeValue.match(re_title).pop();
-        if(lien.hasAttribute("hlexp_recherche")) {
-          lien.textContent = "Recherche topic \"" + doctitle + "\"" + lien.getAttribute("hlexp_recherche");
-        } else {
-          lien.textContent = "Topic \"" + doctitle + "\", page " + lien.getAttribute("hlexp_page");
+    // verbeux
+    else {
+      let cats = parsed_hfr.directory.match(/^\/hfr\/([^\/]+)\/(?:([^\/]+)\/)?$/);
+      if(cats !== null) {
+        parsed_hfr.cat = cat2id[cats[1]];
+        parsed_hfr.scat = typeof cats[2] !== "undefined" ?
+          scat2id[parsed_hfr.cat][cats[2]] : null;
+        let sujet = parsed_hfr.file.match(/^([\w-]*)sujet[_-]([0-9]+)(?:_([0-9]+))?.htm$/);
+        if(sujet !== null) {
+          if(sujet[1] === "liste_") {
+            parsed_hfr.page = " page " + sujet[2];
+          } else {
+            parsed_hfr.topic = parsed_hfr.cat + "_" + sujet[2];
+            parsed_hfr.page = " page " + sujet[3];
+          }
+          parsed_hfr.ok = true;
         }
-      }).catch(function(e) {
-        console.log("[HFR] liens explicites mod_r21 ERROR fetch : " + e);
-      });
+      }
     }
   }
+  return parsed_hfr;
 }
 
-/* ========================= Fonctions auxiliaires ========================== */
-
-function parseHFR(str) {
-  let parsed = parseUri(str);
-  if(parsed.host !== "forum.hardware.fr" || (parsed.protocol !== "https" && parsed.protocol !== "http")) {
-    parsed.type = "!topic";
-  } else if(parsed.file === "forum2.php") {
-    parsed.cat = parsed.queryKey.cat;
-    parsed.topic = parsed.queryKey.post;
-    if(parsed.cat && parsed.topic) {
-      if(parsed.queryKey.subcat) {
-        parsed.souscat = parsed.queryKey.subcat;
-      }
-      parsed.page = parsed.queryKey.page ? parsed.queryKey.page : 1;
-      if(parsed.queryKey.word && parsed.queryKey.spseudo) {
-        parsed.type = "ppsearch";
-        parsed.mot = parsed.queryKey.word;
-        parsed.pseudo = parsed.queryKey.spseudo.replace(/\+/g, " ");
-      } else if(parsed.queryKey.word) {
-        parsed.type = "search";
-        parsed.mot = parsed.queryKey.word;
-      } else if(parsed.queryKey.spseudo) {
-        parsed.type = "psearch";
-        parsed.pseudo = parsed.queryKey.spseudo.replace(/\+/g, " ");
-      } else {
-        parsed.type = "native";
-      }
-    } else {
-      parsed.type = "!topic";
-    }
-  } else {
-    try {
-      let dir = parsed.directory.match(/^\/hfr\/([\w-]+)\/(([\w-]+)\/)?$/);
-      parsed.cat = cat2id[dir[1]];
-      if(typeof dir[3] !== "undefined") {
-        parsed.souscat = subcat2id[parsed.cat][dir[3]];
-      } else {
-        parsed.souscat = "";
-      }
-      let topic = parsed.file.match(/^([\w-]*)[_-]sujet[_-]([0-9]+)(_([0-9]+))?.htm$/);
-      parsed.nomtopic = topic[1].replace(/-/g, " ");
-      parsed.topic = topic[2];
-      if(typeof topic[4] !== "undefined") {
-        parsed.page = topic[4];
-      } else {
-        parsed.page = 1;
-      }
-      parsed.type = parsed.topic === "1" ? "liste" : "rewrite";
-    } catch (e) {
-      parsed.type = "!topic";
-    }
-  }
-  return parsed;
-}
-
-function testText(lien) {
-  try {
-    let link = lien.href;
-    let bouts = lien.textContent.split(" [...] ");
-    if(bouts.length === 2 && link.indexOf(bouts[0]) === 0 && link.indexOf(bouts[1]) + bouts[1].length === link.length) {
+function naked_link(link) {
+  if(link.href && link.textContent) {
+    let href = link.href;
+    let parts = link.textContent.split(" [...] ");
+    if((parts.length === 1 && href === parts[0]) ||
+      (parts.length === 2 && href.indexOf(parts[0]) === 0 &&
+        href.indexOf(parts[1]) + parts[1].length === href.length)) {
       return true;
     }
-  } catch (e) {}
+  }
   return false;
 }
 
-function parseUri(str) {
-  let o = {
-    strictMode: true,
-    key: [
-      "source", "protocol", "authority", "userInfo", "user", "password", "host",
-      "port", "relative", "path", "directory", "file", "query", "anchor"
-    ],
-    q: {
-      name: "queryKey",
-      parser: /(?:^|&)([^&=]*)=?([^&]*)/g
-    },
-    parser: {
-      strict: /^(?:([^:\/?#]+):)?(?:\/\/((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?))?((((?:[^?#\/]*\/)*)([^?#]*))(?:\?([^#]*))?(?:#(.*))?)/,
-      loose: /^(?:(?![^:@]+:[^:@\/]*@)([^:\/?#.]+):)?(?:\/\/)?((?:(([^:@]*):?([^:@]*))?@)?([^:\/?#]*)(?::(\d*))?)(((\/(?:[^?#](?![^?#\/]*\.[^?#\/.]+(?:[?#]|$)))*\/?)?([^?#\/]*))(?:\?([^#]*))?(?:#(.*))?)/
-    }
-  };
-  let m = o.parser[o.strictMode ? "strict" : "loose"].exec(str);
-  let uri = {};
-  let i = 14;
-  while(i--) {
-    uri[o.key[i]] = m[i] || "";
+/* -------------------- */
+/* traitement des liens */
+/* -------------------- */
+
+// constantes
+const script_name = "[HFR] Liens explicites";
+const re_title = "(.*?)(?: - Page : [0-9]+)?(?: - (?:Nano-|Feed-)?[^-]+)?" +
+  "(?: - (?:Hardware - )?[^-]+) - FORUM HardWare.fr";
+const links = document.getElementById("mesdiscussions").querySelectorAll(
+  "table.messagetable td.messCase2 div[id^='para'] > span:not(.signature) a.cLink, " +
+  "table.messagetable td.messCase2 div[id^='para'] > div:not(.edited) a.cLink, " +
+  "table.messagetable td.messCase2 div[id^='para'] > *:not(span):not(div) a.cLink");
+const current_url = parse_hfr(window.location.href);
+
+// traitement des liens
+for(let link of links) {
+  // lien déjà transformé (on passe)
+  if(!naked_link(link)) {
+    continue;
   }
-  uri[o.q.name] = {};
-  uri[o.key[12]].replace(o.q.parser, function($0, $1, $2) {
-    if($1) {
-      uri[o.q.name][$1] = $2;
+  // pas un topic ni une cat (on passe)
+  let link_url = parse_hfr(link.href);
+  if(!link_url.ok) {
+    continue;
+  }
+  // le title
+  link.title = script_name;
+  // la cat / sous-cat
+  let cat_text = " cat « " + id2cat[link_url.cat] + (link_url.scat ?
+    " / " + id2scat[link_url.cat][link_url.scat] : "") + " »";
+  // la page
+  if(link_url.topic === current_url.topic && link_url.page === current_url.page) {
+    link_url.page = " cette page";
+  }
+  let page_text = link_url.page;
+  // recherche sur topic
+  if(link_url.mot || link_url.pseudo) {
+    let search_text = " sur";
+    if(link_url.mot) {
+      search_text += " le mot « " + link_url.mot + " »";
     }
+    if(link_url.mot && link_url.pseudo) {
+      search_text += " et";
+    }
+    if(link_url.pseudo) {
+      search_text += " le pseudo « " + link_url.pseudo + " »";
+    }
+    link.textContent = "Recherche topic de la" + cat_text + search_text;
+    link.setAttribute("hfr_liens_explicites_recherche", search_text);
+  }
+  // topic
+  else if(link_url.topic) {
+    link.textContent = "Topic de la" + cat_text + page_text;
+    link.setAttribute("hfr_liens_explicites_page", page_text);
+  }
+  // cat
+  else {
+    link.textContent = "Liste des sujets de la" + cat_text + page_text;
+    // rien à récupérer (on passe)
+    continue;
+  }
+  // récupération du nom du topic
+  fetch(link.href, {
+    method: "GET",
+    mode: "same-origin",
+    credentials: "omit",
+    referrer: "",
+    referrerPolicy: "no-referrer",
+  }).then(function(r) {
+    return r.text();
+  }).then(function(r) {
+    let p = new DOMParser();
+    let d = p.parseFromString(r, "text/html");
+    let nom = d.documentElement.querySelector("html head title")
+      .firstChild.nodeValue.match(re_title).pop();
+    if(link.hasAttribute("hfr_liens_explicites_recherche")) {
+      link.textContent = "Recherche topic « " + nom + " »" +
+        link.getAttribute("hfr_liens_explicites_recherche");
+    } else {
+      link.textContent = "Topic « " + nom + " »" +
+        link.getAttribute("hfr_liens_explicites_page");
+    }
+  }).catch(function(e) {
+    console.log(script_name + " ERROR fetch : " + e);
   });
-  return uri;
 }
