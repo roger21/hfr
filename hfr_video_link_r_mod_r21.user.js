@@ -40,12 +40,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4997 $
+// $Rev: 5001 $
 
 // historique :
 // 4.1.6 (25/09/2026) :
 // - modification de l'affichage de l'émoji play ->
-// (ajout de marges et suppression de l'espace insécable)
+// (ajout de marges et suppression de l'espace)
 // - ajout d'une classe sur le lien externe de la vidéo
 // 4.1.5 (13/11/2024) :
 // - force le mode "en cliquant" sur les videos dailymotion
