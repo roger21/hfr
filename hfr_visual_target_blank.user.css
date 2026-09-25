@@ -7,10 +7,10 @@
 
 /*
 
-$Rev: 4988 $
+$Rev: 4992 $
 
 historique :
-1.0.0 (xx/xx/2026) :
+1.0.0 (25/09/2026) :
 - création
 
 */
@@ -19,67 +19,34 @@ historique :
 
   #mesdiscussions {
     /* image sombre pour fond clair */
-    --hfr-visual-target-blank-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNjQwIj4KICA8cGF0aCBmaWxsPSIjMzAzMDMwIiBkPSJNMzg0IDY0QzM2Ni4zIDY0IDM1MiA3OC4zIDM1MiA5NkMzNTIgMTEzLjcgMzY2LjMgMTI4IDM4NCAxMjhMNDY2LjcgMTI4TDI2NS4zIDMyOS40QzI1Mi44IDM0MS45IDI1Mi44IDM2Mi4yIDI2NS4zIDM3NC43QzI3Ny44IDM4Ny4yIDI5OC4xIDM4Ny4yIDMxMC42IDM3NC43TDUxMiAxNzMuM0w1MTIgMjU2QzUxMiAyNzMuNyA1MjYuMyAyODggNTQ0IDI4OEM1NjEuNyAyODggNTc2IDI3My43IDU3NiAyNTZMNTc2IDk2QzU3NiA3OC4zIDU2MS43IDY0IDU0NCA2NEwzODQgNjR6TTE0NCAxNjBDOTkuOCAxNjAgNjQgMTk1LjggNjQgMjQwTDY0IDQ5NkM2NCA1NDAuMiA5OS44IDU3NiAxNDQgNTc2TDQwMCA1NzZDNDQ0LjIgNTc2IDQ4MCA1NDAuMiA0ODAgNDk2TDQ4MCA0MTZDNDgwIDM5OC4zIDQ2NS43IDM4NCA0NDggMzg0QzQzMC4zIDM4NCA0MTYgMzk4LjMgNDE2IDQxNkw0MTYgNDk2QzQxNiA1MDQuOCA0MDguOCA1MTIgNDAwIDUxMkwxNDQgNTEyQzEzNS4yIDUxMiAxMjggNTA0LjggMTI4IDQ5NkwxMjggMjQwQzEyOCAyMzEuMiAxMzUuMiAyMjQgMTQ0IDIyNEwyMjQgMjI0QzI0MS43IDIyNCAyNTYgMjA5LjcgMjU2IDE5MkMyNTYgMTc0LjMgMjQxLjcgMTYwIDIyNCAxNjBMMTQ0IDE2MHoiPjwvcGF0aD4KPC9zdmc+Cg==);
+    --hfr-visual-target-blank-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iIzMwMzAzMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=);
     /* image claire pour fond sombre */
-    --hfr-visual-target-blank-light: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNjQwIj4KICA8cGF0aCBmaWxsPSIjZTBlMGUwIiBkPSJNMzg0IDY0QzM2Ni4zIDY0IDM1MiA3OC4zIDM1MiA5NkMzNTIgMTEzLjcgMzY2LjMgMTI4IDM4NCAxMjhMNDY2LjcgMTI4TDI2NS4zIDMyOS40QzI1Mi44IDM0MS45IDI1Mi44IDM2Mi4yIDI2NS4zIDM3NC43QzI3Ny44IDM4Ny4yIDI5OC4xIDM4Ny4yIDMxMC42IDM3NC43TDUxMiAxNzMuM0w1MTIgMjU2QzUxMiAyNzMuNyA1MjYuMyAyODggNTQ0IDI4OEM1NjEuNyAyODggNTc2IDI3My43IDU3NiAyNTZMNTc2IDk2QzU3NiA3OC4zIDU2MS43IDY0IDU0NCA2NEwzODQgNjR6TTE0NCAxNjBDOTkuOCAxNjAgNjQgMTk1LjggNjQgMjQwTDY0IDQ5NkM2NCA1NDAuMiA5OS44IDU3NiAxNDQgNTc2TDQwMCA1NzZDNDQ0LjIgNTc2IDQ4MCA1NDAuMiA0ODAgNDk2TDQ4MCA0MTZDNDgwIDM5OC4zIDQ2NS43IDM4NCA0NDggMzg0QzQzMC4zIDM4NCA0MTYgMzk4LjMgNDE2IDQxNkw0MTYgNDk2QzQxNiA1MDQuOCA0MDguOCA1MTIgNDAwIDUxMkwxNDQgNTEyQzEzNS4yIDUxMiAxMjggNTA0LjggMTI4IDQ5NkwxMjggMjQwQzEyOCAyMzEuMiAxMzUuMiAyMjQgMTQ0IDIyNEwyMjQgMjI0QzI0MS43IDIyNCAyNTYgMjA5LjcgMjU2IDE5MkMyNTYgMTc0LjMgMjQxLjcgMTYwIDIyNCAxNjBMMTQ0IDE2MHoiPjwvcGF0aD4KPC9zdmc+Cg==);
+    --hfr-visual-target-blank-light: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iI2UwZTBlMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=);
   }
 
-  /***************************/
-  /* liens dans les messages */
-  /***************************/
+  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
+    content: " ";
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center right;
+    display: inline-block;
+    vertical-align: baseline;
+    height: 9px;
+    width: 12px;
+  }
+
+  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] span.signature a.cLink[target="_blank"]::after {
+    height: 8px;
+    width: 11px;
+  }
 
   /* couleur des messages : Premier fond du tableau */
   #mesdiscussions table.messagetable tr.message.cBackCouleurTab1 td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
-    content: " ";
     background-image: var(--hfr-visual-target-blank-dark); /* ou var(--hfr-visual-target-blank-light); pour fond sombre */
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center right;
-    display: inline-block;
-    height: 10px;
-    width: 12px;
-    vertical-align: baseline;
   }
   /* couleur des messages : Deuxième fond du tableau */
   #mesdiscussions table.messagetable tr.message.cBackCouleurTab2 td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
-    content: " ";
     background-image: var(--hfr-visual-target-blank-dark); /* ou var(--hfr-visual-target-blank-light); pour fond sombre */
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center right;
-    display: inline-block;
-    height: 10px;
-    width: 12px;
-    vertical-align: baseline;
-  }
-
-  /*****************************/
-  /* liens dans les signatures */
-  /*****************************/
-
-  /* couleur des messages : Premier fond du tableau */
-  #mesdiscussions table.messagetable tr.message.cBackCouleurTab1 td.messCase2 div[id^="para"] span.signature a.cLink[target="_blank"]::after {
-    content: " ";
-    background-image: var(--hfr-visual-target-blank-dark); /* ou var(--hfr-visual-target-blank-light); pour fond sombre */
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center right;
-    display: inline-block;
-    height: 8px;
-    width: 10px;
-    vertical-align: baseline;
-  }
-  /* couleur des messages : Deuxième fond du tableau */
-  #mesdiscussions table.messagetable tr.message.cBackCouleurTab2 td.messCase2 div[id^="para"] span.signature a.cLink[target="_blank"]::after {
-    content: " ";
-    background-image: var(--hfr-visual-target-blank-dark); /* ou var(--hfr-visual-target-blank-light); pour fond sombre */
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center right;
-    display: inline-block;
-    height: 8px;
-    width: 10px;
-    vertical-align: baseline;
   }
 
 }
