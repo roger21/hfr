@@ -1,16 +1,16 @@
 /* ==UserStyle==
 @name          [HFR] Visual Target Blank
-@version       1.0.0
+@version       0.8.0
 @namespace     roger21.free.fr
 @description   Permet d'afficher l'icône des liens externes à côté des liens ayant un attribut « target="_blank" » à l'intérieur des posts.
 ==/UserStyle== */
 
 /*
 
-$Rev: 4995 $
+$Rev: 4996 $
 
 historique :
-1.0.0 (25/09/2026) :
+1.0.0 (xx/xx/2026) :
 - création
 
 */
@@ -31,16 +31,16 @@ historique :
     content: " ";
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center right;
+    background-position: center;
     display: inline-block;
     vertical-align: baseline;
     height: 9px;
-    width: 11px;
+    width: 13px;
   }
 
   #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] span.signature a.cLink[target="_blank"]::after {
     height: 8px;
-    width: 10px;
+    width: 12px;
   }
 
   /* couleur des messages : Premier fond du tableau */
