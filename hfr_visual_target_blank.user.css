@@ -7,7 +7,7 @@
 
 /*
 
-$Rev: 4993 $
+$Rev: 4994 $
 
 historique :
 1.0.0 (25/09/2026) :
@@ -51,6 +51,7 @@ historique :
     background-image: var(--hfr-visual-target-blank-dark); /* pour fond clair */
     /*background-image: var(--hfr-visual-target-blank-light);*/ /* pour fond sombre */
   }
+
   /* couleur des messages : Deuxième fond du tableau */
   #mesdiscussions table.messagetable tr.message.cBackCouleurTab2 td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
 
