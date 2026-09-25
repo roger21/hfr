@@ -2,12 +2,12 @@
 @name          [HFR] Visual Target Blank
 @version       1.0.0
 @namespace     roger21.free.fr
-@description   Permet d'afficher l'icône des liens externes à côté des liens ayant un attribut « target="_blank" » à l'interieur des posts.
+@description   Permet d'afficher l'icône des liens externes à côté des liens ayant un attribut « target="_blank" » à l'intérieur des posts.
 ==/UserStyle== */
 
 /*
 
-$Rev: 4992 $
+$Rev: 4993 $
 
 historique :
 1.0.0 (25/09/2026) :
@@ -18,10 +18,13 @@ historique :
 @-moz-document domain("forum.hardware.fr") {
 
   #mesdiscussions {
+
     /* image sombre pour fond clair */
     --hfr-visual-target-blank-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iIzMwMzAzMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=);
+
     /* image claire pour fond sombre */
     --hfr-visual-target-blank-light: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iI2UwZTBlMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=);
+
   }
 
   #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
@@ -42,11 +45,19 @@ historique :
 
   /* couleur des messages : Premier fond du tableau */
   #mesdiscussions table.messagetable tr.message.cBackCouleurTab1 td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
-    background-image: var(--hfr-visual-target-blank-dark); /* ou var(--hfr-visual-target-blank-light); pour fond sombre */
+
+    /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
+
+    background-image: var(--hfr-visual-target-blank-dark); /* pour fond clair */
+    /*background-image: var(--hfr-visual-target-blank-light);*/ /* pour fond sombre */
   }
   /* couleur des messages : Deuxième fond du tableau */
   #mesdiscussions table.messagetable tr.message.cBackCouleurTab2 td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
-    background-image: var(--hfr-visual-target-blank-dark); /* ou var(--hfr-visual-target-blank-light); pour fond sombre */
+
+    /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
+
+    background-image: var(--hfr-visual-target-blank-dark); /* pour fond clair */
+    /*background-image: var(--hfr-visual-target-blank-light);*/ /* pour fond sombre */
   }
 
 }
