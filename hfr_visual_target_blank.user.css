@@ -7,7 +7,7 @@
 
 /*
 
-$Rev: 4994 $
+$Rev: 4995 $
 
 historique :
 1.0.0 (25/09/2026) :
@@ -35,12 +35,12 @@ historique :
     display: inline-block;
     vertical-align: baseline;
     height: 9px;
-    width: 12px;
+    width: 11px;
   }
 
   #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] span.signature a.cLink[target="_blank"]::after {
     height: 8px;
-    width: 11px;
+    width: 10px;
   }
 
   /* couleur des messages : Premier fond du tableau */
