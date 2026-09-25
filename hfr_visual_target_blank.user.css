@@ -7,7 +7,7 @@
 
 /*
 
-$Rev: 4996 $
+$Rev: 4999 $
 
 historique :
 1.0.0 (xx/xx/2026) :
@@ -27,24 +27,24 @@ historique :
 
   }
 
-  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
+  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] a[class="cLink"][target="_blank"]::after {
     content: " ";
     background-size: contain;
     background-repeat: no-repeat;
-    background-position: center;
+    background-position: bottom;
     display: inline-block;
     vertical-align: baseline;
     height: 9px;
     width: 13px;
   }
 
-  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] span.signature a.cLink[target="_blank"]::after {
+  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] span.signature a[class="cLink"][target="_blank"]::after {
     height: 8px;
     width: 12px;
   }
 
   /* couleur des messages : Premier fond du tableau */
-  #mesdiscussions table.messagetable tr.message.cBackCouleurTab1 td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
+  #mesdiscussions table.messagetable tr.message.cBackCouleurTab1 td.messCase2 div[id^="para"] a[class="cLink"][target="_blank"]::after {
 
     /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
 
@@ -53,7 +53,7 @@ historique :
   }
 
   /* couleur des messages : Deuxième fond du tableau */
-  #mesdiscussions table.messagetable tr.message.cBackCouleurTab2 td.messCase2 div[id^="para"] a.cLink[target="_blank"]::after {
+  #mesdiscussions table.messagetable tr.message.cBackCouleurTab2 td.messCase2 div[id^="para"] a[class="cLink"][target="_blank"]::after {
 
     /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
 

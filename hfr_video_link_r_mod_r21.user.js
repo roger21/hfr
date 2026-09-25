@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Video Link Replacer mod_r21
-// @version       4.1.5
+// @version       4.1.6
 // @namespace     roger21.free.fr
 // @description   Remplace les liens vers des videos par les lecteurs intégrés correspondants pour youtube, dailymotion, vimeo, twitch, coub et streamable.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -25,7 +25,7 @@
 
 /*
 
-Copyright © 2014-2021,2023,2024 roger21@free.fr
+Copyright © 2014-2021,2023,2024,2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -40,9 +40,13 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4070 $
+// $Rev: 4997 $
 
 // historique :
+// 4.1.6 (25/09/2026) :
+// - modification de l'affichage de l'émoji play ->
+// (ajout de marges et suppression de l'espace insécable)
+// - ajout d'une classe sur le lien externe de la vidéo
 // 4.1.5 (13/11/2024) :
 // - force le mode "en cliquant" sur les videos dailymotion
 // - petites corrections / homogénéisations du code
@@ -285,7 +289,7 @@ var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
   // style pour les liens cliquables (transformables)
-  "a.cLink.gmhfrvlrr21_link::after{content:\"\\0020\\25b6\\fe0f\";}" +
+"a.cLink.gmhfrvlrr21_link::after{content:\"\\25b6\\fe0f\";margin:0 5px;}" +
   // style pour la video
   "div.gmhfrvlrr21_outer_div{display:inline-block;vertical-align:bottom;white-space:nowrap;position:relative;}" +
   "iframe.gmhfrvlrr21_video{vertical-align:bottom;border:0;}" +
@@ -794,7 +798,7 @@ function replace(links, needclick) {
           external_link.setAttribute("href", href);
           external_link.setAttribute("target", "_blank");
           external_link.setAttribute("title", href);
-          external_link.setAttribute("class", "cLink");
+          external_link.setAttribute("class", "cLink gmhfrvlrr21_external_link");
           external_link.addEventListener("click", function(e) {
             e.stopPropagation();
           }, false);
