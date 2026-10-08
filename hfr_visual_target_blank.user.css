@@ -1,16 +1,33 @@
 /* ==UserStyle==
 @name          [HFR] Visual Target Blank
-@version       0.8.0
+@version       1.0.0
 @namespace     roger21.free.fr
 @description   Permet d'afficher l'icône des liens externes à côté des liens ayant un attribut « target="_blank" » à l'intérieur des posts.
 ==/UserStyle== */
 
 /*
 
-$Rev: 4999 $
+Copyright © 2026 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+/*
+
+$Rev: 5028 $
 
 historique :
-1.0.0 (xx/xx/2026) :
+1.0.0 (08/10/2026) :
 - création
 
 */
@@ -18,16 +35,16 @@ historique :
 @-moz-document domain("forum.hardware.fr") {
 
   #mesdiscussions {
-
     /* image sombre pour fond clair */
     --hfr-visual-target-blank-dark: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iIzMwMzAzMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=);
-
     /* image claire pour fond sombre */
     --hfr-visual-target-blank-light: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iI2UwZTBlMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=);
-
   }
 
-  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] a[class="cLink"][target="_blank"]::after {
+  /* messages */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
     content: " ";
     background-size: contain;
     background-repeat: no-repeat;
@@ -38,13 +55,19 @@ historique :
     width: 13px;
   }
 
-  #mesdiscussions table.messagetable tr.message td.messCase2 div[id^="para"] span.signature a[class="cLink"][target="_blank"]::after {
+  /* signatures */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    span.signature
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
     height: 8px;
     width: 12px;
   }
 
-  /* couleur des messages : Premier fond du tableau */
-  #mesdiscussions table.messagetable tr.message.cBackCouleurTab1 td.messCase2 div[id^="para"] a[class="cLink"][target="_blank"]::after {
+  /* couleur des messages 1 : Premier fond du tableau */
+  #mesdiscussions table.messagetable tr.message.cBackCouleurTab1
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
 
     /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
 
@@ -52,13 +75,56 @@ historique :
     /*background-image: var(--hfr-visual-target-blank-light);*/ /* pour fond sombre */
   }
 
-  /* couleur des messages : Deuxième fond du tableau */
-  #mesdiscussions table.messagetable tr.message.cBackCouleurTab2 td.messCase2 div[id^="para"] a[class="cLink"][target="_blank"]::after {
+  /* couleur des messages 2 : Deuxième fond du tableau */
+  #mesdiscussions table.messagetable tr.message.cBackCouleurTab2
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
 
     /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
 
     background-image: var(--hfr-visual-target-blank-dark); /* pour fond clair */
     /*background-image: var(--hfr-visual-target-blank-light);*/ /* pour fond sombre */
+  }
+
+  /* couleur des citations et des spoilers : Fond des citations */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    table:is(.quote, .citation, .spoiler, .oldspoiler) :not(:is(table))
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+
+    /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
+
+    background-image: var(--hfr-visual-target-blank-dark); /* pour fond clair */
+    /*background-image: var(--hfr-visual-target-blank-light);*/ /* pour fond sombre */
+  }
+
+  /* couleur des modérations : Couleur du fond des messages de modération générique */
+  #mesdiscussions table.messagetable tr.message.caseModoGeneric
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+
+    /* DÉCOMMENTER LA DEUXIÈME LIGNE POUR LES FONDS SOMBRES */
+
+    background-image: var(--hfr-visual-target-blank-dark); /* pour fond clair */
+    /*background-image: var(--hfr-visual-target-blank-light);*/ /* pour fond sombre */
+  }
+
+  /* couleur des fixed et code : fond toujours blanc */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    table:is(.fixed, .code) :not(:is(table))
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    background-image: var(--hfr-visual-target-blank-dark); /* pour fond clair */
+  }
+
+  /* taille pour les code en pre */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    table.code :not(:is(table)) pre
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    height: 8px;
+    width: 12px;
+    vertical-align: -0.4em;
   }
 
 }
