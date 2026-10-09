@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.3.0
+// @version       1.4.0
 // @namespace     roger21.free.fr
-// @description   Permet de supprimer les pieds de page et certains éléments en haut des pages, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes, supprimer les target blank, homogénéiser l'affichage des images et des smileys et désactiver le surlignage des cibles des liens en fragments de texte (le tout étant configurable).
+// @description   Permet de supprimer les pieds de page et certains éléments en haut des pages, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes, mettre en évidence les liens ayant un attribut « target="_blank" », supprimer cet attribut sur les types de liens configurés, homogénéiser l'affichage des images et des smileys et désactiver le surlignage des cibles des liens en « fragments de texte » (le tout étant configurable et désactivé par défaut).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
@@ -37,9 +37,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4938 $
+// $Rev: 5039 $
 
 // historique :
+// 1.4.0 (09/10/2026) :
+// - ajout des choix "hash" et "topic" pour la suppression des « target="_blank" » dans les liens
+// - ajout d'une option pour mettre en évidence les liens ayant un attribut « target="_blank" »
 // 1.3.0 (07/09/2026) :
 // - ajout d'une option pour supprimer les « target="_blank" » dans les liens
 // - ajout d'une option pour désactiver le surlignage des cibles des liens en « fragments de texte »
@@ -120,6 +123,8 @@ var img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8
 var img_reset = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs%2B9AAABhklEQVQY0wXBT0iTcRjA8e%2Fz%2FN537%2FvamjVa7lSUhUbsEiQRQf%2BoQ3gL6hSskA5Bt%2FQSXTz0%2F2xBl7okZR6EqEgiAvFgCAW1SPLPlGluilubZsv29PmQe37SAUw2u75Swv%2F%2BeXt7R2ve3I27K8GTzoObf8RTF78kU8e4NtTrAGa9qL9GaFVhfrDzdOvibt23rMGrCtiMyABX3g7JARt3b1KZPX%2FAKoLVnI6VHTMVxJZ8ffb4fHYb514Umi58uxMArBOzNYdVBVsiqFd8yY2dOpra%2Fy6nPBg%2F67%2B%2FetkBTGzhUx3sl9Cogk3HwiMA2Q8PHY8u%2FfQApoOwpwYbNaGxBraAtwrQvbwjlh0eUd04cV8Wo3TX1r%2F12%2F8UJyAIjYiwafYmLQPJUYt3jChTiebjZbAavq2KFuckdq%2BM%2FK56NArivmLmBruGPQoufLkuWMkxlffjhwAWktGZkmq96HS072l3lJlfUT6md%2B3Ma9A%2Fp24vQC6f8TFzk4lN6ddtbS2HbUKvF2%2Fpf4cUlw8oMuVkAAAAAElFTkSuQmCC";
 var img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII%3D";
 var img_icon = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAACSElEQVQoz02SPUiVcRTGf%2B%2FrFe1aiFNZmDW0BJcgbak217JBXdr6IOhrkHAKpIKoJYrIraUhachcKyooIjDsy2rIjLS6iohc0%2Fd%2Fzvve%2F%2Fn7NtyMHnim8zwcnnOeiP8wm%2BSNSxmlpEqHBLaoBzHKqfE2y5k4ujNK17QRwJLPo4rQrsZxZ%2FSo0SpGUTyoR5wxp54RMW6rMXNpb5QXACpCuxgXxehVTzEDficpob4RF2gWo1kD%2FRLY6jyDwHQ06%2FLGinJejH41mpzPeTQ6jGiV8vQ3uk5cIKOAGIhH1Li%2B4rkcV1JKGuiVQJMEWHYZz0aH6eg%2BwvpN7Ux%2BHEc8NRpFZ%2FRknlIsRocYrenfoQZYnC8z8eop87%2BmiYst%2FPj6icWFedRAPZt1lc7YVdminiZnNZPm9SSVBSbfj7Hv2EWm3r5g7N4NaN74b6sYbbEGcAZpgO9TU9w8c4gD527w%2FM5VkjQgzrHn9BCSUctZy0osnlkxXGVZuXWmm4MDQ%2Bzo6mNrRxfDp%2FazfvtusqgBzUFC7T1i%2FIw18EaqzC1LSpYKn189xtdDqW%2BAhclxvjy5iwLldy9JXIYLzKnnTewDExoYiTe0SNfZa4zdH%2BJe%2F2FmJz%2FQ8yBhZX6Gpyd34ZJlqoUGTT0jixkTEcCV1%2Fk2MS6l0JNIKLrqKtW6epIM1EOSGmlcEMl4IMZg%2BXj0vQAgq8yIMajGD1mt603zulZJa5WTgCiFOc24L8btSsrMv66u4fDDfJ0FSmp0itH294o%2FxTO%2BpHxcOBnpmvYPIwWDEcmSnloAAAAASUVORK5CYII%3D";
+const dark_icon = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iIzMwMzAzMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=";
+const light_icon = "data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiI+CiAgPHBhdGggZmlsbD0iI2UwZTBlMCIgZD0iTTMyMCAwYTMxLjk3IDMxLjk3IDAgMCAwLTMyIDMyIDMxLjk3IDMxLjk3IDAgMCAwIDMyIDMyaDgyLjdMMjAxLjMgMjY1LjRjLTEyLjUgMTIuNS0xMi41IDMyLjggMCA0NS4zczMyLjggMTIuNSA0NS4zIDBMNDQ4IDEwOS4zVjE5MmEzMS45NyAzMS45NyAwIDEgMCA2NCAwVjMyYTMxLjk3IDMxLjk3IDAgMCAwLTMyLTMyek04MCA5NmMtNDQuMiAwLTgwIDM1LjgtODAgODB2MjU2YzAgNDQuMiAzNS44IDgwIDgwIDgwaDI1NmM0NC4yIDAgODAtMzUuOCA4MC04MHYtODBhMzEuOTcgMzEuOTcgMCAxIDAtNjQgMHY4MGMwIDguOC03LjIgMTYtMTYgMTZIODBjLTguOCAwLTE2LTcuMi0xNi0xNlYxNzZjMC04LjggNy4yLTE2IDE2LTE2aDgwYTMxLjk3IDMxLjk3IDAgMSAwIDAtNjR6Ij48L3BhdGg+Cjwvc3ZnPgo=";
 
 /* ---------------------- */
 /* les options par défaut */
@@ -136,6 +141,7 @@ var smp_taille_normale_defaut = false;
 var smp_hauteur_normale_defaut = 50;
 var smp_unite_normale_defaut = "vh";
 var smp_images_smileys_defaut = false;
+var smp_visual_target_defaut = false;
 var smp_text_fragments_defaut = false;
 var smp_supprimer_espaces_defaut = false;
 var smp_supprimer_regles_defaut = false;
@@ -161,6 +167,7 @@ var smp_taille_normale;
 var smp_hauteur_normale;
 var smp_unite_normale;
 var smp_images_smileys;
+var smp_visual_target;
 var smp_text_fragments;
 var smp_supprimer_espaces;
 var smp_supprimer_regles;
@@ -222,6 +229,80 @@ style.textContent =
   "img.gm_hfr_semep_onglet_img{max-width:16px;max-height:16px;}";
 document.getElementsByTagName("head")[0].appendChild(style);
 
+/* ------------------------------------------------------------------ */
+/* fonction d'identification du topic et de la page à partir de l'URL */
+/* ------------------------------------------------------------------ */
+
+const cat2id = {
+  "Hardware": "1",
+  "HardwarePeripheriques": "16",
+  "OrdinateursPortables": "15",
+  "OverclockingCoolingModding": "2",
+  "electroniquedomotiquediy": "30",
+  "gsmgpspda": "23",
+  "apple": "25",
+  "VideoSon": "3",
+  "Photonumerique": "14",
+  "JeuxVideo": "5",
+  "WindowsSoftware": "4",
+  "reseauxpersosoho": "22",
+  "systemereseauxpro": "21",
+  "OSAlternatifs": "11",
+  "Programmation": "10",
+  "ia": "32",
+  "Graphisme": "12",
+  "AchatsVentes": "6",
+  "EmploiEtudes": "8",
+  "Discussions": "13",
+  "service-client-shophfr": "31",
+  "Setietprojetsdistribues": "9",
+};
+
+// retourne [topic_id, topic_page, ]
+// topic_id = catid_topicid
+function get_topic_data(url) {
+  // URL de recherche
+  let l_r = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?post=([0-9]+).*&cat=([0-9]+)&.*$/.exec(url);
+  if(l_r !== null) {
+    // la page n'a pas de sens sur l'URL de recherche
+    return [l_r[2] + "_" + l_r[1], null, ];
+  }
+  // URL à paramètres
+  let l_p = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+)&page=([0-9]+)&.*$/.exec(url);
+  if(l_p !== null) {
+    if(url.includes("&print=1&")) {
+      // mode impression, la page n'est pas prise en compte
+      return [l_p[1] + "_" + l_p[2], null, ];
+    }
+    return [l_p[1] + "_" + l_p[2], l_p[3], ];
+  }
+  // URL permalien
+  let l_e = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+)&.*$/.exec(url);
+  if(l_e !== null) {
+    return [l_e[1] + "_" + l_e[2], null, ];
+  }
+  // URL verbeuse
+  let l_v = /^https:\/\/forum\.hardware\.fr\/hfr\/([^\/]+)\/(?:[^\/]+\/)?.*sujet_([0-9]+)_([0-9]+)\.htm.*$/.exec(url);
+  if(l_v !== null) {
+    return [cat2id[l_v[1]] + "_" + l_v[2], l_v[3], ];
+  }
+  // pas un topic
+  return [null, null, ];
+}
+
+/* ---------------------------------------------------------- */
+/* fonction de détermination des couleurs sombres ou claires  */
+/* ---------------------------------------------------------- */
+
+// black or white
+function mj(p_color) {
+  let l_r = parseInt(p_color.substr(0, 2), 16);
+  let l_g = parseInt(p_color.substr(2, 2), 16);
+  let l_b = parseInt(p_color.substr(4, 2), 16);
+  return (((0.299 * l_r) + (0.587 * l_g) + (0.114 * l_b)) / 255) > 0.5 ?
+    dark_icon : light_icon;
+}
+
 /* --------------------------------------- */
 /* création de la fenêtre de configuration */
 /* --------------------------------------- */
@@ -245,7 +326,7 @@ function create_help_button(p_width, p_text) {
     help_window.style.width = p_width + "px";
     help_window.textContent = p_text;
     help_window.style.left = (e.clientX + 32) + "px";
-    help_window.style.top = (e.clientY - 16) + "px";
+    help_window.style.top = (e.clientY - 32) + "px";
     help_window.style.visibility = "visible";
   }, false);
   l_help_button.addEventListener("mouseout", function(e) {
@@ -432,6 +513,18 @@ images_smileys_p.appendChild(create_help_button(165,
   "en bas du texte."));
 styles_fieldset.appendChild(images_smileys_p);
 
+// visual_target
+var visual_target_p = document.createElement("p");
+var visual_target_checkbox = document.createElement("input");
+visual_target_checkbox.setAttribute("type", "checkbox");
+visual_target_checkbox.setAttribute("id", "gm_hfr_semep_visual_target_checkbox");
+visual_target_p.appendChild(visual_target_checkbox);
+var visual_target_label = document.createElement("label");
+visual_target_label.textContent = " mettre en évidence les liens ayant un attribut « target=\"_blank\" » ";
+visual_target_label.setAttribute("for", "gm_hfr_semep_visual_target_checkbox");
+visual_target_p.appendChild(visual_target_label);
+styles_fieldset.appendChild(visual_target_p);
+
 // text_fragments
 var text_fragments_p = document.createElement("p");
 var text_fragments_checkbox = document.createElement("input");
@@ -551,7 +644,7 @@ mise_em_page_fieldset.appendChild(quotes_div);
 // target blank
 var target_p = document.createElement("p");
 target_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
-target_p.textContent = "Supprimer les « target=\"_blank\" » dans les liens :";
+target_p.textContent = "Supprimer l'attribut « target=\"_blank\" » dans les liens :";
 mise_em_page_fieldset.appendChild(target_p);
 var target_div = document.createElement("div");
 target_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
@@ -566,6 +659,17 @@ target_aucun_label.textContent = " aucun";
 target_aucun_label.setAttribute("for", "gm_hfr_semep_target_aucun_radio");
 target_aucun_div.appendChild(target_aucun_label);
 target_div.appendChild(target_aucun_div);
+var target_hash_div = document.createElement("div");
+var target_hash_radio = document.createElement("input");
+target_hash_radio.setAttribute("type", "radio");
+target_hash_radio.setAttribute("id", "gm_hfr_semep_target_hash_radio");
+target_hash_radio.setAttribute("name", "gm_hfr_semep_target_radios");
+target_hash_div.appendChild(target_hash_radio);
+var target_hash_label = document.createElement("label");
+target_hash_label.textContent = " hash";
+target_hash_label.setAttribute("for", "gm_hfr_semep_target_hash_radio");
+target_hash_div.appendChild(target_hash_label);
+target_div.appendChild(target_hash_div);
 var target_page_div = document.createElement("div");
 var target_page_radio = document.createElement("input");
 target_page_radio.setAttribute("type", "radio");
@@ -573,10 +677,21 @@ target_page_radio.setAttribute("id", "gm_hfr_semep_target_page_radio");
 target_page_radio.setAttribute("name", "gm_hfr_semep_target_radios");
 target_page_div.appendChild(target_page_radio);
 var target_page_label = document.createElement("label");
-target_page_label.textContent = " vers la page";
+target_page_label.textContent = " page";
 target_page_label.setAttribute("for", "gm_hfr_semep_target_page_radio");
 target_page_div.appendChild(target_page_label);
 target_div.appendChild(target_page_div);
+var target_topic_div = document.createElement("div");
+var target_topic_radio = document.createElement("input");
+target_topic_radio.setAttribute("type", "radio");
+target_topic_radio.setAttribute("id", "gm_hfr_semep_target_topic_radio");
+target_topic_radio.setAttribute("name", "gm_hfr_semep_target_radios");
+target_topic_div.appendChild(target_topic_radio);
+var target_topic_label = document.createElement("label");
+target_topic_label.textContent = " topic";
+target_topic_label.setAttribute("for", "gm_hfr_semep_target_topic_radio");
+target_topic_div.appendChild(target_topic_label);
+target_div.appendChild(target_topic_div);
 var target_forum_div = document.createElement("div");
 var target_forum_radio = document.createElement("input");
 target_forum_radio.setAttribute("type", "radio");
@@ -584,7 +699,7 @@ target_forum_radio.setAttribute("id", "gm_hfr_semep_target_forum_radio");
 target_forum_radio.setAttribute("name", "gm_hfr_semep_target_radios");
 target_forum_div.appendChild(target_forum_radio);
 var target_forum_label = document.createElement("label");
-target_forum_label.textContent = " vers le forum";
+target_forum_label.textContent = " forum";
 target_forum_label.setAttribute("for", "gm_hfr_semep_target_forum_radio");
 target_forum_div.appendChild(target_forum_label);
 target_div.appendChild(target_forum_div);
@@ -669,6 +784,7 @@ function save_config_window() {
     smp_unite_normale = smp_unite_normale_defaut;
   }
   smp_images_smileys = images_smileys_checkbox.checked;
+  smp_visual_target = visual_target_checkbox.checked;
   smp_text_fragments = text_fragments_checkbox.checked;
   smp_supprimer_espaces = espaces_checkbox.checked;
   smp_supprimer_regles = regles_checkbox.checked;
@@ -677,9 +793,11 @@ function save_config_window() {
   smp_supprimer_copyright = copyright_checkbox.checked;
   smp_toyonos_quotes = toyonos_checkbox.checked;
   smp_emojis_quotes = emojis_checkbox.checked;
-  smp_target_blank = target_page_radio.checked ? "page" :
-    (target_forum_radio.checked ? "forum" :
-      (target_tous_radio.checked ? "tous" : "aucun"));
+  smp_target_blank = target_hash_radio.checked ? "hash" :
+    (target_page_radio.checked ? "page" :
+      (target_topic_radio.checked ? "topic" :
+        (target_forum_radio.checked ? "forum" :
+          (target_tous_radio.checked ? "tous" : "aucun"))));
   // fermeture de la fenêtre
   hide_config_window();
   // enregistrement des paramètres
@@ -695,6 +813,7 @@ function save_config_window() {
     GM.setValue("smp_hauteur_normale", smp_hauteur_normale),
     GM.setValue("smp_unite_normale", smp_unite_normale),
     GM.setValue("smp_images_smileys", smp_images_smileys),
+    GM.setValue("smp_visual_target", smp_visual_target),
     GM.setValue("smp_text_fragments", smp_text_fragments),
     GM.setValue("smp_supprimer_espaces", smp_supprimer_espaces),
     GM.setValue("smp_supprimer_regles", smp_supprimer_regles),
@@ -750,6 +869,7 @@ function show_config_window() {
   taille_normale_checkbox.checked = smp_taille_normale;
   hauteur_normale_input.value = smp_hauteur_normale + (smp_unite_normale === "px" ? "px" : "%");
   images_smileys_checkbox.checked = smp_images_smileys;
+  visual_target_checkbox.checked = smp_visual_target;
   text_fragments_checkbox.checked = smp_text_fragments;
   espaces_checkbox.checked = smp_supprimer_espaces;
   regles_checkbox.checked = smp_supprimer_regles;
@@ -759,7 +879,9 @@ function show_config_window() {
   toyonos_checkbox.checked = smp_toyonos_quotes;
   emojis_checkbox.checked = smp_emojis_quotes;
   target_aucun_radio.checked = smp_target_blank === "aucun";
+  target_hash_radio.checked = smp_target_blank === "hash";
   target_page_radio.checked = smp_target_blank === "page";
+  target_topic_radio.checked = smp_target_blank === "topic";
   target_forum_radio.checked = smp_target_blank === "forum";
   target_tous_radio.checked = smp_target_blank === "tous";
   info_reload_checkbox.checked = false;
@@ -821,6 +943,7 @@ Promise.all([
   GM.getValue("smp_hauteur_normale", smp_hauteur_normale_defaut),
   GM.getValue("smp_unite_normale", smp_unite_normale_defaut),
   GM.getValue("smp_images_smileys", smp_images_smileys_defaut),
+  GM.getValue("smp_visual_target", smp_visual_target_defaut),
   GM.getValue("smp_text_fragments", smp_text_fragments_defaut),
   GM.getValue("smp_supprimer_espaces", smp_supprimer_espaces_defaut),
   GM.getValue("smp_supprimer_regles", smp_supprimer_regles_defaut),
@@ -842,6 +965,7 @@ Promise.all([
   smp_hauteur_normale_value,
   smp_unite_normale_value,
   smp_images_smileys_value,
+  smp_visual_target_value,
   smp_text_fragments_value,
   smp_supprimer_espaces_value,
   smp_supprimer_regles_value,
@@ -864,6 +988,7 @@ Promise.all([
   smp_hauteur_normale = smp_hauteur_normale_value;
   smp_unite_normale = smp_unite_normale_value;
   smp_images_smileys = smp_images_smileys_value;
+  smp_visual_target = smp_visual_target_value;
   smp_text_fragments = smp_text_fragments_value;
   smp_supprimer_espaces = smp_supprimer_espaces_value;
   smp_supprimer_regles = smp_supprimer_regles_value;
@@ -934,7 +1059,94 @@ Promise.all([
       "{vertical-align:bottom !important;}";
     document.getElementsByTagName("head")[0].appendChild(style_images_smileys);
   }
-  // désactiver le surlignage des cibles des liens en fragments de texte
+  // mise en évidence des liens ayant un attribut « target="_blank" »
+  if(smp_visual_target) {
+    // couleurs de fond par défaut
+    let color_message_1 = "f7f7f7";
+    let color_message_2 = "dedfdf";
+    let color_citation = "ffffff";
+    let color_moderation = "ffeeee";
+    // récupération des couleurs de fond du profil
+    let the_style1 =
+      document.querySelector("head link[href^=\"/include/the_style1.php?color_key=\"]");
+    if(the_style1) {
+      the_style1 = the_style1.getAttribute("href").split("/");
+      if(the_style1.length >= 27) {
+        color_message_1 = the_style1[13].toLowerCase();
+        color_message_2 = the_style1[14].toLowerCase();
+        color_citation = the_style1[19].toLowerCase();
+        color_moderation = the_style1[26].toLowerCase();
+      }
+    }
+    let style_visual_target = document.createElement("style");
+    style_visual_target.setAttribute("type", "text/css");
+    style_visual_target.textContent = `
+  /* messages */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    content: " ";
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    display: inline-block;
+    vertical-align: baseline;
+    height: 9px;
+    width: 13px;
+  }
+  /* signatures */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    span.signature
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    height: 8px;
+    width: 12px;
+  }
+  /* couleur des messages 1 : Premier fond du tableau */
+  #mesdiscussions table.messagetable tr.message.cBackCouleurTab1
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    background-image: url(${mj(color_message_1)});
+  }
+  /* couleur des messages 2 : Deuxième fond du tableau */
+  #mesdiscussions table.messagetable tr.message.cBackCouleurTab2
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    background-image: url(${mj(color_message_2)});
+  }
+  /* couleur des citations et des spoilers : Fond des citations */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    table:is(.quote, .citation, .spoiler, .oldspoiler) :not(:is(table))
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    background-image: url(${mj(color_citation)});
+  }
+  /* couleur des modérations : Couleur du fond des messages de modération générique */
+  #mesdiscussions table.messagetable tr.message.caseModoGeneric
+    td.messCase2 div[id^="para"]
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    background-image: url(${mj(color_moderation)});
+  }
+  /* couleur des fixed et code : fond toujours blanc */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    table:is(.fixed, .code) :not(:is(table))
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    background-image: url(${dark_icon});
+  }
+  /* taille pour les code en pre */
+  #mesdiscussions table.messagetable tr.message
+    td.messCase2 div[id^="para"]
+    table.code :not(:is(table)) pre
+    a[class="cLink"][target="_blank"]:not(:empty):not(:has(a))::after {
+    height: 8px;
+    width: 12px;
+    vertical-align: -0.4em;
+  }
+`;
+    document.getElementsByTagName("head")[0].appendChild(style_visual_target);
+  }
+  // désactiver le surlignage des cibles des liens en « fragments de texte »
   if(smp_text_fragments) {
     let style_text_fragments = document.createElement("style");
     style_text_fragments.setAttribute("type", "text/css");
@@ -1031,26 +1243,45 @@ Promise.all([
     a2img("https://gitlab.com/BZHDeveloper/HFR/raw/master/emojis-micro/");
     a2img("https://github.com/BZHDeveloper1986/hfr/blob/main/emojis-micro/");
   }
-  // suppression des target="_blank" dans les liens
+  // suppression de l'attribut « target="_blank" » dans les liens
   if(smp_target_blank !== "aucun") {
-    let links = document.getElementById("mesdiscussions").querySelectorAll(
-      "table.messagetable td.messCase2 div[id^='para'] a.cLink[target=\"_blank\"]");
-    let starts_with = "";
-    if(smp_target_blank === "page") {
-      let page = window.location.href;
-      let hash_index = page.indexOf("#")
-      if(hash_index !== -1) {
-        starts_with = page.substring(0, hash_index);
-      } else {
-        starts_with = page;
-      }
-    }
+    // configuration des variables
+    let current_page = window.location.href;
+    // topic_id et topic_page
+    let [topic_id, topic_page, ] = get_topic_data(current_page);
+    // starts_with
+    let starts_with = ""; // tous
     if(smp_target_blank === "forum") {
-      starts_with = "https://forum.hardware.fr/"
+      starts_with = "https://forum.hardware.fr/"; // forum
     }
+    if(smp_target_blank === "hash") {
+      let hash_index = current_page.indexOf("#");
+      let starts_with_hash = current_page + "#";
+      if(hash_index !== -1) {
+        starts_with_hash = current_page.substring(0, hash_index + 1);
+      }
+      starts_with = starts_with_hash; // hash
+    }
+    // traitement des liens
+    let links = document.getElementById("mesdiscussions").querySelectorAll(
+      "table.messagetable td.messCase2 div[id^=\"para\"] a.cLink[target=\"_blank\"]");
     for(let link of links) {
-      if(link.href.startsWith(starts_with)) {
-        link.removeAttribute("target");
+      // tous, forum ou hash (avec starts_with)
+      if(smp_target_blank === "tous" ||
+        smp_target_blank === "forum" ||
+        smp_target_blank === "hash") {
+        if(link.href.startsWith(starts_with)) {
+          link.removeAttribute("target");
+        }
+      }
+      // page ou topic (avec topic_id et topic_page)
+      else {
+        let [link_topic_id, link_topic_page, ] = get_topic_data(link.href);
+        if((smp_target_blank === "page" &&
+            topic_id === link_topic_id && topic_page === link_topic_page) ||
+          (smp_target_blank === "topic" && topic_id === link_topic_id)) {
+          link.removeAttribute("target");
+        }
       }
     }
   }
