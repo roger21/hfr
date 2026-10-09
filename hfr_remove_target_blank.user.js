@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          [HFR] Remove Target Blank
-// @version       1.5.0
+// @version       1.5.1
 // @namespace     roger21.free.fr
-// @description   Permet de visualiser les liens ayant un attribut « target="_blank" » et de supprimer cet attribut sur les types de liens configurés.
+// @description   Permet de mettre en évidence les liens ayant un attribut « target="_blank" » et de supprimer cet attribut sur les types de liens configurés.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
@@ -37,13 +37,15 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5029 $
+// $Rev: 5036 $
 
 // historique :
+// 1.5.1 (09/10/2026) :
+// - nouvelle description (reformulation) et reformulation des commentaires
 // 1.5.0 (08/10/2026) :
 // - ajout des choix "hash" (nouveau défaut) et "topic" pour la configuration des types ->
 // de liens (proposé par brisssou)
-// - ajout d'une option pour visualiser les liens ayant un attribut « target="_blank" » ->
+// - ajout d'une option pour mettre en évidence les liens ayant un attribut « target="_blank" » ->
 // (l'icône habituelle des liens externes)
 // - application des choix des configurations à la validation
 // 1.0.0 (07/09/2026) :
@@ -187,7 +189,7 @@ function restore_links() {
   }
 }
 
-// suppression de l'attribut « target="_blank" » dans les liens à l'intérieur des posts
+// suppression de l'attribut « target="_blank" » dans les liens à l'intérieur des posts
 function update_links() {
   if(rtb_types !== "aucun") {
 
@@ -242,9 +244,9 @@ function update_links() {
   }
 }
 
-/* -------------------------------------------------- */
-/* fonctions de gestion de la visualisation des liens */
-/* -------------------------------------------------- */
+/* ----------------------------------------------------- */
+/* fonctions de gestion de la mise en évidence des liens */
+/* ----------------------------------------------------- */
 
 // black or white
 function mj(p_color) {
@@ -388,7 +390,7 @@ Promise.all([
     }
   }
 
-  // gestion de la configuration du paramètre de visualisation des liens
+  // gestion de la configuration du paramètre de mise en évidence des liens
   let prompt_visual = "\u200b" + script_name + " -> Affichage";
   gmMenu(prompt_visual, set_visual);
 
