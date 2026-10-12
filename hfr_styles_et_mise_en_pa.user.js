@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.4.0
+// @version       1.4.1
 // @namespace     roger21.free.fr
 // @description   Permet de supprimer les pieds de page et certains éléments en haut des pages, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes, mettre en évidence les liens ayant un attribut « target="_blank" », supprimer cet attribut sur les types de liens configurés, homogénéiser l'affichage des images et des smileys et désactiver le surlignage des cibles des liens en « fragments de texte » (le tout étant configurable et désactivé par défaut).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5039 $
+// $Rev: 5045 $
 
 // historique :
+// 1.4.1 (12/10/2026) :
+// - ajout de bulles d'aide sur les deux options « target="_blank" »
 // 1.4.0 (09/10/2026) :
 // - ajout des choix "hash" et "topic" pour la suppression des « target="_blank" » dans les liens
 // - ajout d'une option pour mettre en évidence les liens ayant un attribut « target="_blank" »
@@ -383,7 +385,7 @@ afficher_icone_fieldset.appendChild(afficher_icone_legend);
 config_window.appendChild(afficher_icone_fieldset);
 var image_icone_p = document.createElement("p");
 var image_icone_label = document.createElement("label");
-image_icone_label.textContent = "icône du bouton : ";
+image_icone_label.textContent = "icône du bouton\u202f: ";
 image_icone_label.setAttribute("for", "gm_hfr_semep_image_icone_input");
 image_icone_p.appendChild(image_icone_label);
 var image_icone_test_img = document.createElement("img");
@@ -433,7 +435,7 @@ taille_reponse_checkbox.setAttribute("type", "checkbox");
 taille_reponse_checkbox.setAttribute("id", "gm_hfr_semep_taille_reponse_checkbox");
 taille_reponse_p.appendChild(taille_reponse_checkbox);
 var taille_reponse_label = document.createElement("label");
-taille_reponse_label.textContent = " taille de la réponse rapide : ";
+taille_reponse_label.textContent = " taille de la réponse rapide\u202f: ";
 taille_reponse_label.setAttribute("for", "gm_hfr_semep_taille_reponse_checkbox");
 taille_reponse_p.appendChild(taille_reponse_label);
 var largeur_reponse_label = document.createElement("label");
@@ -467,8 +469,8 @@ hauteur_reponse_input.addEventListener("focus", function() {
 taille_reponse_p.appendChild(hauteur_reponse_input);
 taille_reponse_p.appendChild(document.createTextNode(" "));
 taille_reponse_p.appendChild(create_help_button(230,
-  "Vous pouvez préciser l'unité, soit \u00ab\u202fpx\u202f\u00bb, soit \u00ab\u202f%\u202f\u00bb, " +
-  "sans unité \u00ab\u202fpx\u202f\u00bb est retenu et le \u00ab\u202f%\u202f\u00bb est " +
+  "Vous pouvez préciser l'unité, soit «\u202fpx\u202f», soit «\u202f%\u202f», " +
+  "sans unité «\u202fpx\u202f» est retenu et le «\u202f%\u202f» est " +
   "par rapport à la taille de la fenêtre."));
 styles_fieldset.appendChild(taille_reponse_p);
 
@@ -479,7 +481,7 @@ taille_normale_checkbox.setAttribute("type", "checkbox");
 taille_normale_checkbox.setAttribute("id", "gm_hfr_semep_taille_normale_checkbox");
 taille_normale_p.appendChild(taille_normale_checkbox);
 var taille_normale_label = document.createElement("label");
-taille_normale_label.textContent = " hauteur de la réponse normale : ";
+taille_normale_label.textContent = " hauteur de la réponse normale\u202f: ";
 taille_normale_label.setAttribute("for", "gm_hfr_semep_taille_normale_checkbox");
 taille_normale_p.appendChild(taille_normale_label);
 var hauteur_normale_input = document.createElement("input");
@@ -493,8 +495,8 @@ hauteur_normale_input.addEventListener("focus", function() {
 taille_normale_p.appendChild(hauteur_normale_input);
 taille_normale_p.appendChild(document.createTextNode(" "));
 taille_normale_p.appendChild(create_help_button(230,
-  "Vous pouvez préciser l'unité, soit \u00ab\u202fpx\u202f\u00bb, soit \u00ab\u202f%\u202f\u00bb, " +
-  "sans unité \u00ab\u202fpx\u202f\u00bb est retenu et le \u00ab\u202f%\u202f\u00bb est " +
+  "Vous pouvez préciser l'unité, soit «\u202fpx\u202f», soit «\u202f%\u202f», " +
+  "sans unité «\u202fpx\u202f» est retenu et le «\u202f%\u202f» est " +
   "par rapport à la hauteur de la fenêtre."));
 styles_fieldset.appendChild(taille_normale_p);
 
@@ -509,7 +511,7 @@ images_smileys_label.textContent = " homogénéiser l'affichage des images et de
 images_smileys_label.setAttribute("for", "gm_hfr_semep_images_smileys_checkbox");
 images_smileys_p.appendChild(images_smileys_label);
 images_smileys_p.appendChild(create_help_button(165,
-  "Cette option enlève les marges sur les images et alligne les images et les smileys " +
+  "Cette option enlève les marges sur les images et aligne les images et les smileys " +
   "en bas du texte."));
 styles_fieldset.appendChild(images_smileys_p);
 
@@ -520,9 +522,14 @@ visual_target_checkbox.setAttribute("type", "checkbox");
 visual_target_checkbox.setAttribute("id", "gm_hfr_semep_visual_target_checkbox");
 visual_target_p.appendChild(visual_target_checkbox);
 var visual_target_label = document.createElement("label");
-visual_target_label.textContent = " mettre en évidence les liens ayant un attribut « target=\"_blank\" » ";
+visual_target_label.textContent = " mettre en évidence les liens ayant un attribut " +
+  "«\u202ftarget=\"_blank\"\u202f» ";
 visual_target_label.setAttribute("for", "gm_hfr_semep_visual_target_checkbox");
 visual_target_p.appendChild(visual_target_label);
+visual_target_p.appendChild(create_help_button(200,
+  "Cette option rajoute l'icône habituelle des liens externes à côté des liens ayant " +
+  "un attribut «\u202ftarget=\"_blank\"\u202f» c.‑à‑d. des liens qui s'ouvrent dans " +
+  "un nouvel onglet."));
 styles_fieldset.appendChild(visual_target_p);
 
 // text_fragments
@@ -532,7 +539,8 @@ text_fragments_checkbox.setAttribute("type", "checkbox");
 text_fragments_checkbox.setAttribute("id", "gm_hfr_semep_text_fragments_checkbox");
 text_fragments_p.appendChild(text_fragments_checkbox);
 var text_fragments_label = document.createElement("label");
-text_fragments_label.textContent = " désactiver le surlignage des cibles des liens en « fragments de texte » ";
+text_fragments_label.textContent = " désactiver le surlignage des cibles des liens en " +
+  "«\u202ffragments de texte\u202f» ";
 text_fragments_label.setAttribute("for", "gm_hfr_semep_text_fragments_checkbox");
 text_fragments_p.appendChild(text_fragments_label);
 styles_fieldset.appendChild(text_fragments_p);
@@ -547,7 +555,7 @@ config_window.appendChild(mise_em_page_fieldset);
 // supprimer haut
 var supprimer_haut_p = document.createElement("p");
 supprimer_haut_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
-supprimer_haut_p.textContent = "Supprimer les éléments du haut de la page :";
+supprimer_haut_p.textContent = "Supprimer les éléments du haut de la page\u202f:";
 mise_em_page_fieldset.appendChild(supprimer_haut_p);
 var supprimer_haut_div = document.createElement("div");
 supprimer_haut_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
@@ -576,7 +584,7 @@ mise_em_page_fieldset.appendChild(supprimer_haut_div);
 // supprimer bas
 var supprimer_bas_p = document.createElement("p");
 supprimer_bas_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
-supprimer_bas_p.textContent = "Supprimer les éléments du bas de la page :";
+supprimer_bas_p.textContent = "Supprimer les éléments du bas de la page\u202f:";
 mise_em_page_fieldset.appendChild(supprimer_bas_p);
 var supprimer_bas_div = document.createElement("div");
 supprimer_bas_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
@@ -615,7 +623,7 @@ mise_em_page_fieldset.appendChild(supprimer_bas_div);
 // quotes
 var quotes_p = document.createElement("p");
 quotes_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
-quotes_p.textContent = "Reconvertir les liens en images dans les quotes pour les :";
+quotes_p.textContent = "Reconvertir les liens en images dans les quotes pour les\u202f:";
 mise_em_page_fieldset.appendChild(quotes_p);
 var quotes_div = document.createElement("div");
 quotes_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
@@ -644,7 +652,16 @@ mise_em_page_fieldset.appendChild(quotes_div);
 // target blank
 var target_p = document.createElement("p");
 target_p.setAttribute("class", "gm_hfr_semep_mise_en_page_p");
-target_p.textContent = "Supprimer l'attribut « target=\"_blank\" » dans les liens :";
+target_p.appendChild(document.createTextNode(
+  "Supprimer l'attribut «\u202ftarget=\"_blank\"\u202f» dans les liens "));
+target_p.appendChild(create_help_button(300,
+  "En supprimant l'attribut «\u202ftarget=\"_blank\"\u202f» dans les liens " +
+  "à l’intérieur des posts, cette option permet d'ouvrir les liens dans la page " +
+  "courante\u202f: «\u202faucun\u202f» (aucun lien), «\u202fhash\u202f» (les liens " +
+  "dont seul le hash change), «\u202fpage\u202f» (les liens vers la même page), " +
+  "«\u202ftopic\u202f» (les liens vers le même topic), «\u202fforum\u202f» (les " +
+  "liens vers le forum), «\u202ftous\u202f» (tous les liens)."));
+target_p.appendChild(document.createTextNode("\u202f:"));
 mise_em_page_fieldset.appendChild(target_p);
 var target_div = document.createElement("div");
 target_div.setAttribute("class", "gm_hfr_semep_mise_en_page_div");
@@ -730,9 +747,9 @@ info_reload_label.textContent = " recharger la page ";
 info_reload_label.setAttribute("for", "gm_hfr_semep_info_reload_checkbox");
 info_reload_div.appendChild(info_reload_label);
 info_reload_div.appendChild(create_help_button(255,
-  "La modification des paramètres de cette fenêtre de configuration n'est visible que sur " +
-  "les nouvelles pages ou après le rechargement de la page courante. Cette option permet " +
-  "de recharger automatiquement la page courante lors de la validation."));
+  "La modification des paramètres de cette fenêtre de configuration n'est visible que " +
+  "sur les nouvelles pages ou après le rechargement de la page courante. Cette option " +
+  "permet de recharger automatiquement la page courante lors de la validation."));
 save_close_div.appendChild(info_reload_div);
 var save_button = document.createElement("img");
 save_button.setAttribute("src", img_save);
@@ -864,10 +881,13 @@ function show_config_window() {
   image_icone_input.value = smp_image_icone;
   image_icone_do_test_img();
   taille_reponse_checkbox.checked = smp_taille_reponse;
-  largeur_reponse_input.value = smp_largeur_reponse + (smp_largeur_unite === "px" ? "px" : "%");
-  hauteur_reponse_input.value = smp_hauteur_reponse + (smp_hauteur_unite === "px" ? "px" : "%");
+  largeur_reponse_input.value = smp_largeur_reponse +
+    (smp_largeur_unite === "px" ? "px" : "%");
+  hauteur_reponse_input.value = smp_hauteur_reponse +
+    (smp_hauteur_unite === "px" ? "px" : "%");
   taille_normale_checkbox.checked = smp_taille_normale;
-  hauteur_normale_input.value = smp_hauteur_normale + (smp_unite_normale === "px" ? "px" : "%");
+  hauteur_normale_input.value = smp_hauteur_normale +
+    (smp_unite_normale === "px" ? "px" : "%");
   images_smileys_checkbox.checked = smp_images_smileys;
   visual_target_checkbox.checked = smp_visual_target;
   text_fragments_checkbox.checked = smp_text_fragments;
@@ -888,10 +908,10 @@ function show_config_window() {
   // affichage de la fenêtre
   config_window.style.visibility = "visible";
   config_background.style.visibility = "visible";
-  config_window.style.left =
-    parseInt((document.documentElement.clientWidth - config_window.offsetWidth) / 2, 10) + "px";
-  config_window.style.top =
-    parseInt((document.documentElement.clientHeight - config_window.offsetHeight) / 2, 10) + "px";
+  config_window.style.left = parseInt((document.documentElement.clientWidth -
+    config_window.offsetWidth) / 2, 10) + "px";
+  config_window.style.top = parseInt((document.documentElement.clientHeight -
+    config_window.offsetHeight) / 2, 10) + "px";
   config_background.style.width = document.documentElement.scrollWidth + "px";
   config_background.style.height = document.documentElement.scrollHeight + "px";
   config_window.style.opacity = "1";
@@ -908,12 +928,13 @@ gmMenu("\u200b[HFR] Styles et mise en page -> Configuration", show_config_window
 // fonction de conversion des liens en images dans les quotes
 function a2img(p_href, p_length_ok = false) {
   let l_links = document.querySelectorAll(
-    "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
-    "div[id^=\"para\"] table.citation a.cLink[href*=\"" + p_href + "\"], " +
-    "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
-    "div[id^=\"para\"] table.oldcitation a.cLink[href*=\"" + p_href + "\"], " +
-    "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
-    "div[id^=\"para\"] table.quote a.cLink[href*=\"" + p_href + "\"]");
+    "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > " +
+    "td.messCase2 > div[id^=\"para\"] table.citation a.cLink[href*=\"" +
+    p_href + "\"], div#mesdiscussions.mesdiscussions table.messagetable > tbody > " +
+    "tr.message > td.messCase2 > div[id^=\"para\"] table.oldcitation a.cLink[href*=\"" +
+    p_href + "\"], div#mesdiscussions.mesdiscussions table.messagetable > tbody > " +
+    "tr.message > td.messCase2 > div[id^=\"para\"] table.quote a.cLink[href*=\"" +
+    p_href + "\"]");
   for(let l_link of l_links) {
     let l_href = l_link.getAttribute("href");
     if(l_link.firstChild && (l_href.length > p_href.length ||
@@ -1054,9 +1075,9 @@ Promise.all([
     style_images_smileys.setAttribute("type", "text/css");
     style_images_smileys.textContent =
       "div[id^=\"para\"] img:not(.ws_toyo_smilies):not(.ws_toyo_help_icon), " +
-      "div#apercu_reponse img, body#mesdiscussions img{border:0 !important;margin:0 !important;" +
-      "padding:0 !important;vertical-align:bottom !important;}span.gm_hfr_tdi_r21_img_span" +
-      "{vertical-align:bottom !important;}";
+      "div#apercu_reponse img, body#mesdiscussions img{border:0 !important;" +
+      "margin:0 !important;padding:0 !important;vertical-align:bottom !important;}" +
+      "span.gm_hfr_tdi_r21_img_span{vertical-align:bottom !important;}";
     document.getElementsByTagName("head")[0].appendChild(style_images_smileys);
   }
   // mise en évidence des liens ayant un attribut « target="_blank" »
@@ -1158,17 +1179,20 @@ Promise.all([
   // suppression des espaces supplémentaires sous l'arborescence
   if(smp_supprimer_espaces) {
     // suppression du <br> après la div sous l'arnorescence
-    let l_espaces_br = document.querySelector("div#mesdiscussions.mesdiscussions > div.arbo ~ br + div + br");
+    let l_espaces_br = document.querySelector("div#mesdiscussions.mesdiscussions > " +
+      "div.arbo ~ br + div + br");
     if(l_espaces_br) {
       l_espaces_br.parentNode.removeChild(l_espaces_br);
     }
     // suppression des <br> dans le bloc des boutons de la catégorie
-    let l_images_brs = document.querySelectorAll("div#mesdiscussions.mesdiscussions > div.rightbutton > br");
+    let l_images_brs = document.querySelectorAll("div#mesdiscussions.mesdiscussions > " +
+      "div.rightbutton > br");
     for(let l_images_br of l_images_brs) {
       l_images_br.parentNode.removeChild(l_images_br);
     }
     // compactage des boutons de la catégorie
-    let l_images_imgs = document.querySelectorAll("div#mesdiscussions.mesdiscussions > div.rightbutton > a > img");
+    let l_images_imgs = document.querySelectorAll("div#mesdiscussions.mesdiscussions > " +
+      "div.rightbutton > a > img");
     for(let l_images_img of l_images_imgs) {
       l_images_img.style.verticalAlign = "text-bottom";
     }
@@ -1212,7 +1236,8 @@ Promise.all([
   }
   // suppression du copyright
   if(smp_supprimer_copyright) {
-    let l_centers = document.querySelectorAll("div.container ~ center, div.container ~ font");
+    let l_centers =
+      document.querySelectorAll("div.container ~ center, div.container ~ font");
     for(let l_center of l_centers) {
       l_center.parentNode.removeChild(l_center);
     }
