@@ -12,7 +12,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_wiki_smileys_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_wiki_smileys_mod_r21.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @connect       generateurs.super-h.fr
 // @grant         GM_getValue
@@ -22,7 +22,7 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 4862 $
+// modifications roger21 $Rev: 5070 $
 
 // historique :
 // 2.4.3 (12/04/2023) :

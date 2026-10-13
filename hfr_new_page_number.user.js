@@ -12,7 +12,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_new_page_number.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_new_page_number.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM.getValue
 // @grant         GM_getValue
@@ -41,7 +41,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 3561 $
+// $Rev: 5085 $
 
 // historique :
 // 2.8.9 (11/06/2022) :

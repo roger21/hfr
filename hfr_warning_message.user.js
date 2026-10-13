@@ -10,7 +10,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_warning_message.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_warning_message.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
@@ -31,7 +31,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 2510 $
+// $Rev: 5076 $
 
 // historique :
 // 1.0.0 (05/09/2020) :

@@ -13,7 +13,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_image_previe_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_image_previe_mod_r21.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @connect       *
 // @grant         GM.getValue
@@ -43,7 +43,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4663 $
+// $Rev: 5070 $
 
 // historique :
 // 3.0.8 (31/03/2026) :

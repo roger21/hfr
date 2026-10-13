@@ -11,7 +11,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/rehost_upload_bbcode.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/rehost_upload_bbcode.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
@@ -33,7 +33,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 5102 $
 
 // historique :
 // 1.4.3 (13/02/2020) :

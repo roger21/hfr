@@ -10,7 +10,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_pas_d_alerte_light.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_pas_d_alerte_light.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
@@ -32,7 +32,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4676 $
+// $Rev: 5074 $
 
 // historique :
 // 1.0.7 (06/04/2026) :

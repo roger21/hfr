@@ -12,7 +12,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_drapal_easy_click.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_drapal_easy_click.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM.openInTab
 // @grant         GM_openInTab
@@ -35,7 +35,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1988 $
+// $Rev: 5096 $
 
 // historique :
 // 1.8.8 (05/05/2020) :
@@ -118,7 +118,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - ajout des metadata @grant
 
 // options en dur
-var open_at_end = true;
+var open_at_end = false;
 var drapals_refresh = false;
 var refresh_delay = 5000; // 5 secondes
 

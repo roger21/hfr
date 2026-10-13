@@ -772,7 +772,3 @@ var toyoAjaxLib = (function() {
 		};
 	
 })();
-
-
-
-

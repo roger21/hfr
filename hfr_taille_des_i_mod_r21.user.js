@@ -13,7 +13,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_taille_des_i_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_taille_des_i_mod_r21.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM.getValue
 // @grant         GM_getValue
@@ -41,7 +41,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4665 $
+// $Rev: 5070 $
 
 // historique :
 // 3.2.0 (31/03/2026) :

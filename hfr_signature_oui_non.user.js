@@ -12,7 +12,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_signature_oui_non.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_signature_oui_non.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM.deleteValue
 // @grant         GM_deleteValue
@@ -39,7 +39,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1590 $
+// $Rev: 5078 $
 
 // historique :
 // 1.1.5 (13/02/2020) :

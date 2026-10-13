@@ -10,7 +10,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_html5_media_link_rep.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_html5_media_link_rep.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @connect       i.4cdn.org
 // @connect       i.imgur.com
@@ -43,7 +43,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5001 $
+// $Rev: 5089 $
 
 // historique :
 // 2.3.4 (25/09/2026) :

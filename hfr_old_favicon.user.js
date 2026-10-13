@@ -15,7 +15,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_old_favicon.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_old_favicon.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         none
 // ==/UserScript==
@@ -37,7 +37,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 1705 $
+// $Rev: 5082 $
 
 // historique :
 // 1.3.5 (06/03/2020) :

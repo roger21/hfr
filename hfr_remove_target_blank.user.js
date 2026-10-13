@@ -10,7 +10,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_remove_target_blank.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_remove_target_blank.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Programmation/Divers-6/sujet_148758_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM.getValue
 // @grant         GM_getValue
@@ -37,7 +37,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5036 $
+// $Rev: 5070 $
 
 // historique :
 // 1.5.1 (09/10/2026) :

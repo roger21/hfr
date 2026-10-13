@@ -8,13 +8,13 @@
 // @exclude       https://forum.hardware.fr/message.php*
 // @author        roger21
 // @authororig    toyonos
-// @modifications Basé sur la version 3 (ou c) - Ajout du statut (membre, modal, etc.), suppression de l'info de region (désactivée sur le forum), meilleur calcul de l'age, ajout de l'avatar sur les pseudo des citations (et ceux de [HFR] Postal Recall) et ajout de la gestion de l'affichage et de l'édition des mots-clés des smileys persos et de l'insertion des smileys persos dans l'édition rapide ou la réponse rapide.
+// @modifications Basé sur la version 3 (ou c) - Ajout du statut (membre, modal, etc.), suppression de l'info de région (désactivée sur le forum), meilleur calcul de l'age, ajout de l'avatar sur les pseudos des citations (et ceux de [HFR] Postal Recall) et ajout de la gestion de l'affichage et de l'édition des mots-clés des smileys persos et de l'insertion des smileys persos dans l'édition rapide ou la réponse rapide.
 // @modtype       réécriture et évolutions
 // @updateURL     https://raw.githubusercontent.com/roger21/hfr/master/hfr_infos_rapide_mod_r21.user.js
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_infos_rapide_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_infos_rapide_mod_r21.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM.openInTab
 // @grant         GM_openInTab
@@ -37,7 +37,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4643 $
+// $Rev: 5070 $
 
 // historique :
 // 4.1.6 (25/03/2026) :

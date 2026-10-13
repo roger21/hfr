@@ -13,7 +13,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_citation_rap_mod_r21.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_citation_rap_mod_r21.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM_info
 // @grant         GM_deleteValue
@@ -30,7 +30,7 @@
 // @grant         GM_xmlhttpRequest
 // ==/UserScript==
 
-// modifications roger21 $Rev: 1590 $
+// modifications roger21 $Rev: 5107 $
 
 // historique :
 // 2.0.5 (13/02/2020) :
