@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Last Post Highlight
-// @version       2.1.6
+// @version       2.2.0
 // @namespace     roger21.free.fr
 // @description   Permet de distinguer les posts lus des posts non lus par l'ajout d'une diode sur les posts et en affichant une ligne de séparation (optionnelle) et répare les ancres cassées (en cas de suppression de post).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -22,7 +22,7 @@
 
 /*
 
-Copyright © 2012, 2014-2021 roger21@free.fr
+Copyright © 2012, 2014-2021, 2026 roger21@free.fr
 
 This program is free software: you can redistribute it and/or modify it under the
 terms of the GNU Affero General Public License as published by the Free Software
@@ -37,9 +37,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5088 $
+// $Rev: 5111 $
 
 // historique :
+// 2.2.0 (14/10/2026) :
+// - suppression des sections optionnelles (migrées dans ->
+// « [HFR] Styles et mise en page » en 2019, désactivées par défaut et pas à jour)
 // 2.1.6 (16/04/2021) :
 // - modernisation du code de défilement de la page (pour la navigation sur les leds)
 // 2.1.5 (02/02/2021) :
@@ -1051,78 +1054,3 @@ Promise.all([
     window.addEventListener("hashchange", update_leds_and_line, false);
   }
 });
-
-/* --------------------------------- */
-/* ----- SECTIONS OPTIONNELLES ----- */
-/* --------------------------------- */
-
-// fonction de conversion des liens en images dans les quotes
-function a2img(p_href) {
-  let l_links = document.querySelectorAll(
-    "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
-    "div[id^=\"para\"] table.citation a.cLink[href*=\"" + p_href + "\"], " +
-    "div#mesdiscussions.mesdiscussions table.messagetable > tbody > tr.message > td.messCase2 > " +
-    "div[id^=\"para\"] table.oldcitation a.cLink[href*=\"" + p_href + "\"]");
-  for(let l_link of l_links) {
-    let l_href = l_link.getAttribute("href");
-    if(l_link.firstChild && l_href.length > p_href.length) {
-      if(l_href.startsWith("https://images.weserv.nl/")) {
-        l_href = l_href.replace(p_href, p_href.replace(/^http:\/\//, ""));
-      }
-      l_href = l_href.replace("'", "%27", "g").replace("\"", "%22", "g");
-      let l_img = document.createElement("img");
-      l_img.setAttribute("alt", l_href);
-      l_img.setAttribute("title", l_href);
-      l_img.setAttribute("src", l_href);
-      l_link.parentNode.replaceChild(l_img, l_link);
-    }
-  }
-}
-
-// OPTIONEL : pour effacer le tableau des sujets relatifs
-if(false) { // remplacer false par true pour activer
-  if(document.getElementById("sujetrelatif")) {
-    // suppression du <br> avant les sujets relatifs
-    if(document.getElementById("sujetrelatif").previousElementSibling &&
-      (document.getElementById("sujetrelatif").previousElementSibling.nodeName.toLowerCase() === "br")) {
-      document.getElementById("sujetrelatif").parentNode
-        .removeChild(document.getElementById("sujetrelatif").previousElementSibling);
-    }
-    // suppression des sujets relatifs
-    document.getElementById("sujetrelatif").parentNode.removeChild(document.getElementById("sujetrelatif"));
-  }
-}
-
-// OPTIONEL : pour effacer la section mesdiscussions.net (en bas de page)
-if(false) { // remplacer false par true pour activer
-  if(document.querySelector("div.copyright")) {
-    // suppression du <br> avant la section mesdiscussions.net
-    if(document.querySelector("div.copyright").previousElementSibling &&
-      (document.querySelector("div.copyright").previousElementSibling.nodeName.toLowerCase() === "br")) {
-      document.querySelector("div.copyright").parentNode
-        .removeChild(document.querySelector("div.copyright").previousElementSibling);
-    }
-    // suppression de la section mesdiscussions.net
-    document.querySelector("div.copyright").parentNode.removeChild(document.querySelector("div.copyright"));
-  }
-}
-
-// OPTIONEL : pour effacer la section copyright hardware.fr (en bas de page)
-// et les pubs de prix en mode non connecté
-if(false) { // remplacer false par true pour activer
-  let l_centers = document.querySelectorAll("div.container ~ center");
-  for(let l_center of l_centers) {
-    l_center.parentNode.removeChild(l_center);
-  }
-}
-
-// OPTIONEL : pour afficher les smiley générés de toyonos dans les quotes (comme des smileys donc)
-if(false) { // remplacer false par true pour activer
-  a2img("http://hfr.toyonos.info/smileys/generate/");
-  a2img("http://hfr.toyonos.info/generateurs/");
-}
-
-// OPTIONEL : pour afficher les emojis de [HFR] Copié/Collé dans les quotes (comme des smileys donc)
-if(false) { // remplacer false par true pour activer
-  a2img("https://gitlab.com/BZHDeveloper/HFR/raw/master/emojis-micro/");
-}

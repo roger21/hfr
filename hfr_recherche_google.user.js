@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Recherche Google et DuckDuckGo
-// @version       2.1.4
+// @version       2.1.5
 // @namespace     roger21.free.fr
 // @description   Remplace le bouton de recherche du forum (en haut à droite) par un champ de recherche par Google, DuckDuckGo ou les deux.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -10,7 +10,7 @@
 // @installURL    https://raw.githubusercontent.com/roger21/hfr/master/hfr_recherche_google.user.js
 // @downloadURL   https://raw.githubusercontent.com/roger21/hfr/master/hfr_recherche_google.user.js
 // @supportURL    https://forum.hardware.fr/hfr/Discussions/Viepratique/sujet_116015_1.htm
-// @homepageURL   http://roger21.free.fr/hfr/
+// @homepageURL   https://roger21.pages-perso.free.fr/hfr/
 // @noframes
 // @grant         GM.openInTab
 // @grant         GM_openInTab
@@ -39,9 +39,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 4947 $
+// $Rev: 5111 $
 
 // historique :
+// 2.1.5 (14/10/2026) :
+// - récupération de l'URL déconnectée du topic en local quand c'est possible
+// - nouvelles icônes pour le bouton et broutilles
 // 2.1.4 (08/09/2026) :
 // - mise à jour des cats et des sous-cats (nouvelle cat ia)
 // - correction du code des cats et des sous-cats
@@ -169,13 +172,15 @@ let gmMenu = GM.registerMenuCommand || GM_registerMenuCommand;
 /* les images */
 /* ---------- */
 
-const img_google = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm%2B48GgAAAgNJREFUOI2lkjto02EUxX%2Ff90%2BszaPB0iaVLkaCQiIIidJKl1gf6FCXVuiondwEJw0SpWhRxKEiLdJB3Yov8AHSksRQxKFJXBRxEotV0epi0zzJ%2FzqYpDESEL3T5Xyc851z74X%2FLNUMfD%2Fc12EWK2OCGkHhA1wotSxCXAzzes98%2BnVLgZX9u8Ii6i7Q1eJDE1FRd2LxYg2w1Jqv%2B3YfEuERYK1CAiyB5EH5qnhRNOlGRQ2QjXg9KG6vk%2BWZVkbAHU953fG039igu4BJUzPkiS3O%2FRGhHLOcKWa6J%2FLxXtDyMltwDniTyUKLGL9VNYIabgt9w9Kbo%2FRi8%2FnuqUydvHd8NYBVb2wmGmUpxaKOV7UZ%2BACMnlzZGX47x1SDRUPdx5TtzQKmwQ%2FApf%2FGZouy1iMUTWO5TVdcHyr27FkJ9kNiYd2CuopIJ4CIdCilItWHT3WBdxXH8%2FclZ%2BDy2s5NRVNfCt88Npg8fqsAkIjYZ2pagxPZ08ivXkSSUF3jlXwwOr4W%2FFwUA5Tak21ffdp356i%2FRgw9HrL1z0yeQ8wLVUi0oW5AwyWGZkcOKuQJDYcksKQgC2wFbEbej%2B3LCbTpuhaPOE7WHQBkRu%2FNK60PACv19LAF2AHYACrtb8h5pmc7ffZT9RE1j3bg4RFnKW8dA4YFtQ3EBXwEWVAwnRp9kGq1ln%2Bqn%2FOsr7FXPj6GAAAAAElFTkSuQmCC";
-const img_duckduckgo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3Jnm%2B48GgAAAV9QTFRFAAAA2Vkz21Ux3F0u3Vcy3lg03lcz4Fw54Fs44Fs44Fw45oRp5oVq5oZr5oRp5oVq54Zr6pV96pZ%2B6pV96paA65mE6pV96pZ%2B6pd%2F65mC65qD6piD65qE7qiV7qqW762aZbxHabxLbblGno49ur%2FSvHQ5wnA4wszeyOe90OrG193p3lgz3lkz3lk13lo131sy31wx314632pL4JR14WIw4WdF4WhH4WlI4mpJ4pR%2B4pqF4vLc5G8s5IRq5LKZ5Xtd5n9i5n9j5oBk5oFl5oNn5qKR54No54Rp54Vp54Vq54Zr57er6H4m6IAr6aOL6fTn6oUk6qGM6rKl6u706%2FXs7NHK7Y8g7ban7ffp7pIg7pYe766c766d76%2Bd77Cf8J0c8LWl8Obk8bam8b%2By8qUZ8ryt8%2FDh9Pb59rUc9vb3%2BMEj%2BPn6%2Buzo%2Bvr8%2Bvv8%2FNEk%2FPz9%2Fvv6%2F%2Fnd%2F%2Fvq%2F%2F%2F%2F%2FjITPgAAACB0Uk5TABQVFlJUVYKDhIXY2dna2tv19fb29vf39%2Ff3%2BPj%2B%2Fv66jP7VAAAAz0lEQVQYV2NgwAaYufilpfk5mWF8NolodzMz9xgxVihf1iE81V5bW9tRFizCLO6gF5hTmGCore0kzAQU4IrWtg3OK0kPAqqJ5QAKCHhou%2BZqlRSo6Gpre%2FIABWTMtC2z1UtK0nzjA8ylgAJSptpGmSVF%2BVkpPjpmokABPjdt7cSS4ozIsCh9L5AWziRt7dCSEgsTGwPtOHaQtRIu2t4R1sZqqtrOQowgh7DKu1lpKigqKTvLsUCcyiqS7K8R4mcnCOUzMDBx8EpLcrOD1WMAAG67I%2F%2Bh5MSaAAAAAElFTkSuQmCC";
-const img_gooduck = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABhklEQVQ4y63Tv2tTURjG8c/NzaVSapFY6mBdK4oOqbq4dOgiLiJk6Ryc/QMC1aWruAkK/kQIuHQTpBkyOAhCxUmEDG5qurRNk+aHNw65SW8Nhg4903sO7/t9n/c553DSa2ft4vt2Radd8XGpXLifLxeCSfmZ9GZ7OX8lrmdvIcLNfKb3GM+ODUAxrmdHm4VMF4r5cmH5f4Bs0rmCWVzu1w+Z58IePXAX1UkKXuE6pqHfngZnM51h3sFxRniOnxC3ToHTQQ9aeDMRMFfdej1X3SqiCDoDH3LhAWxgO120st5YXFlvXBt5kPhwFU8g3psSzjM1ULCK1Xy58B3vcrWXOdxL1F4YmriATcxDvxMOPAj30o0XUYqjXZnuLJxPe/BgWAzxTgSioDs2cz9sD8NaGrB0JKsbJB78GAPE2f1h+CENOGJS/CsaxdGYggY08SgNWEsOE8Lh87+dbf2jYHcfdyqlmVr6Gj/hBl7g659vURNd/A4CX/AZbwkeNs88vVQpzWye2O/9C4nYcy1K62IBAAAAAElFTkSuQmCC";
-let img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII=";
-let img_info = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg==";
-let img_save = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
-let img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg==";
+const img_google = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACRklEQVQ4y6WTzUtUYRjFf++9d8YZvz9LUZGKoGiTQkIkolSgImkWUf0VRbSoRYuIttEuWkZoYmGLPkA0SWwRQbYyaJUNGjOGjabOnTtz72kxM35QrTpwFu/D87wcnnMe2AFJRZIGJY1IWpS0nudivjYoqYi/QVKzpGeS0goCKZPZzSCQpHS+p7kwZwrDwHOglbWkYeYtTE1CPAHYsLcenTyF6eyA8nIBc8CgMSZm8pKGgbMkYoaHt+HjPKTCENhgwsgqQqEItLdhXb8C4ZCAceCyA/QC/bjLhslr4H2Cqipo64Lj3TmR797DUhxz8RyEnILyfqCX3HIC6euwNF4pPWiRJh5JbkpbcF0pnijsYSdGHKAT+bD5FOo9qDsG7echFEGC76sgFUGoDpIAIuJAdZnBQKcDVCChbAITMVDTA6GcU34AVx/Dsrvbse4DcHMAbIsKZ4eP+IAMONslvEC4Qe7t+gZhSPvbnznAKsaUZJ1aNlIea6uvaGy4hG0XY9twZwgCQcqDWy9EfBNqik3Of1i1gBmMzVrFBeazMPtriunYE9K+i2XgSJPhUKOIra+wYH7gh1K07/OxLABmHGAUzFDZnp7w0vIZ5jbe8CV2j5cr3zhd3UXIRHi9mGBswSYVbaSvtomj+6MAHjC6K0iJjQVz9/MNptdjxIMG0oqSDaIEXi3GbabTPsz9E20crCvdCtIfUU56STOxOMtY4gNx9ycEFpVOPQPVHfS1tNJQWrIryn89pkCBMn5GXp4ZPyv/H8fE/57zb46QmKYNvKZnAAAAAElFTkSuQmCC";
+const img_duckduckgo = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAABRFBMVEUAAADfWC/fWDnfWDreWDLeWDTeWDLeWDTeWDPeWDTeWTPeWDPeWDPdVjDeVi/eVjDeVi/eVSzfYEHfYEHfX0DfYEDfYEHic1vpoZXpopXpoZRvrTpwwWeet3Oq16asz6KtjTitsX7J4cXP583Qt8DW3MXYaDTZbjTZ3ejeVzPeWDPeWDTeWTTeYD/eZ0rfXTrfXTvfXjvfXz7fYD7fgW3gYzPhhnPhkoPiazPipZ/jg2/k5+7lhG/linjli3nolHzovbfqjTPq2tzrqZ3tmT/umDPumjXvurLwnDPx39zypTPyzcby1czy17bzqzbzz8jz4d70zsX008301M701tD108z11M711c719vn29ff29/n3uU7349737+r49fT5+Pn67Or67er78e/89vT98NP+/v3+//7/1XL/68T/+u7//vz///9qe+1xAAAAG3RSTlMAAwMDICAiIkJCQkZHkZGRkri8vb6+vtf5+fukRAw7AAAAzUlEQVQYlWNgwAaYOfkEBXm5mWB8dlGJsMSEUCkxdgifVTwoJtBG39Y/WBwswiwU7GwVkOxurOMcJArSxS3lr+sUkR1hqaXjLckBFOANtTWLtM6OUtHXtAvjBwoIJhiaxGtkpvi6uBolCoIFjPTistL93BxNDRJAAgJhdtqe2RnRXh4WtqEgLVyS3joOaan26mo6/lLcQAFG0SBnc2U5WWkF5zBhRpBD2MTDQpRk5BVVg8RZIE5lEZbyiU0KlxRhg3mGkYdfUJCfgxGrzwFdKCHNnwHlygAAAABJRU5ErkJggg==";
+// ancienne image « gooduck » (décommenter et commenter la suivante pour remettre)
+//const img_recherche = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAABhklEQVQ4y63Tv2tTURjG8c/NzaVSapFY6mBdK4oOqbq4dOgiLiJk6Ryc/QMC1aWruAkK/kQIuHQTpBkyOAhCxUmEDG5qurRNk+aHNw65SW8Nhg4903sO7/t9n/c553DSa2ft4vt2Radd8XGpXLifLxeCSfmZ9GZ7OX8lrmdvIcLNfKb3GM+ODUAxrmdHm4VMF4r5cmH5f4Bs0rmCWVzu1w+Z58IePXAX1UkKXuE6pqHfngZnM51h3sFxRniOnxC3ToHTQQ9aeDMRMFfdej1X3SqiCDoDH3LhAWxgO120st5YXFlvXBt5kPhwFU8g3psSzjM1ULCK1Xy58B3vcrWXOdxL1F4YmriATcxDvxMOPAj30o0XUYqjXZnuLJxPe/BgWAzxTgSioDs2cz9sD8NaGrB0JKsbJB78GAPE2f1h+CENOGJS/CsaxdGYggY08SgNWEsOE8Lh87+dbf2jYHcfdyqlmVr6Gj/hBl7g659vURNd/A4CX/AZbwkeNs88vVQpzWye2O/9C4nYcy1K62IBAAAAAElFTkSuQmCC";
+const img_recherche = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAACiElEQVQ4y6WTS2sTURTHf3deSdo0xiREsUIF0YUillJKLS7qwoVVV4obNy71W0Q/g4og9hO0CBUfuGmpSKE0pWAb3xIf8VmbtslMZiZz73XhtEa3ns25cPife/if3xF0xL6lkgASQBroBpy4FAIu0ASCan9Jb2nE1uNaZdoetoduKyXGkBQiqWhGXlRTtY1b5r35NqoMzADPgLVqf0luN7hambZH7OHZXMIY3tklsAwNGvxI83HVZ6n+Sd1MT65K9CtgApgEvlT7S9Lct1QSVxIX7uSSxpldaQMvlGz6ikaoUUqzK+OA74jUZld3JVktAn2AD7zJXh5tGUBCSj2WSwkagcQLNZHSSKlxQ81aS9KbT5Ft5AGSwAHgPHAESBhAWkUUTAO8UCOVRip+N1EaN1A4tonwzC27EsBBYBRIW0B32I5Q2iZSGqVA6j9ZK5AagrbsND4DDADdBuA02m7ktxWWIeKf2c62JfD8Ni3d7Ny4A/QCjgFQ0583qt88ehIGjimQ8SQJS5BNmSy/XWXP5gqDrZB/wwDC8eTD+cW1D2rl/Tq2CcUei+IOC8fQzFe+0vz5lZO7v3NxepGjnr8FVg0ILcCNUOXx3NTg6Z8jxWy5gGhZRG2Ja7bIhc8Zs5+T3z9En7fOuftPkKeOu8vp1CLgWjGeMxJ9Yir/NEOeZOeIaa0plD8RLNTpO3SMA+46ZyceZJYvnZsBmgYQxHhOAK9jSLZZbwrB9YGDzOk6LxYeUdy7H1X/YceawFy/NUP28mgAfIzFWSAFmLFHui1EsNxbrBfevfN/zD3uaqQyN+YHDt+t9peU6LhEE8jFhI3Ge+6NyzVgMSPl7Mnyy2+TQ4cqfx3T/5zzLz1TQ/BcfEHyAAAAAElFTkSuQmCC";
+const img_help = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACmUlEQVR42q2TX0haYRjGz8XYxW53s6sgbVQUiQ6i2IgxmIxgBDkKpAXRaCPZqFgsFhaFUrEoCIqkRDkjxTA0jEZSoigpiZKxMPzEKDwHQUnxz6Fo8exMhhFEV33wu%2FueHzwv70tR9%2F0s%2B5dCc%2FBCafKfE8Mel%2FvpzeV0nixZdqWVi44z4Z1ho5%2BTrfgKbCh%2BiYNTDsFYtkjopABftIDpDZadXI%2FLbg3TuzmZ1p3JHzLncP5OQr1KIJ%2F1o216D4P0AWw%2BFoHjLL4bSH6QProp0TjTgoWdFHMQ57DuT6CFDw3QIZAEh0iigNmNKKRqN%2FQ7x%2FBG0uhZ2Ge65gKCkmBmkx3ZJTlsh1JonvDi5bAThYsrHvznCi0TLkjHHFjzMjDvMmhVu0dKgtHVYxLguw7Rh2gadqBxaBuELWBxKwqj5wQcLzB6YhD1WdCz6IM7nMSrITspCfp1YS4Yy6BZ5ULDNzvEAzb%2BsxVL9giS2QucJjkoVwKo6TWj4asVvsgZxAorVxJ0zwW4QDSD1%2BMuiPqtqPtiQe1nCzLcHxwxWUgUZlR2G%2FCUR6IwwUtSKO80Xgtkag%2FxHKWg0AQg7rOhVrGG6k%2BrqPpgLFLxnkZFhw6CDi3a1Fuwhxg8btVeV%2BD7jOjsUVh9DBr6baVgIn0O5oxDmXy5SIVcA3onAhVf54F0%2FnqIEsW6oO7jGrPpZ6DfJhD1miDo1KN3zlHkX7i8fR5TpiBMriioplmGej4juLELZfIV2ZN2Om%2FxnsDojuGdahPVXVpUdizhrdIKvT0Mg5OAqv%2BRp55N3r6Nj5o1sodvFthReg%2B%2FgnG4wokiG%2F5TDGo8oMRqlqpTye6%2BphczQqpxWknVTxFKMpGjROocVTtOqJoxJVU1Krz36%2F0Lr2rVjUwVEAIAAAAASUVORK5CYII=";
+const img_info = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABG0lEQVR42mNgoAZwrZy1C4jfAfFrIjFI7SpkAz4D8X907FEzF4yxyQHxC2QDPiBLupTP%2BO9Xv%2BD%2FjN2X%2Fs%2Fae%2Fm%2FX8MCsBiaAc9wGuBYNv1%2F9vQt%2F2Egb8ZWsBjRBoBscyqb8b9j3bH%2F03dd%2BB%2FQtJB4F4AUhrUu%2Bd%2B%2F5dT%2FvTde%2Fd917fn%2FxL41%2F52INQCkMGXiuv%2F3v8B98D99ykbSvOAOxIWztyMMmLQR6KXppAUiyNm%2FyDUApDiuZ9X%2F70DNf4E4qX8d6bEwC5gGYGDW7sukpQMXIC6Ytf3%2FpvOP%2Fm%2B68AjI3orNgKfIBnxxr5r9HxmDkrB37TwwBrHR5YGWvIQbIBJcvkc6ouatdFjVa6JwRM07kcCy1VTJyQAWb%2BM0%2Fl9lTAAAAABJRU5ErkJggg==";
+const img_save = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAACdklEQVR42q2TX0iTYRTGz1UXCRIMMWOIbKi4pJSU%2FWEbTpnQNowxYyYW1Ihwig4klGijDAtn1IaTqTTRiTbcaAqFCS4skUAkuuvPRxGCIypsoOz26XwftBZkVx544L14f8857znnJTrsqIyTUjFP3tIoCUWPaE82wQqTIAuRtzBAyv%2FC5TFyyKOUNkbluJFyY3jdK2lgtRO14WOgIUrTIDn%2BCXNWR%2FE07V9ZsiG06Uffi6uwLzVKEs%2FBzWF0LDSB%2Bmif9bdJWZQUxRHaEWHxYnOyHqZELfQLp2FkNbDM8TMIvL6LC3MmkJt26BopcgbyCPm0UyVSZhEWQW3sJNTzVVDPVUI3V4XI1iisMQ2CbKIYPAK6TL6cQdEECQOpTnhSLpjiNdA8VjFYAc0sK1qB6TdhZDIZvN3eQs%2BzDvQtdYDaSMgZHA1Q9v7GLbQk9TDEqrmSEax%2BXIZ2pgpTW2MS%2FGP3O3qeXoR1pgbDqQGQjbJ%2FmnCPsv51H2wJLVoSBnz%2B%2BkmCPqTf5WD3Yht04VJYIqfgT%2FWDmvMNBkm4vuxC78olGGdVcMbN2P72RYJ3f%2B7C%2FeQ86kMl0LNBV7IVvTEnqCnvCXSTfKqRAgQ27sA8o4IuokTrfAPW3q%2BgZ7EddaPHoQ6egDFUhsBLHwo9BGrMayJ5eCQ8GmdUjwevbqNxshyG8TJox%2BTQBEWJcCkernlhG6sB6XiMurwxSuHi5WinfXukHkE26U46YZmsxtlxFbr5CQGGLaFqUB0vku6AbWQDB9kpLesn9CacGHruwdCyB%2B6YHQVdXLaaV1l7EPw7zvGHsZKXuyyQgfYY2OOMAsvL2ZWH%2Fnt%2FATnRYAIAzln5AAAAAElFTkSuQmCC";
+const img_close = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8%2F9hAAABzElEQVR42p2Sz0sCURDHH%2BbiU9ToB4LiD8Iu8ihQKBI0WEEUwYMdOkiXLp0i69CpDkERUVBQRBAUHTp0MCEKCipJi37QD%2Bj%2FWZlmXhpKu0UNPHaWt5%2BZ73xnGftjXPn9NsPLh3g8gEcY3V%2F6%2FeLM6y0cu93DuvBTIgGPqgp3g4NCD74OBKASCsGhy3W0390d%2Bga%2FZrPy3A8NQbWv76vIuc8nsADcRiLwkskA5dudnYU1p9PUKMDvo9HaczoN7%2Fk8UDEsANiRJEu4Gg4D3ddhbdXhUFok3g4M8Gp%2Fv%2FYQi8FbLgf0LPf0AHaXxZ6SSZlvtrcTzHVNwvk4QhpJpVGoI4GkCJXABsIrRnCTWfzU6609p1JwgR0xBxwR1p3O2q8wxYnHQ3PLbWAOJTzoD80N81ar%2BBHGjwV1vOntlR4QiCuV7hfdbliy22FaUYQhTB3LwaAEqTOapS3a7TXcOVSEgAOXC2YtFhhnrLUI%2Flmi1ATjO6x8wnzOauUziqJtdXRIZTs4ymRbG4w2F8E%2FSyWI1laswws225dhCPAJk4nWB7tdXTBlNsMIY2qLCjRJ3UOpyygZzfrm9hhjPM%2BYpgs3Ak1S9eBGoGxuCP83PgCikeJyFDsSMAAAAABJRU5ErkJggg==";
 
 /* -------------- */
 /* les constantes */
@@ -185,6 +190,7 @@ const script_name = "[HFR] Recherche Google et DuckDuckGo";
 const google_url = "https://www.google.com/search?q=";
 const duckduckgo_url = "https://duckduckgo.com/?q=";
 const insite = " site:forum.hardware.fr";
+const re_topic = /^https:\/\/forum\.hardware\.fr\/hfr\/[^\/]+\/(?:[^\/]+\/)?([^\/]+)-sujet_[0-9]+_[0-9]+\.htm.*$/;
 
 /* ------------------------- */
 /* les paramètres par défaut */
@@ -204,7 +210,12 @@ const gmhfrrgedr21_open_in_foreground_default = true;
 let gmhfrrgedr21_search_engine;
 let gmhfrrgedr21_max_context_level;
 let gmhfrrgedr21_open_in_foreground;
-let cat, subcat, topic, search_input, search_img;
+let cat;
+let subcat;
+let topic;
+let re_result;
+let search_input;
+let search_img;
 let do_debug = false;
 
 /* -------------------------------------------- */
@@ -1136,7 +1147,7 @@ l_style.textContent =
   "padding:8px 10px 10px;cursor:default;}" +
   "#gmhfrrgedr21_config_window legend{font-size:14px;cursor:default;}" +
   "#gmhfrrgedr21_config_window div.gmhfrrgedr21_div{display:flex;cursor:default;" +
-  "justify-content:space-evenly;align-items:center;}" +
+  "justify-content:space-around;align-items:center;}" +
   "#gmhfrrgedr21_config_window input[type=\"radio\"]{margin:0 0 1px;" +
   "vertical-align:text-bottom;}" +
   "#gmhfrrgedr21_config_window p{margin:0 4px;cursor:default;white-space:nowrap;}" +
@@ -1273,9 +1284,9 @@ let context_fieldset = document.createElement("fieldset");
 let context_legend = document.createElement("legend");
 context_legend.appendChild(document.createTextNode("Niveau de contextualisation maximal "));
 context_legend.appendChild(create_help_button(280,
-  "La contextualisation au niveau \u00ab\u202ftopic\u202f\u00bb peut donner des " +
+  "La contextualisation au niveau «\u202ftopic\u202f» peut donner des " +
   "résultats assez pauvres et il peut être intéressant de rester au niveau " +
-  "\u00ab\u202fcat\u202f\u00bb ou \u00ab\u202fsous-cat\u202f\u00bb pour faire " +
+  "«\u202fcat\u202f» ou «\u202fsous-cat\u202f» pour faire " +
   "des recherches de topics plutôt que d'essayer de faire des recherches intra-topic."));
 context_fieldset.appendChild(context_legend);
 config_window.appendChild(context_fieldset);
@@ -1463,7 +1474,8 @@ gmMenu("\u200b" + script_name + " -> Configuration", show_config_window);
 
 function update_search() {
   if(search_input && search_img) {
-    let search_title, search_image;
+    let search_title;
+    let search_image;
     if(gmhfrrgedr21_search_engine === "google") {
       search_title = "[HFR] Recherche Google";
       search_image = img_google;
@@ -1472,12 +1484,12 @@ function update_search() {
       search_image = img_duckduckgo;
     } else {
       search_title = script_name;
-      search_image = img_gooduck;
+      search_image = img_recherche;
     }
     let context = gmhfrrgedr21_max_context_level === 0 ? "forum" :
       (gmhfrrgedr21_max_context_level === 1 ? "cat" :
         (gmhfrrgedr21_max_context_level === 2 ? "sous-cat" : "topic"));
-    search_title += " (" + context + ")";
+    search_title += " ( " + context + " )";
     search_input.setAttribute("title", search_title);
     search_img.setAttribute("src", search_image);
     search_img.setAttribute("title", search_title);
@@ -1542,7 +1554,6 @@ if(tree2) {
 if(do_debug) {
   if(cat) console.log(script_name, "cat :", cat.key);
 }
-
 // sous-cat
 let tree3 = document.querySelector("#md_arbo_tree_3");
 tree3 = tree3 ?
@@ -1566,46 +1577,54 @@ if(cat && tree3) {
 if(do_debug) {
   if(subcat) console.log(script_name, "subcat :", subcat.key);
 }
-
 // topic
-let formsearch = document.querySelector("div#mesdiscussions.mesdiscussions " +
-  "table.main tr th form[action=\"/transsearch.php\"], " +
-  "div#mesdiscussions.mesdiscussions > " +
-  "form#hop[action=\"/bddpost.php?config=hfr.inc\"]");
-if(formsearch !== null &&
-  formsearch.querySelector("input[name=\"cat\"]") !== null &&
-  formsearch.querySelector("input[name=\"post\"]") !== null) {
-  let cat = formsearch.querySelector("input[name=\"cat\"]").value.trim();
-  let post = formsearch.querySelector("input[name=\"post\"]").value.trim();
-  let url = "https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=" + cat +
-    "&post=" + post;
-  if(do_debug) console.log(script_name, "url :", url);
-  if(document.querySelector("input[type=\"hidden\"][name=\"subcat\"]") !== null &&
-    document.querySelector("input[type=\"hidden\"][name=\"subcat\"]")
-    .value.trim() !== "0") {
-    url = url + "&subcat=" +
-      document.querySelector("input[type=\"hidden\"][name=\"subcat\"]").value.trim();
-    if(do_debug) console.log(script_name, "url subcat :", url);
+re_result = window.location.href.match(re_topic);
+if(re_result !== null) {
+  topic = re_result[1];
+  // debug
+  if(do_debug) {
+    if(topic) console.log(script_name, "topic local :", topic);
   }
-  fetch(url, {
-    method: "GET",
-    mode: "same-origin",
-    credentials: "omit",
-    cache: "reload",
-    referrer: "",
-    referrerPolicy: "no-referrer"
-  }).then(function(r) {
-    let retopic = r.url.match(/\/([^\/]+)-sujet_/);
-    if(retopic !== null) {
-      topic = retopic[1];
-      // debug
-      if(do_debug) {
-        if(topic) console.log(script_name, "topic :", topic);
-      }
+} else {
+  let formsearch = document.querySelector("div#mesdiscussions.mesdiscussions " +
+    "table.main tr th form[action=\"/transsearch.php\"], " +
+    "div#mesdiscussions.mesdiscussions > " +
+    "form#hop[action=\"/bddpost.php?config=hfr.inc\"]");
+  if(formsearch !== null &&
+    formsearch.querySelector("input[name=\"cat\"]") !== null &&
+    formsearch.querySelector("input[name=\"post\"]") !== null) {
+    let cat = formsearch.querySelector("input[name=\"cat\"]").value.trim();
+    let post = formsearch.querySelector("input[name=\"post\"]").value.trim();
+    let url = "https://forum.hardware.fr/forum2.php?config=hfr.inc&cat=" + cat +
+      "&post=" + post;
+    if(do_debug) console.log(script_name, "url :", url);
+    if(document.querySelector("input[type=\"hidden\"][name=\"subcat\"]") !== null &&
+      document.querySelector("input[type=\"hidden\"][name=\"subcat\"]")
+      .value.trim() !== "0") {
+      url = url + "&subcat=" +
+        document.querySelector("input[type=\"hidden\"][name=\"subcat\"]").value.trim();
+      if(do_debug) console.log(script_name, "url subcat :", url);
     }
-  }).catch(function(e) {
-    console.log(script_name, "ERROR fetch topic url :", e);
-  });
+    fetch(url, {
+      method: "GET",
+      mode: "same-origin",
+      credentials: "omit",
+      cache: "reload",
+      referrer: "",
+      referrerPolicy: "no-referrer"
+    }).then(function(r) {
+      re_result = r.url.match(re_topic);
+      if(re_result !== null) {
+        topic = re_result[1];
+        // debug
+        if(do_debug) {
+          if(topic) console.log(script_name, "topic fetch :", topic);
+        }
+      }
+    }).catch(function(e) {
+      console.log(script_name, "ERROR fetch topic url :", e);
+    });
+  }
 }
 
 /* ----------------------------------------------------------------- */
