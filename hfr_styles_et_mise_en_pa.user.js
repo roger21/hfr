@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.4.1
+// @version       1.5.0
 // @namespace     roger21.free.fr
-// @description   Permet de supprimer les pieds de page et certains éléments en haut des pages, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes, mettre en évidence les liens ayant un attribut « target="_blank" », supprimer cet attribut sur les types de liens configurés, homogénéiser l'affichage des images et des smileys et désactiver le surlignage des cibles des liens en « fragments de texte » (le tout étant configurable et désactivé par défaut).
+// @description   Permet de supprimer les pieds de page et certains éléments en haut des pages, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes, mettre en évidence les liens ayant un attribut « target="_blank" », supprimer cet attribut sur les types de liens configurés, homogénéiser l'affichage des images et des smileys, corriger l'alignement vertical de la ligne du sujet, améliorer l'alignement vertical des éléments dans la barre d'outils des posts et désactiver le surlignage des cibles des liens en « fragments de texte » (le tout étant configurable et désactivé par défaut).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @author        roger21
@@ -37,17 +37,24 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5070 $
+// $Rev: 5161 $
 
 // historique :
+// 1.5.0 (29/10/2026) :
+// - ajout d'une option pour corriger l'alignement vertical de la ligne du sujet
+// - ajout d'une option pour améliorer l'alignement vertical des éléments dans ->
+// la barre d'outils des posts
 // 1.4.1 (12/10/2026) :
 // - ajout de bulles d'aide sur les deux options « target="_blank" »
 // 1.4.0 (09/10/2026) :
-// - ajout des choix "hash" et "topic" pour la suppression des « target="_blank" » dans les liens
-// - ajout d'une option pour mettre en évidence les liens ayant un attribut « target="_blank" »
+// - ajout des choix "hash" et "topic" pour la suppression des « target="_blank" » ->
+// dans les liens
+// - ajout d'une option pour mettre en évidence les liens ayant un attribut ->
+// « target="_blank" »
 // 1.3.0 (07/09/2026) :
 // - ajout d'une option pour supprimer les « target="_blank" » dans les liens
-// - ajout d'une option pour désactiver le surlignage des cibles des liens en « fragments de texte »
+// - ajout d'une option pour désactiver le surlignage des cibles des liens en ->
+// « fragments de texte »
 // 1.2.2 (10/03/2026) :
 // - mise à jour de la gestion des icônes de [HFR] Copié/Collé pour la reconversion en ->
 // image dans les quotes
@@ -64,8 +71,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 1.0.9 (02/07/2022) :
 // - LE HTML A CHANGÉ ! mouveau code pour supprimer la ligne de copyright ...
 // 1.0.8 (11/06/2022) :
-// - amélioration de la gestion de la taille des champs dans la fenêtre de configuration pour ->
-// éviter des débordements de ligne sur certaines configurations
+// - amélioration de la gestion de la taille des champs dans la fenêtre de configuration ->
+// pour éviter des débordements de ligne sur certaines configurations
 // - redécoupage de certaines lignes longues dans le code
 // 1.0.7 (27/04/2021) :
 // - ajout/correction du style de limitation de la taille de l'icône dans l'onglet
@@ -145,6 +152,8 @@ var smp_unite_normale_defaut = "vh";
 var smp_images_smileys_defaut = false;
 var smp_visual_target_defaut = false;
 var smp_text_fragments_defaut = false;
+var smp_topic_line_defaut = false;
+var smp_post_toolbar_defaut = false;
 var smp_supprimer_espaces_defaut = false;
 var smp_supprimer_regles_defaut = false;
 var smp_supprimer_sujets_defaut = false;
@@ -171,6 +180,8 @@ var smp_unite_normale;
 var smp_images_smileys;
 var smp_visual_target;
 var smp_text_fragments;
+var smp_topic_line;
+var smp_post_toolbar;
 var smp_supprimer_espaces;
 var smp_supprimer_regles;
 var smp_supprimer_sujets;
@@ -188,27 +199,29 @@ var style = document.createElement("style");
 style.setAttribute("type", "text/css");
 style.textContent =
   // styles pour la fenêtre d'aide
-  "#gm_hfr_semep_help_window{position:fixed;width:200px;height:auto;background-color:#e3ebf5;" +
-  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;z-index:1003;" +
+  "#gm_hfr_semep_help_window{position:fixed;width:200px;height:auto;" +
+  "visibility:hidden;border:2px solid #6995c3;border-radius:8px;padding:4px 7px 5px;" +
   "font-family:Verdana,Arial,Sans-serif,Helvetica;font-size:11px;font-weight:bold;" +
-  "text-align:justify;}" +
+  "text-align:justify;background-color:#e3ebf5;z-index:1003;}" +
   "#gm_hfr_semep_config_window img.gm_hfr_semep_help_button{cursor:help;" +
   "vertical-align:text-bottom;}" +
   // styles pour la fenêtre de configuration
   "#gm_hfr_semep_config_background{position:fixed;left:0;top:0;background-color:#242424;" +
   "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;z-index:1001;}" +
-  "#gm_hfr_semep_config_window{position:fixed;min-width:450px;height:auto;background:#ffffff;" +
-  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;padding:16px;" +
-  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;z-index:1002;}" +
-  "#gm_hfr_semep_config_window div.gm_hfr_semep_main_title{font-size:16px;text-align:center;" +
-  "font-weight:bold;margin:0 0 8px;}" +
-  "#gm_hfr_semep_config_window fieldset{margin:0 0 8px;border:1px solid #888888;" +
-  "padding:6px 10px 10px;background:linear-gradient(to bottom, #ffffff 20px, transparent);" +
+  "#gm_hfr_semep_config_window{position:fixed;min-width:450px;height:auto;" +
+  "visibility:hidden;opacity:0;transition:opacity 0.3s ease 0s;font-size:12px;" +
+  "font-family:Verdana,Arial,Sans-serif,Helvetica;border:1px solid #242424;z-index:1002;" +
+  "background:#ffffff;padding:16px;}" +
+  "#gm_hfr_semep_config_window div.gm_hfr_semep_main_title{font-size:16px;" +
+  "font-weight:bold;margin:0 0 8px;text-align:center;cursor:default;}" +
+  "#gm_hfr_semep_config_window fieldset{padding:6px 10px 10px;border:1px solid #888888;" +
+  "margin:0 0 8px;background:linear-gradient(to bottom, #ffffff 20px, transparent);" +
   "transition:background-color 0.3s ease 0s;}" +
   "#gm_hfr_semep_config_window fieldset.gm_hfr_semep_red{background-color:#ffc0b0;}" +
   "#gm_hfr_semep_config_window fieldset.gm_hfr_semep_green{background-color:#c0ffb0;}" +
-  "#gm_hfr_semep_config_window legend{font-size:14px;background-color:#ffffff;}" +
-  "#gm_hfr_semep_config_window p{margin:0 0 0 4px;white-space:nowrap;}" +
+  "#gm_hfr_semep_config_window legend{font-size:14px;background-color:#ffffff;" +
+  "cursor:default;}" +
+  "#gm_hfr_semep_config_window p{margin:0 0 0 4px;white-space:nowrap;cursor:default;}" +
   "#gm_hfr_semep_config_window p:not(:last-child){margin-bottom:4px;}" +
   "#gm_hfr_semep_config_window img.gm_hfr_semep_test{margin:0 3px 1px 0;max-width:16px;" +
   "max-height:16px;vertical-align:text-bottom;}" +
@@ -221,8 +234,9 @@ style.textContent =
   "vertical-align:text-bottom;}" +
   "#gm_hfr_semep_config_window input[type=\"radio\"]{margin:0 0 1px 1px;" +
   "vertical-align:text-bottom;}" +
-  "#gm_hfr_semep_config_window input[type=\"text\"]{padding:0 1px;border:1px solid #c0c0c0;" +
-  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;height:14px;}" +
+  "#gm_hfr_semep_config_window input[type=\"text\"]{border:1px solid #c0c0c0;" +
+  "font-size:12px;font-family:Verdana,Arial,Sans-serif,Helvetica;text-align:right;" +
+  "padding:0 1px;height:14px;}" +
   "div.gm_hfr_semep_save_close_div{text-align:right;margin:16px 0 0;}" +
   "div.gm_hfr_semep_save_close_div div.gm_hfr_semep_info_reload_div{float:left;}" +
   "div.gm_hfr_semep_save_close_div div.gm_hfr_semep_info_reload_div " +
@@ -320,7 +334,7 @@ help_window.setAttribute("id", "gm_hfr_semep_help_window");
 document.body.appendChild(help_window);
 
 // fonction de création du bouton d'aide
-function create_help_button(p_width, p_text) {
+function create_help_button(p_width, p_text, p_higher = false, p_left = false) {
   let l_help_button = document.createElement("img");
   l_help_button.setAttribute("src", img_help);
   l_help_button.setAttribute("class", "gm_hfr_semep_help_button");
@@ -328,7 +342,13 @@ function create_help_button(p_width, p_text) {
     help_window.style.width = p_width + "px";
     help_window.textContent = p_text;
     help_window.style.left = (e.clientX + 32) + "px";
+    if(p_left) {
+      help_window.style.left = (e.clientX - p_width - 32 - 14 - 4) + "px";
+    }
     help_window.style.top = (e.clientY - 32) + "px";
+    if(p_higher) {
+      help_window.style.top = (e.clientY - 64) + "px";
+    }
     help_window.style.visibility = "visible";
   }, false);
   l_help_button.addEventListener("mouseout", function(e) {
@@ -540,10 +560,40 @@ text_fragments_checkbox.setAttribute("id", "gm_hfr_semep_text_fragments_checkbox
 text_fragments_p.appendChild(text_fragments_checkbox);
 var text_fragments_label = document.createElement("label");
 text_fragments_label.textContent = " désactiver le surlignage des cibles des liens en " +
-  "«\u202ffragments de texte\u202f» ";
+  "«\u202ffragments de texte\u202f»";
 text_fragments_label.setAttribute("for", "gm_hfr_semep_text_fragments_checkbox");
 text_fragments_p.appendChild(text_fragments_label);
 styles_fieldset.appendChild(text_fragments_p);
+
+// topic_line
+var topic_line_p = document.createElement("p");
+var topic_line_checkbox = document.createElement("input");
+topic_line_checkbox.setAttribute("type", "checkbox");
+topic_line_checkbox.setAttribute("id", "gm_hfr_semep_topic_line_checkbox");
+topic_line_p.appendChild(topic_line_checkbox);
+var topic_line_label = document.createElement("label");
+topic_line_label.textContent = " corriger l'alignement vertical de la ligne du sujet " +
+  "dans les topics";
+topic_line_label.setAttribute("for", "gm_hfr_semep_topic_line_checkbox");
+topic_line_p.appendChild(topic_line_label);
+styles_fieldset.appendChild(topic_line_p);
+
+// post_toolbar
+var post_toolbar_p = document.createElement("p");
+var post_toolbar_checkbox = document.createElement("input");
+post_toolbar_checkbox.setAttribute("type", "checkbox");
+post_toolbar_checkbox.setAttribute("id", "gm_hfr_semep_post_toolbar_checkbox");
+post_toolbar_p.appendChild(post_toolbar_checkbox);
+var post_toolbar_label = document.createElement("label");
+post_toolbar_label.textContent = " améliorer l'alignement vertical des éléments dans " +
+  "la barre d'outils des posts ";
+post_toolbar_label.setAttribute("for", "gm_hfr_semep_post_toolbar_checkbox");
+post_toolbar_p.appendChild(post_toolbar_label);
+post_toolbar_p.appendChild(create_help_button(225,
+  "En plus d'inverser les boutons de droite, cette option peut aussi avoir un résultat " +
+  "insatisfaisant suivant la disposition, le jeu d'icônes ou les autres scripts " +
+  "utilisés.", false, true));
+styles_fieldset.appendChild(post_toolbar_p);
 
 // section mise_em_page
 var mise_em_page_fieldset = document.createElement("fieldset");
@@ -749,7 +799,7 @@ info_reload_div.appendChild(info_reload_label);
 info_reload_div.appendChild(create_help_button(255,
   "La modification des paramètres de cette fenêtre de configuration n'est visible que " +
   "sur les nouvelles pages ou après le rechargement de la page courante. Cette option " +
-  "permet de recharger automatiquement la page courante lors de la validation."));
+  "permet de recharger automatiquement la page courante lors de la validation.", true));
 save_close_div.appendChild(info_reload_div);
 var save_button = document.createElement("img");
 save_button.setAttribute("src", img_save);
@@ -803,6 +853,8 @@ function save_config_window() {
   smp_images_smileys = images_smileys_checkbox.checked;
   smp_visual_target = visual_target_checkbox.checked;
   smp_text_fragments = text_fragments_checkbox.checked;
+  smp_topic_line = topic_line_checkbox.checked;
+  smp_post_toolbar = post_toolbar_checkbox.checked;
   smp_supprimer_espaces = espaces_checkbox.checked;
   smp_supprimer_regles = regles_checkbox.checked;
   smp_supprimer_sujets = sujets_checkbox.checked;
@@ -832,6 +884,8 @@ function save_config_window() {
     GM.setValue("smp_images_smileys", smp_images_smileys),
     GM.setValue("smp_visual_target", smp_visual_target),
     GM.setValue("smp_text_fragments", smp_text_fragments),
+    GM.setValue("smp_topic_line", smp_topic_line),
+    GM.setValue("smp_post_toolbar", smp_post_toolbar),
     GM.setValue("smp_supprimer_espaces", smp_supprimer_espaces),
     GM.setValue("smp_supprimer_regles", smp_supprimer_regles),
     GM.setValue("smp_supprimer_sujets", smp_supprimer_sujets),
@@ -891,6 +945,8 @@ function show_config_window() {
   images_smileys_checkbox.checked = smp_images_smileys;
   visual_target_checkbox.checked = smp_visual_target;
   text_fragments_checkbox.checked = smp_text_fragments;
+  topic_line_checkbox.checked = smp_topic_line;
+  post_toolbar_checkbox.checked = smp_post_toolbar;
   espaces_checkbox.checked = smp_supprimer_espaces;
   regles_checkbox.checked = smp_supprimer_regles;
   sujets_checkbox.checked = smp_supprimer_sujets;
@@ -942,7 +998,7 @@ function a2img(p_href, p_length_ok = false) {
       if(l_href.startsWith("https://images.weserv.nl/")) {
         l_href = l_href.replace(p_href, p_href.replace(/^http:\/\//, ""));
       }
-      l_href = l_href.replace("'", "%27", "g").replace("\"", "%22", "g");
+      l_href = l_href.replaceAll("'", "%27").replaceAll("\"", "%22");
       let l_img = document.createElement("img");
       l_img.setAttribute("alt", l_href);
       l_img.setAttribute("title", l_href);
@@ -966,6 +1022,8 @@ Promise.all([
   GM.getValue("smp_images_smileys", smp_images_smileys_defaut),
   GM.getValue("smp_visual_target", smp_visual_target_defaut),
   GM.getValue("smp_text_fragments", smp_text_fragments_defaut),
+  GM.getValue("smp_topic_line", smp_topic_line_defaut),
+  GM.getValue("smp_post_toolbar", smp_post_toolbar_defaut),
   GM.getValue("smp_supprimer_espaces", smp_supprimer_espaces_defaut),
   GM.getValue("smp_supprimer_regles", smp_supprimer_regles_defaut),
   GM.getValue("smp_supprimer_sujets", smp_supprimer_sujets_defaut),
@@ -988,6 +1046,8 @@ Promise.all([
   smp_images_smileys_value,
   smp_visual_target_value,
   smp_text_fragments_value,
+  smp_topic_line_value,
+  smp_post_toolbar_value,
   smp_supprimer_espaces_value,
   smp_supprimer_regles_value,
   smp_supprimer_sujets_value,
@@ -1011,6 +1071,8 @@ Promise.all([
   smp_images_smileys = smp_images_smileys_value;
   smp_visual_target = smp_visual_target_value;
   smp_text_fragments = smp_text_fragments_value;
+  smp_topic_line = smp_topic_line_value;
+  smp_post_toolbar = smp_post_toolbar_value;
   smp_supprimer_espaces = smp_supprimer_espaces_value;
   smp_supprimer_regles = smp_supprimer_regles_value;
   smp_supprimer_sujets = smp_supprimer_sujets_value;
@@ -1176,6 +1238,35 @@ Promise.all([
       "color: inherit !important;text-decoration: inherit !important;}";
     document.getElementsByTagName("head")[0].appendChild(style_text_fragments);
   }
+  // corriger l'alignement vertical de la ligne du sujet
+  if(smp_topic_line) {
+    let style_topic_line = document.createElement("style");
+    style_topic_line.setAttribute("type", "text/css");
+    style_topic_line.textContent =
+      "#mesdiscussions table.main[cellspacing=\"0\"][cellpadding=\"4\"] " +
+      "tr.fondForum2Title th.padding[scope=\"col\"]:has(h3):has(div.right):has(div.left)" +
+      "{display:flex;align-items:center;justify-content:space-between;" +
+      "padding:4px 0 4px 1px;}" +
+      "#mesdiscussions table.main[cellspacing=\"0\"][cellpadding=\"4\"] " +
+      "tr.fondForum2Title th.padding[scope=\"col\"]:has(h3):has(div.right):has(div.left) " +
+      "div.right img{vertical-align:bottom;}";
+    document.getElementsByTagName("head")[0].appendChild(style_topic_line);
+  }
+  // améliorer l'alignement vertical des éléments dans la barre d'outils des posts
+  if(smp_post_toolbar) {
+    let style_post_toolbar = document.createElement("style");
+    style_post_toolbar.setAttribute("type", "text/css");
+    style_post_toolbar.textContent =
+      "#mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar" +
+      "{display:flex;align-items:flex-end;padding-bottom:4px;}" +
+      "#mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar > " +
+      "div.left{flex-grow:1;}" +
+      "#mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar " +
+      "img{vertical-align:bottom;}" +
+      "#mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar " +
+      "img:is(.gm_hfr_lph_led, .gm_hfr_lpsl_led){padding-bottom:1px;}"
+    document.getElementsByTagName("head")[0].appendChild(style_post_toolbar);
+  }
   // suppression des espaces supplémentaires sous l'arborescence
   if(smp_supprimer_espaces) {
     // suppression du <br> après la div sous l'arnorescence
@@ -1206,32 +1297,28 @@ Promise.all([
   }
   // suppression des sujets relatifs
   if(smp_supprimer_sujets) {
-    if(document.getElementById("sujetrelatif")) {
+    let l_sujetrelatif = document.getElementById("sujetrelatif");
+    if(l_sujetrelatif) {
       // suppression du <br> avant les sujets relatifs
-      if(document.getElementById("sujetrelatif").previousElementSibling &&
-        (document.getElementById("sujetrelatif").previousElementSibling
-          .nodeName.toLowerCase() === "br")) {
-        document.getElementById("sujetrelatif").parentNode
-          .removeChild(document.getElementById("sujetrelatif").previousElementSibling);
+      if(l_sujetrelatif.previousElementSibling &&
+        (l_sujetrelatif.previousElementSibling.nodeName.toLowerCase() === "br")) {
+        l_sujetrelatif.parentNode.removeChild(l_sujetrelatif.previousElementSibling);
       }
       // suppression des sujets relatifs
-      document.getElementById("sujetrelatif").parentNode
-        .removeChild(document.getElementById("sujetrelatif"));
+      l_sujetrelatif.parentNode.removeChild(l_sujetrelatif);
     }
   }
   // suppression de la version
   if(smp_supprimer_version) {
-    if(document.querySelector("div.copyright")) {
+    let l_div_copyright = document.querySelector("div.copyright");
+    if(l_div_copyright) {
       // suppression du <br> avant la version
-      if(document.querySelector("div.copyright").previousElementSibling &&
-        (document.querySelector("div.copyright").previousElementSibling
-          .nodeName.toLowerCase() === "br")) {
-        document.querySelector("div.copyright").parentNode
-          .removeChild(document.querySelector("div.copyright").previousElementSibling);
+      if(l_div_copyright.previousElementSibling &&
+        (l_div_copyright.previousElementSibling.nodeName.toLowerCase() === "br")) {
+        l_div_copyright.parentNode.removeChild(l_div_copyright.previousElementSibling);
       }
       // suppression de la version
-      document.querySelector("div.copyright").parentNode
-        .removeChild(document.querySelector("div.copyright"));
+      l_div_copyright.parentNode.removeChild(l_div_copyright);
     }
   }
   // suppression du copyright

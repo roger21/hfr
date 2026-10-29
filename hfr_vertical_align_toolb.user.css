@@ -1,0 +1,53 @@
+/* ==UserStyle==
+@name          [HFR] Vertical Align Toolbar Elements
+@version       1.0.0
+@namespace     roger21.free.fr
+@description   Améliore l'alignement vertical des éléments dans la barre d'outils des posts.
+==/UserStyle== */
+
+/*
+
+Copyright © 2026 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+/*
+
+$Rev: 5162 $
+
+historique :
+1.0.0 (29/10/2026) :
+- création
+
+*/
+
+@-moz-document domain("forum.hardware.fr") {
+
+  #mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar{
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 4px;
+  }
+  #mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar > div.left{
+    flex-grow: 1;
+  }
+  #mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar img{
+    vertical-align: bottom;
+  }
+  #mesdiscussions table.messagetable tr.message td.messCase2 div.toolbar
+    img:is(.gm_hfr_lph_led, .gm_hfr_lpsl_led){
+    padding-bottom: 1px;
+  }
+
+}

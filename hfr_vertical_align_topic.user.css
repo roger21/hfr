@@ -1,0 +1,49 @@
+/* ==UserStyle==
+@name          [HFR] Vertical Align Topic
+@version       1.0.0
+@namespace     roger21.free.fr
+@description   Corrige l'alignement vertical de la ligne du sujet dans les topics.
+==/UserStyle== */
+
+/*
+
+Copyright © 2026 roger21@free.fr
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License along
+with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
+
+*/
+
+/*
+
+$Rev: 5162 $
+
+historique :
+1.0.0 (29/10/2026) :
+- création
+
+*/
+
+@-moz-document domain("forum.hardware.fr") {
+
+  #mesdiscussions table.main[cellspacing="0"][cellpadding="4"] tr.fondForum2Title
+    th.padding[scope="col"]:has(h3):has(div.right):has(div.left){
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 0 4px 1px;
+  }
+  #mesdiscussions table.main[cellspacing="0"][cellpadding="4"] tr.fondForum2Title
+    th.padding[scope="col"]:has(h3):has(div.right):has(div.left) div.right img{
+    vertical-align: bottom;
+  }
+
+}
