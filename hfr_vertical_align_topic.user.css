@@ -24,7 +24,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 /*
 
-$Rev: 5162 $
+$Rev: 5176 $
 
 historique :
 1.0.0 (29/10/2026) :
@@ -35,14 +35,14 @@ historique :
 @-moz-document domain("forum.hardware.fr") {
 
   #mesdiscussions table.main[cellspacing="0"][cellpadding="4"] tr.fondForum2Title
-    th.padding[scope="col"]:has(h3):has(div.right):has(div.left){
+    th.padding[scope="col"]:has(h3):has(div.right):has(div.left) {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 4px 0 4px 1px;
   }
   #mesdiscussions table.main[cellspacing="0"][cellpadding="4"] tr.fondForum2Title
-    th.padding[scope="col"]:has(h3):has(div.right):has(div.left) div.right img{
+    th.padding[scope="col"]:has(h3):has(div.right):has(div.left) div.right img {
     vertical-align: bottom;
   }
 
