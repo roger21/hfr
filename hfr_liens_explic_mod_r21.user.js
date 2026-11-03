@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name          [HFR] Liens explicites mod_r21
-// @version       3.0.0
+// @version       4.0.0
 // @namespace     roger21.free.fr
-// @description   Remplace le texte des liens vers les topics ou les catégories par le nom du topic ou de la catégorie avec la page.
+// @description   Remplace le texte des liens vers la racine du forum, les topics ou les catégories par le nom du forum, du topic ou de la catégorie avec la page.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
 // @include       https://forum.hardware.fr/*
 // @exclude       https://forum.hardware.fr/message.php*
@@ -36,9 +36,16 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5070 $
+// $Rev: 5194 $
 
 // historique :
+// 4.0.0 (03/11/2026) :
+// - nouvelle gestion pour la récupération du titre du topic, ->
+// permet d'avoir le titre réel au lieu du titre de la page (version SEO)
+// - unicité, sérialisation et temporisation des requêtes (c'est mieux :o)
+// - retour à la récupération du titre du topic en local quand c'est possible
+// - distinction entre les recherches filtrées et non filtrées
+// - gestion explicite du lien vers la racine du forum
 // 3.0.0 (16/09/2026) :
 // - meilleure gestion des urls verbeuses et corrections diverses
 // - meilleure gestion des liens vers les catégories et gestion de la page
@@ -58,14 +65,16 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 2.6.6 (03/01/2022) :
 // - mise à jour des cats / sous-cats (ajout de la sous-cat windows 11)
 // 2.6.5 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur ->
+// (free.fr -> github.com)
 // 2.6.4 (01/01/2020) :
 // - mise à jour des cats et sous-cats
 // 2.6.3 (02/10/2019) :
 // - suppression de la directive "@inject-into" (mauvaise solution, changer solution)
 // - retour des requêtes fetch en mode "same-origin" au lieu de "cors"
 // 2.6.2 (23/09/2019) :
-// - passage des requêtes fetch en mode "cors" pour éviter un plantage sous ch+vm en mode "same-origin"
+// - passage des requêtes fetch en mode "cors" pour éviter un plantage sous ch+vm en ->
+// mode "same-origin"
 // 2.6.1 (18/09/2019) :
 // - ajout de la directive "@inject-into content" pour isoler le script sous violentmonkey
 // 2.6.0 (29/11/2018) :
@@ -77,9 +86,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 2.5.0 (26/05/2018) :
 // - ajout du support pour la cat shop
 // - correction de la deteton de la cat pour la cat shop (qui a des tirets !)
-// - retour du support partiel pour les liens en http (support qui avait disparu avec le passage en fetch car cross-origin)
+// - retour du support partiel pour les liens en http (support qui avait disparu avec ->
+// le passage en fetch car cross-origin)
 // - remplacement du getElementByXpath par un querySelectorAll
-// - remplacement des innerHTML par des textContent et nodeValue (et complications associées [:palm])
+// - remplacement des innerHTML par des textContent et nodeValue (et complications ->
+// associées [:palm])
 // - remplacement des comparaisons par des comparaisons stricts
 // - petits restylages de code
 // 2.4.3 (13/05/2018) :
@@ -93,8 +104,10 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - petites améliorations du code et check du code dans tm
 // - suppression des @grant inutiles (tous)
 // 2.3.0 (16/02/2018) :
-// - passage à gm_xhr au lieu de xhr pour la compatibilite ch (le xhr de ch n'a pas le mode anonyme)
-// - et ajout d'une compatbilité avec vm pour le mode anonyme de gm_xhr (via http cookie) par PetitJean
+// - passage à gm_xhr au lieu de xhr pour la compatibilite ch (le xhr de ch n'a pas ->
+// le mode anonyme)
+// - et ajout d'une compatbilité avec vm pour le mode anonyme de gm_xhr (via http ->
+// cookie) par PetitJean
 // - correction des erreurs signalées par tm
 // - reformatage du code (Online JavaScript beautifier : ->
 // "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
@@ -127,8 +140,10 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // "2 spaces, unlimited newlines, do not wrap, braces with" et rien coché)
 // - suppression de la toyoAjaxLib remplacé par du code direct (plus simple, moins lourd)
 // - ajout de metadata pour la publication (@author, @modifications, @modtype)
-// - utilisation du mode anonyme de xmlHttpRequest pour ne pas envoyer les cookies et niquer les drapoils
-// - suppression des rewriteurl (inutile avec le mode anonyme, utilisation du href à la place)
+// - utilisation du mode anonyme de xmlHttpRequest pour ne pas envoyer les cookies et ->
+// niquer les drapoils
+// - suppression des rewriteurl (inutile avec le mode anonyme, utilisation du href à ->
+// la place)
 // - suppression du cancel (utilisation d'un timeid à la place)
 // - suppression du fetchid (utilisation d'une closure à paramètre à la place)
 // - remplacement de this par un e.target (plus clair)
@@ -144,7 +159,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // - changement de la variable "event" en "e" à plusieurs endroits
 // - modification de l'année dans les dates de l'historique : passage de 2 a 4 chiffres
 // 0.0.1.6 (07/03/2015) :
-// - ajout de la metadata @noframes (interdit l'execution du script dans une frame pour plus de sécurité)
+// - ajout de la metadata @noframes (interdit l'execution du script dans une frame ->
+// pour plus de sécurité)
 // 0.0.1.5 (27/03/2014) :
 // - ajout d'une icone au script
 // - renplacement du namesapce douteux par roger21.free.fr
@@ -156,7 +172,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 0.0.1.2 (14/09/2012) :
 // - ajout des metadata @grant
 // 0.0.1.1 (28/11/2011) :
-// - renomage du script (ajout du [HFR] au début) pour ne pas faire tache dans la liste des scripts greasemonkey
+// - renomage du script (ajout du [HFR] au début) pour ne pas faire tache dans la liste ->
+// des scripts greasemonkey
 // - désactivation du message d'erreur XML dans la toyolib
 // - ajout d'un .1 sur le numero de version
 // - suppression des lignes vides en bas
@@ -213,6 +230,31 @@ const id2cat = {
   "13": "Discussions",
   "31": "Service client shop.hardware.fr",
   "9": "Seti et projets distribués",
+};
+
+const id2caturl = {
+  "1": "Hardware",
+  "16": "HardwarePeripheriques",
+  "15": "OrdinateursPortables",
+  "2": "OverclockingCoolingModding",
+  "30": "electroniquedomotiquediy",
+  "23": "gsmgpspda",
+  "25": "apple",
+  "3": "VideoSon",
+  "14": "Photonumerique",
+  "5": "JeuxVideo",
+  "4": "WindowsSoftware",
+  "22": "reseauxpersosoho",
+  "21": "systemereseauxpro",
+  "11": "OSAlternatifs",
+  "10": "Programmation",
+  "32": "ia",
+  "12": "Graphisme",
+  "6": "AchatsVentes",
+  "8": "EmploiEtudes",
+  "13": "Discussions",
+  "31": "service-client-shophfr",
+  "9": "Setietprojetsdistribues",
 };
 
 const scat2id = {
@@ -723,63 +765,79 @@ const id2scat = {
   },
 };
 
+/* ---------- */
+/* constantes */
+/* ---------- */
+
+const script_name = "[HFR] Liens explicites";
+const query_title = "#mesdiscussions table.main tr.fondForum2Title th.padding h3";
+
 /* ----------------------------- */
 /* fonctions d'analyse des liens */
 /* ----------------------------- */
 
-function parse_hfr(url) {
-  let parsed_url = URL.parse(url);
-  let params_url = parsed_url.searchParams;
-  let parsed_hfr = {};
-  let last_slash = parsed_url.pathname.lastIndexOf("/");
-  parsed_hfr.directory = parsed_url.pathname.substring(0, last_slash + 1);
-  parsed_hfr.file = parsed_url.pathname.substring(last_slash + 1);
-  if(parsed_url.origin === "https://forum.hardware.fr") {
+function parse_hfr(p_url) {
+  let l_parsed_hfr = {};
+  let l_parsed_url = URL.parse(p_url);
+  let l_params_url = l_parsed_url.searchParams;
+  let l_last_slash = l_parsed_url.pathname.lastIndexOf("/");
+  l_parsed_hfr.directory = l_parsed_url.pathname.substring(0, l_last_slash + 1);
+  l_parsed_hfr.file = l_parsed_url.pathname.substring(l_last_slash + 1);
+  if(l_parsed_url.origin === "https://forum.hardware.fr") {
+    // racine
+    if(l_parsed_hfr.directory === "/" && l_parsed_hfr.file === "") {
+      l_parsed_hfr.root = "FORUM HardWare.fr";
+      l_parsed_hfr.ok = true;
+    }
     // params
-    if(parsed_hfr.file === "forum2.php") {
-      parsed_hfr.cat = params_url.get("cat");
-      if(parsed_hfr.cat && params_url.get("post")) {
-        parsed_hfr.scat = params_url.get("subcat");
-        parsed_hfr.topic = parsed_hfr.cat + "_" + params_url.get("post");
-        parsed_hfr.page = params_url.get("page") ?
-          " page " + params_url.get("page") :
-          (params_url.has("numreponse") ? " permalien" : " page 1");
-        parsed_hfr.mot = params_url.get("word");
-        parsed_hfr.pseudo = params_url.get("spseudo") ?
-          params_url.get("spseudo").replace(/\+/g, " ") : null;
-        parsed_hfr.ok = true;
+    else if(l_parsed_hfr.file === "forum2.php") {
+      l_parsed_hfr.cat = l_params_url.get("cat");
+      if(l_parsed_hfr.cat && l_params_url.get("post")) {
+        l_parsed_hfr.scat = l_params_url.get("subcat");
+        l_parsed_hfr.topic = l_parsed_hfr.cat + "_" + l_params_url.get("post");
+        l_parsed_hfr.page = l_params_url.get("page") ?
+          ", page " + l_params_url.get("page") :
+          (l_params_url.has("numreponse") ? ", permalien" : ", page 1");
+        l_parsed_hfr.mot = l_params_url.get("word");
+        l_parsed_hfr.pseudo = l_params_url.get("spseudo") ?
+          l_params_url.get("spseudo").replace(/\+/g, " ") : null;
+        l_parsed_hfr.filter = l_params_url.get("filter") === "1";
+        l_parsed_hfr.ok = true;
       }
     }
-    // verbeux
+    // verbal
     else {
-      let cats = parsed_hfr.directory.match(/^\/hfr\/([^\/]+)\/(?:([^\/]+)\/)?$/);
-      if(cats !== null) {
-        parsed_hfr.cat = cat2id[cats[1]];
-        parsed_hfr.scat = typeof cats[2] !== "undefined" ?
-          scat2id[parsed_hfr.cat][cats[2]] : null;
-        let sujet = parsed_hfr.file.match(/^([\w-]*)sujet[_-]([0-9]+)(?:_([0-9]+))?.htm$/);
-        if(sujet !== null) {
-          if(sujet[1] === "liste_") {
-            parsed_hfr.page = " page " + sujet[2];
-          } else {
-            parsed_hfr.topic = parsed_hfr.cat + "_" + sujet[2];
-            parsed_hfr.page = " page " + sujet[3];
+      let l_cats = l_parsed_hfr.directory.match(/^\/hfr\/([^\/]+)\/(?:([^\/]+)\/)?$/);
+      if(l_cats !== null) {
+        l_parsed_hfr.cat = cat2id[l_cats[1]];
+        if(l_parsed_hfr.cat) {
+          l_parsed_hfr.scat = typeof l_cats[2] !== "undefined" ?
+            scat2id[l_parsed_hfr.cat][l_cats[2]] : null;
+          let l_sujet =
+            l_parsed_hfr.file.match(/^([\w-]*)sujet[_-]([0-9]+)(?:_([0-9]+))?.htm$/);
+          if(l_sujet !== null) {
+            if(l_sujet[1] === "liste_") {
+              l_parsed_hfr.page = ", page " + l_sujet[2];
+            } else {
+              l_parsed_hfr.topic = l_parsed_hfr.cat + "_" + l_sujet[2];
+              l_parsed_hfr.page = ", page " + l_sujet[3];
+            }
+            l_parsed_hfr.ok = true;
           }
-          parsed_hfr.ok = true;
         }
       }
     }
   }
-  return parsed_hfr;
+  return l_parsed_hfr;
 }
 
-function naked_link(link) {
-  if(link.href && link.textContent) {
-    let href = link.href;
-    let parts = link.textContent.split(" [...] ");
-    if((parts.length === 1 && href === parts[0]) ||
-      (parts.length === 2 && href.indexOf(parts[0]) === 0 &&
-        href.indexOf(parts[1]) + parts[1].length === href.length)) {
+function naked_link(p_link) {
+  if(p_link.href && p_link.textContent) {
+    let l_href = p_link.href;
+    let l_parts = p_link.textContent.split(" [...] ");
+    if((l_parts.length === 1 && l_href === l_parts[0]) ||
+      (l_parts.length === 2 && l_href.indexOf(l_parts[0]) === 0 &&
+        l_href.indexOf(l_parts[1]) + l_parts[1].length === l_href.length)) {
       return true;
     }
   }
@@ -790,85 +848,160 @@ function naked_link(link) {
 /* traitement des liens */
 /* -------------------- */
 
-// constantes
-const script_name = "[HFR] Liens explicites";
-const re_title = "(.*?)(?: - Page : [0-9]+)?(?: - (?:Nano-|Feed-)?[^-]+)?" +
-  "(?: - (?:Hardware - )?[^-]+) - FORUM HardWare.fr";
+// les topics
+let topic_titles = {};
+
+// la page courante
+const current_url = parse_hfr(window.location.href);
+if(current_url.topic) {
+  topic_titles[current_url.topic] = document.querySelector(query_title).textContent.trim();
+}
+
+// les liens
 const links = document.getElementById("mesdiscussions").querySelectorAll(
   "table.messagetable td.messCase2 div[id^='para'] > span:not(.signature) a.cLink, " +
   "table.messagetable td.messCase2 div[id^='para'] > div:not(.edited) a.cLink, " +
   "table.messagetable td.messCase2 div[id^='para'] > *:not(span):not(div) a.cLink");
-const current_url = parse_hfr(window.location.href);
 
-// traitement des liens
+// premier traitement des liens
 for(let link of links) {
-  // lien déjà transformé (on passe)
+  // lien déjà transformé -> on passe
   if(!naked_link(link)) {
     continue;
   }
-  // pas un topic ni une cat (on passe)
+  // analyse du lien
   let link_url = parse_hfr(link.href);
+  // pas la racine, ni un topic, ni une cat -> on passe
   if(!link_url.ok) {
     continue;
   }
-  // le title
+  // la tooltip
   link.title = script_name;
+  // la racine
+  if(link_url.root) {
+    link.textContent = link_url.root;
+    // rien d'autre à faire -> on passe
+    continue;
+  }
   // la cat / sous-cat
-  let cat_text = " cat « " + id2cat[link_url.cat] + (link_url.scat ?
-    " / " + id2scat[link_url.cat][link_url.scat] : "") + " »";
+  let cat_text = " cat «\u202f" + id2cat[link_url.cat] + (link_url.scat ?
+    " / " + id2scat[link_url.cat][link_url.scat] : "") + "\u202f»";
   // la page
   if(link_url.topic === current_url.topic && link_url.page === current_url.page) {
-    link_url.page = " cette page";
+    link_url.page = ", cette page";
   }
   let page_text = link_url.page;
-  // recherche sur topic
+  // lien de type recherche sur topic
   if(link_url.mot || link_url.pseudo) {
-    let search_text = " sur";
+    let search_text = " avec";
     if(link_url.mot) {
-      search_text += " le mot « " + link_url.mot + " »";
+      search_text += " le mot «\u202f" + link_url.mot + "\u202f»";
     }
     if(link_url.mot && link_url.pseudo) {
       search_text += " et";
     }
     if(link_url.pseudo) {
-      search_text += " le pseudo « " + link_url.pseudo + " »";
+      search_text += " le pseudo «\u202f" + link_url.pseudo + "\u202f»";
     }
-    link.textContent = "Recherche topic de la" + cat_text + search_text;
+    if(link_url.filter) {
+      link.textContent =
+        "Recherche filtrée sur un topic de la" + cat_text + search_text;
+    } else {
+      link.textContent =
+        "Recherche sur un topic de la" + cat_text + search_text + page_text;
+      link.setAttribute("hfr_liens_explicites_page", page_text);
+    }
     link.setAttribute("hfr_liens_explicites_recherche", search_text);
+    link.setAttribute("data-hfr-liens-explicites-topic", link_url.topic);
   }
-  // topic
+  // lien de type topic
   else if(link_url.topic) {
     link.textContent = "Topic de la" + cat_text + page_text;
     link.setAttribute("hfr_liens_explicites_page", page_text);
+    link.setAttribute("data-hfr-liens-explicites-topic", link_url.topic);
   }
-  // cat
+  // lien de type catégorie (liste de topics)
   else {
     link.textContent = "Liste des sujets de la" + cat_text + page_text;
-    // rien à récupérer (on passe)
-    continue;
   }
-  // récupération du nom du topic
-  fetch(link.href, {
-    method: "GET",
-    mode: "same-origin",
-    credentials: "omit",
-    referrer: "",
-    referrerPolicy: "no-referrer",
-  }).then(function(r) {
-    return r.text();
-  }).then(function(r) {
-    let p = new DOMParser();
-    let d = p.parseFromString(r, "text/html");
-    let nom = d.documentElement.querySelector("html head title")
-      .firstChild.nodeValue.match(re_title).pop();
-    if(link.hasAttribute("hfr_liens_explicites_recherche")) {
-      link.textContent = "Recherche topic « " + nom + " »" +
-        link.getAttribute("hfr_liens_explicites_recherche");
-    } else {
-      link.textContent = "Topic « " + nom + " »" +
-        link.getAttribute("hfr_liens_explicites_page");
-    }
-  }).catch(function(e) {
-    console.log(script_name + " ERROR fetch : " + e);
-  });
 }
+
+// les liens à mettre à jour
+const links_todo = document.getElementById("mesdiscussions").querySelectorAll(
+  "a.cLink[data-hfr-liens-explicites-topic]");
+let links_index = 0;
+
+// fonction de mise à jour du titre du topic dans le lien
+function update_title(p_link, p_title) {
+  if(p_link.hasAttribute("hfr_liens_explicites_recherche")) {
+    if(p_link.hasAttribute("hfr_liens_explicites_page")) {
+      p_link.textContent = "Recherche sur «\u202f" + p_title + "\u202f»" +
+        p_link.getAttribute("hfr_liens_explicites_recherche") +
+        p_link.getAttribute("hfr_liens_explicites_page");
+    } else {
+      p_link.textContent = "Recherche filtrée sur «\u202f" + p_title + "\u202f»" +
+        p_link.getAttribute("hfr_liens_explicites_recherche");
+    }
+  } else {
+    p_link.textContent = "Topic «\u202f" + p_title + "\u202f»" +
+      p_link.getAttribute("hfr_liens_explicites_page");
+  }
+}
+
+// variables pour la temporisation
+let last_call = 0;
+const call_delay = 250; // 250ms
+
+// compteur de requêtes
+//let counter = 0;
+
+// deuxième traitement des liens, mise à jour du titre des topics dans les liens
+function update_next() {
+  const l_link_item = links_todo.item(links_index);
+  if(l_link_item) {
+    const l_link_topic = l_link_item.getAttribute("data-hfr-liens-explicites-topic");
+    if(typeof topic_titles[l_link_topic] === "undefined") {
+      const l_last_call = Date.now();
+      const l_wait_time = Math.max(call_delay - (l_last_call - last_call), 0);
+      last_call = l_last_call;
+      const [l_cat, l_topic] = l_link_topic.split("_");
+      const l_topic_url = "https://forum.hardware.fr/hfr/" + id2caturl[l_cat] +
+        "/sujet_" + l_topic + "_1.htm";
+      window.setTimeout(function() {
+        fetch(l_topic_url, {
+          method: "GET",
+          mode: "same-origin",
+          credentials: "omit",
+        }).then(function(p_response) {
+          return p_response.text();
+        }).then(function(p_response) {
+          let l_parser = new DOMParser();
+          let l_document = l_parser.parseFromString(p_response, "text/html");
+          let l_title = l_document.documentElement.querySelector(query_title)
+            .textContent.trim();
+
+          // DEBUG
+          //console.log(script_name, "counter", ++counter, "index", links_index,
+          //  "FETCH", l_topic_url, l_link_topic, l_title);
+
+          topic_titles[l_link_topic] = l_title
+          update_title(l_link_item, l_title);
+          ++links_index;
+          update_next();
+        }).catch(function(p_error) {
+          console.log(script_name + " ERROR fetch : " + p_error);
+        });
+      }, l_wait_time);
+    } else {
+
+      // DEBUG
+      //console.log(script_name, "index", links_index,
+      //  l_link_topic, topic_titles[l_link_topic]);
+
+      update_title(l_link_item, topic_titles[l_link_topic]);
+      ++links_index;
+      update_next();
+    }
+  }
+}
+update_next();
