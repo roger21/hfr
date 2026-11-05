@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Liens explicites mod_r21
-// @version       4.0.0
+// @version       4.0.1
 // @namespace     roger21.free.fr
 // @description   Remplace le texte des liens vers la racine du forum, les topics ou les catégories par le nom du forum, du topic ou de la catégorie avec la page.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -36,9 +36,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5194 $
+// $Rev: 5203 $
 
 // historique :
+// 4.0.1 (05/11/2026) :
+// - re-suppression de la virgule avant la page (elle sert à rien et alourdit)
 // 4.0.0 (03/11/2026) :
 // - nouvelle gestion pour la récupération du titre du topic, ->
 // permet d'avoir le titre réel au lieu du titre de la page (version SEO)
@@ -796,8 +798,9 @@ function parse_hfr(p_url) {
         l_parsed_hfr.scat = l_params_url.get("subcat");
         l_parsed_hfr.topic = l_parsed_hfr.cat + "_" + l_params_url.get("post");
         l_parsed_hfr.page = l_params_url.get("page") ?
-          ", page " + l_params_url.get("page") :
-          (l_params_url.has("numreponse") ? ", permalien" : ", page 1");
+          " page " + l_params_url.get("page") :
+          (l_params_url.has("numreponse") ? " permalien" : " page 1");
+        // " page 1" est utile pour les miniliens sans page qui renvoient sur la page 1
         l_parsed_hfr.mot = l_params_url.get("word");
         l_parsed_hfr.pseudo = l_params_url.get("spseudo") ?
           l_params_url.get("spseudo").replace(/\+/g, " ") : null;
@@ -817,10 +820,10 @@ function parse_hfr(p_url) {
             l_parsed_hfr.file.match(/^([\w-]*)sujet[_-]([0-9]+)(?:_([0-9]+))?.htm$/);
           if(l_sujet !== null) {
             if(l_sujet[1] === "liste_") {
-              l_parsed_hfr.page = ", page " + l_sujet[2];
+              l_parsed_hfr.page = " page " + l_sujet[2];
             } else {
               l_parsed_hfr.topic = l_parsed_hfr.cat + "_" + l_sujet[2];
-              l_parsed_hfr.page = ", page " + l_sujet[3];
+              l_parsed_hfr.page = " page " + l_sujet[3];
             }
             l_parsed_hfr.ok = true;
           }
@@ -888,7 +891,7 @@ for(let link of links) {
     " / " + id2scat[link_url.cat][link_url.scat] : "") + "\u202f»";
   // la page
   if(link_url.topic === current_url.topic && link_url.page === current_url.page) {
-    link_url.page = ", cette page";
+    link_url.page = " cette page";
   }
   let page_text = link_url.page;
   // lien de type recherche sur topic
