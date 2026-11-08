@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Liens explicites mod_r21
-// @version       4.0.1
+// @version       4.0.2
 // @namespace     roger21.free.fr
 // @description   Remplace le texte des liens vers la racine du forum, les topics ou les catégories par le nom du forum, du topic ou de la catégorie avec la page.
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -36,9 +36,11 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5203 $
+// $Rev: 5210 $
 
 // historique :
+// 4.0.2 (08/11/2026) :
+// - ajout de la gestion des liens vers les topics en mode impression
 // 4.0.1 (05/11/2026) :
 // - re-suppression de la virgule avant la page (elle sert à rien et alourdit)
 // 4.0.0 (03/11/2026) :
@@ -805,6 +807,7 @@ function parse_hfr(p_url) {
         l_parsed_hfr.pseudo = l_params_url.get("spseudo") ?
           l_params_url.get("spseudo").replace(/\+/g, " ") : null;
         l_parsed_hfr.filter = l_params_url.get("filter") === "1";
+        l_parsed_hfr.print = l_params_url.get("print") === "1";
         l_parsed_hfr.ok = true;
       }
     }
@@ -919,7 +922,12 @@ for(let link of links) {
   }
   // lien de type topic
   else if(link_url.topic) {
-    link.textContent = "Topic de la" + cat_text + page_text;
+    if(link_url.print) {
+      link.textContent = "Topic en mode impression de la" + cat_text + page_text;
+      link.setAttribute("hfr_liens_explicites_print", "hfr_liens_explicites_print");
+    } else {
+      link.textContent = "Topic de la" + cat_text + page_text;
+    }
     link.setAttribute("hfr_liens_explicites_page", page_text);
     link.setAttribute("data-hfr-liens-explicites-topic", link_url.topic);
   }
@@ -946,8 +954,13 @@ function update_title(p_link, p_title) {
         p_link.getAttribute("hfr_liens_explicites_recherche");
     }
   } else {
-    p_link.textContent = "Topic «\u202f" + p_title + "\u202f»" +
-      p_link.getAttribute("hfr_liens_explicites_page");
+    if(p_link.hasAttribute("hfr_liens_explicites_print")) {
+      p_link.textContent = "Topic en mode impression «\u202f" + p_title + "\u202f»" +
+        p_link.getAttribute("hfr_liens_explicites_page");
+    } else {
+      p_link.textContent = "Topic «\u202f" + p_title + "\u202f»" +
+        p_link.getAttribute("hfr_liens_explicites_page");
+    }
   }
 }
 

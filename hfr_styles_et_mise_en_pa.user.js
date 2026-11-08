@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Styles et mise en page
-// @version       1.5.0
+// @version       1.5.1
 // @namespace     roger21.free.fr
 // @description   Permet de supprimer les pieds de page et certains éléments en haut des pages, agrandir la taille de la réponse rapide et la hauteur de la réponse normale, reconvertir certains liens en images dans les quotes, mettre en évidence les liens ayant un attribut « target="_blank" », supprimer cet attribut sur les types de liens configurés, homogénéiser l'affichage des images et des smileys, corriger l'alignement vertical de la ligne du sujet, améliorer l'alignement vertical des éléments de la barre d'outils des posts et désactiver le surlignage des cibles des liens en « fragments de texte » (le tout étant configurable et désactivé par défaut).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -37,9 +37,12 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5175 $
+// $Rev: 5210 $
 
 // historique :
+// 1.5.1 (08/11/2026) :
+// - distinction entre les recherches filtrées et non filtrées pour la prise en compte ->
+// de la page pour la suppression des « target="_blank" »
 // 1.5.0 (29/10/2026) :
 // - ajout d'une option pour corriger l'alignement vertical de la ligne du sujet
 // - ajout d'une option pour améliorer l'alignement vertical des éléments de la ->
@@ -276,29 +279,32 @@ const cat2id = {
 
 // retourne [topic_id, topic_page, ]
 // topic_id = catid_topicid
-function get_topic_data(url) {
+function get_topic_data(p_url) {
   // URL de recherche
-  let l_r = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?post=([0-9]+).*&cat=([0-9]+)&.*$/.exec(url);
+  let l_r = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?post=([0-9]+).*&cat=([0-9]+)&.*&page=([0-9]+)&.*$/.exec(p_url);
   if(l_r !== null) {
-    // la page n'a pas de sens sur l'URL de recherche
-    return [l_r[2] + "_" + l_r[1], null, ];
+    if(p_url.includes("&filter=1")) {
+      // la page n'a pas de sens sur l'URL de recherche filtrée
+      return [l_r[2] + "_" + l_r[1], null, ];
+    }
+    return [l_r[2] + "_" + l_r[1], l_r[3], ];
   }
   // URL à paramètres
-  let l_p = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+)&page=([0-9]+)&.*$/.exec(url);
+  let l_p = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+).*&page=([0-9]+)&.*$/.exec(p_url);
   if(l_p !== null) {
-    if(url.includes("&print=1&")) {
+    if(p_url.includes("&print=1&")) {
       // mode impression, la page n'est pas prise en compte
       return [l_p[1] + "_" + l_p[2], null, ];
     }
     return [l_p[1] + "_" + l_p[2], l_p[3], ];
   }
   // URL permalien
-  let l_e = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+)&.*$/.exec(url);
+  let l_e = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+)&.*$/.exec(p_url);
   if(l_e !== null) {
     return [l_e[1] + "_" + l_e[2], null, ];
   }
   // URL verbeuse
-  let l_v = /^https:\/\/forum\.hardware\.fr\/hfr\/([^\/]+)\/(?:[^\/]+\/)?.*sujet_([0-9]+)_([0-9]+)\.htm.*$/.exec(url);
+  let l_v = /^https:\/\/forum\.hardware\.fr\/hfr\/([^\/]+)\/(?:[^\/]+\/)?.*sujet_([0-9]+)_([0-9]+)\.htm.*$/.exec(p_url);
   if(l_v !== null) {
     return [cat2id[l_v[1]] + "_" + l_v[2], l_v[3], ];
   }
