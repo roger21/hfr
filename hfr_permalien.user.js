@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name          [HFR] Permalien
-// @version       3.0.0
+// @version       3.0.1
 // @namespace     roger21.free.fr
 // @description   Ajoute un lien permanent sur les posts (dans la barre des boutons des posts, à droite) et un lien minimal sur le topic (dans la barre de recherche du topic en haut, à droite).
 // @icon          data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAilBMVEX%2F%2F%2F8AAADxjxvylSrzmzf5wYLzmjb%2F9er%2F%2Fv70nj32q1b5woT70qT82rT827b%2F%2B%2FjxkSHykybykyfylCjylCnzmDDzmjX0nTv1o0b1qFH2qVL2qlT3tGn4tmz4uHD4uXL5vHf83Lf83Lj937394MH%2B587%2B69f%2F8%2BX%2F8%2Bf%2F9On%2F9uz%2F%2BPH%2F%2BvT%2F%2FPmRE1AgAAAAwElEQVR42s1SyRbCIAysA7W2tdZ93%2Ff1%2F39PEtqDEt6rXnQOEMhAMkmC4E9QY9j9da1OkP%2BtTiBo1caOjGisDLRDANCk%2FVIHwwkBZGReh9avnGj2%2FWFg%2Feg5hD1bLZTwqdgU%2FlTSdrqZJWN%2FKImPOnGjiBJKhYqMvikxtlhLNTuz%2FgkxjmJRRza5mbcXpbz4zldLJ0lVEBY5nRL4CJx%2FMEfXE4L9j4Qr%2BZakpiandMpX6FO7%2FaPxxUTJI%2FsJ4cd4AoSOBgZnPvgtAAAAAElFTkSuQmCC
@@ -39,9 +39,15 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5146 $
+// $Rev: 5216 $
 
 // historique :
+// 3.0.1 (08/11/2026) :
+// - distinction entre les recherches filtrées et non filtrées pour la prise en compte ->
+// de la page pour le minilien
+// - prise en compte du mode impression pour ne pas prendre en compte la page pour le ->
+// minilien
+// de la page pour le minilien
 // 3.0.0 (26/10/2026) :
 // - ajout d'un lien minimal sur le topic dans la barre de recherche du topic, à droite
 // - possibilité de copier le lien permanent et le lien minimal dans le presse-papier ->
@@ -56,7 +62,8 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // 2.1.6 (04/03/2021) :
 // - ajout du support pour les résultats des recherches intra-topic
 // 2.1.5 (13/02/2020) :
-// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur (free.fr -> github.com)
+// - utilisation d'une url en data pour l'icône du script et changement d'hébergeur ->
+// (free.fr -> github.com)
 // 2.1.4 (04/01/2020) :
 // - ajout d'un title sur le lien
 // 2.1.3 (02/10/2019) :
@@ -232,7 +239,6 @@ let page;
 let hfr_permalien_click;
 let tooltip;
 let tooltip_timer;
-let recherche = false;
 
 /* ----------------------------------------------- */
 /* fonctions pour la gestion du clic sur les liens */
@@ -377,7 +383,7 @@ function minilink(p_cat, p_topic, p_page) {
   l_newlink.setAttribute("class", class_name);
   l_newlink.setAttribute("data-" + data_name, "non");
   if(minilink_params) {
-    if(minilink_page && !recherche) {
+    if(minilink_page && p_page) {
 
       // https://forum.hardware.fr/forum2.php?cat=10&post=148758&page=300
       // https://forum.hardware.fr/forum2.php?cat=13&post=116015&page=300
@@ -393,7 +399,7 @@ function minilink(p_cat, p_topic, p_page) {
         "&post=" + p_topic;
     }
   } else {
-    if(minilink_page && !recherche) {
+    if(minilink_page && p_page) {
 
       // https://forum.hardware.fr/hfr/Programmation/sujet_148758_300.htm
       // https://forum.hardware.fr/hfr/Discussions/sujet_116015_300.htm
@@ -409,7 +415,7 @@ function minilink(p_cat, p_topic, p_page) {
         "/sujet_" + p_topic + "_1.htm";
     }
   }
-  if(minilink_page && !recherche) {
+  if(minilink_page && p_page) {
     l_newlink.setAttribute("title", "Lien minimal vers cette page");
   } else {
     l_newlink.setAttribute("title", "Lien minimal vers ce topic");
@@ -480,27 +486,34 @@ Promise.all([
   }
 
   // récupération de la cat, du topic et de la page dans l'URL de la page
-  let resultr = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?post=([0-9]+).*&cat=([0-9]+)&.*$/.exec(window.location.href);
-  if(resultr !== null) { // URL de recherche
-    cat = resultr[2];
-    topic = resultr[1];
-    page = "1"; // la page n'a pas de sens sur l'URL de recherche
-    recherche = true;
-  } else {
-    let resultp = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+)&page=([0-9]+)&.*$/.exec(window.location.href);
-    if(resultp !== null) { // URL à paramètres
-      cat = resultp[1];
-      topic = resultp[2];
-      page = resultp[3];
-    } else {
-      let resultv = /^https:\/\/forum\.hardware\.fr\/hfr\/([^\/]+)\/(?:[^\/]+\/)?.*sujet_([0-9]+)_([0-9]+)\.htm.*$/.exec(window.location.href);
-      if(resultv !== null) { // URL verbeuse
-        cat = cat2id[resultv[1]];
-        topic = resultv[2];
-        page = resultv[3];
+  function get_topic_data(p_url) {
+    // URL de recherche
+    let l_r = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?post=([0-9]+).*&cat=([0-9]+)&.*&page=([0-9]+)&.*$/.exec(p_url);
+    if(l_r !== null) {
+      if(p_url.includes("&filter=1")) {
+        // la page n'a pas de sens sur l'URL de recherche filtrée
+        return [l_r[2], l_r[1], null, ];
       }
+      return [l_r[2], l_r[1], l_r[3], ];
     }
+    // URL à paramètres
+    let l_p = /^https:\/\/forum\.hardware\.fr\/forum2\.php\?.*&cat=([0-9]+).*&post=([0-9]+).*&page=([0-9]+)&.*$/.exec(p_url);
+    if(l_p !== null) {
+      if(p_url.includes("&print=1&")) {
+        // mode impression, la page n'est pas prise en compte
+        return [l_p[1], l_p[2], null, ];
+      }
+      return [l_p[1], l_p[2], l_p[3], ];
+    }
+    // URL verbeuse
+    let l_v = /^https:\/\/forum\.hardware\.fr\/hfr\/([^\/]+)\/(?:[^\/]+\/)?.*sujet_([0-9]+)_([0-9]+)\.htm.*$/.exec(p_url);
+    if(l_v !== null) {
+      return [cat2id[l_v[1]], l_v[2], l_v[3], ];
+    }
+    // pas un topic
+    return [null, null, null, ];
   }
+  [cat, topic, page] = get_topic_data(window.location.href);
 
   // construction des liens permanents et du lien minimal
   if(cat && topic) {
