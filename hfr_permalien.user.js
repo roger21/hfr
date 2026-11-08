@@ -39,7 +39,7 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 
 */
 
-// $Rev: 5216 $
+// $Rev: 5218 $
 
 // historique :
 // 3.0.1 (08/11/2026) :
@@ -47,7 +47,6 @@ with this program. If not, see <https://www.gnu.org/licenses/agpl.txt>.
 // de la page pour le minilien
 // - prise en compte du mode impression pour ne pas prendre en compte la page pour le ->
 // minilien
-// de la page pour le minilien
 // 3.0.0 (26/10/2026) :
 // - ajout d'un lien minimal sur le topic dans la barre de recherche du topic, à droite
 // - possibilité de copier le lien permanent et le lien minimal dans le presse-papier ->
